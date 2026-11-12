@@ -1,0 +1,65 @@
+/* ST Doors — tokens de diseño. Única fuente de color, tipo, espacio y movimiento.
+   La fuente Outfit se carga desde src/ui/site.js (@fontsource, licencia OFL). */
+
+:root {
+  /* color: blanco es afuera, azul marino es adentro */
+  --c-wall: #FBFCFD;        /* muro: fondo base */
+  --c-ice: #E9F1F6;         /* hielo: superficies secundarias */
+  --c-white: #FFFFFF;
+  --c-navy: #052F49;        /* interior / ingeniería */
+  --c-navy-2: #0A3D5C;      /* superficie elevada sobre navy */
+  --c-tech: #0879AD;        /* estado activo, pasos */
+  --c-cyan: #16B9CB;        /* señal de pieza y foco */
+  --c-ink: #0C2636;         /* texto sobre muro */
+  --c-ink-soft: #52697A;    /* texto secundario sobre muro (AA sobre --c-wall) */
+  --c-line: #CFDBE2;        /* divisiones */
+  --c-line-strong: #9FB3C0;
+  --c-on-navy: #FFFFFF;
+  --c-on-navy-soft: #A9C3D2;
+  --c-line-navy: #24546F;
+  --c-cds-advanced: #78C7D7; /* acento de interfaz, no pinta el marco */
+  --c-cds-plus: #0879AD;
+  --c-cds-lt: #DA2453;
+  --c-warn-bg: #FFF1C9;
+  --c-warn-ink: #6B5200;
+  --c-error: #B3261E;
+
+  /* tipo: Nexa si hay licencia; Outfit (OFL) como sustituto */
+  --font: "Nexa", "Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --w-regular: 400; --w-medium: 500; --w-bold: 700; --w-heavy: 800;
+  /* escala modular 1.333 con base 16 px, fluida entre 360 y 1440 px */
+  --t-xs: 0.8125rem;                                  /* 13 */
+  --t-sm: 0.9375rem;                                  /* 15 */
+  --t-md: 1.0625rem;                                  /* 17 cuerpo */
+  --t-lg: clamp(1.1875rem, 1.05rem + 0.45vw, 1.3125rem); /* 19–21 */
+  --t-xl: clamp(1.5rem, 1.2rem + 1vw, 1.75rem);       /* 24–28 */
+  --t-2xl: clamp(1.875rem, 1.4rem + 1.8vw, 2.375rem); /* 30–38 */
+  --t-3xl: clamp(2.25rem, 1.5rem + 3vw, 3.125rem);    /* 36–50 */
+  --t-4xl: clamp(2.625rem, 1.6rem + 4.4vw, 4.1875rem);/* 42–67 */
+  --t-5xl: clamp(2.875rem, 1.5rem + 6.2vw, 5.625rem); /* 46–90 */
+  --lh-tight: 1.05; --lh-snug: 1.2; --lh-body: 1.55;
+  --track-tight: -0.025em; --track-snug: -0.012em;
+  --measure: 60ch;
+
+  /* espacio: base 4 */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 144px;
+  --pad-x: clamp(20px, 5vw, 72px);
+  --section-y: clamp(64px, 10vw, 150px);
+  --max: 1440px;
+
+  /* forma: radio según jerarquía (control, superficie, hoja) */
+  --r-control: 999px; --r-field: 10px; --r-surface: 4px; --r-sheet: 20px;
+  --tap: 44px;
+
+  /* movimiento (ver reglas de la Fase 1) */
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-inout: cubic-bezier(.6, 0, .2, 1);
+  --d-ui: 180ms; --d-panel: 320ms; --d-mode: 500ms; --d-page: 600ms; --d-camera: 1000ms;
+
+  --z-nav: 40; --z-sheet: 60; --z-toast: 80;
+  --shadow-sheet: -24px 0 60px rgba(5, 47, 73, .14);
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --d-ui: 0ms; --d-panel: 0ms; --d-mode: 0ms; --d-page: 0ms; --d-camera: 0ms; }
+}

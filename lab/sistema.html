@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sistema de diseño — ST Doors (interno)</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png">
+<style>
+  .g { display: grid; gap: var(--s-6); grid-template-columns: minmax(0, 1fr); }
+  ul#colors { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--s-4); }
+  #colors li { display: flex; flex-direction: column; gap: 4px; font-size: var(--t-sm); }
+  #colors span { height: 72px; border-radius: var(--r-surface); border: 1px solid var(--c-line); }
+  .typerow { display: grid; grid-template-columns: 110px 1fr; gap: var(--s-4); align-items: baseline; padding: var(--s-4) 0; border-bottom: 1px solid var(--c-line); }
+  .typerow code { font-size: var(--t-xs); color: var(--c-ink-soft); }
+  #parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--s-4); }
+  .demo { padding: var(--s-6); border-radius: var(--r-surface); }
+  .form2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); max-width: 720px; }
+  @media (max-width: 640px) { .form2 { grid-template-columns: 1fr; } .typerow { grid-template-columns: 1fr; gap: 4px; } }
+</style>
+</head>
+<body>
+<main id="main">
+  <section class="wrap section stack" style="--stack:16px">
+    <h1>Sistema de diseño</h1>
+    <p class="t-lead">Tokens y componentes de todo el sitio. Blanco es afuera, azul marino es adentro.</p>
+    <p class="phase-note">Tipografía provisional: Outfit (licencia OFL). Se sustituye por Nexa en cuanto haya archivos y licencia web; la escala no cambia.</p>
+  </section>
+
+  <section class="wrap stack" style="--stack:24px;padding-bottom:var(--s-9)">
+    <h2 class="t-h3">Color</h2>
+    <ul id="colors"></ul>
+    <h2 class="t-h3" style="margin-top:var(--s-8)">Tipografía</h2>
+    <div id="type"></div>
+  </section>
+
+  <section class="surface-ice section">
+    <div class="wrap g">
+      <h2 class="t-h3">Acciones y selección</h2>
+      <div class="row"><button class="btn">Agregar a mi solicitud</button><button class="btn btn--line">Ver por dentro</button><button class="btn btn--sm">Cotizar</button><button class="btn btn--line btn--sm">Menú</button><button class="link">Ver las 57</button><span class="badge">Pieza 57</span><span class="badge badge--warn">Pendiente</span></div>
+      <div class="chips" role="group" aria-label="Filtro de ejemplo"><button class="chip" aria-pressed="true">Todas las puertas</button><button class="chip" aria-pressed="false">Abatible</button><button class="chip" aria-pressed="false">Corrediza</button><button class="chip" aria-pressed="false">Vaivén</button><button class="chip" aria-pressed="false">Herrajes</button></div>
+      <div class="row" style="gap:var(--s-6)">
+        <div class="segmented" role="group" aria-label="Modelo CDS"><button aria-pressed="true">Advanced</button><button aria-pressed="false">Plus</button><button aria-pressed="false">LT</button></div>
+        <div class="row"><div class="swatches" role="group" aria-label="Acabado"><button class="swatch swatch--black" aria-label="Negro" aria-pressed="false"></button><button class="swatch swatch--stainless" aria-label="Inoxidable" aria-pressed="true"></button><button class="swatch swatch--white" aria-label="Blanco sanitario" aria-pressed="false"></button></div><span id="swName" class="t-soft">Inoxidable</span></div>
+        <button class="btn btn--line btn--sm" id="toastBtn">Probar aviso</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="surface-navy section">
+    <div class="wrap g">
+      <h2 class="t-h3">Interior (modo ingeniería)</h2>
+      <p class="t-lead">El mismo componente cambia de color al pasar al interior; no hay una segunda versión.</p>
+      <div class="row"><button class="btn">Volver al exterior</button><button class="btn btn--line">Ver pieza en el catálogo</button></div>
+      <div class="segmented" role="group" aria-label="Modelo CDS"><button aria-pressed="false">Advanced</button><button aria-pressed="true">Plus</button><button aria-pressed="false">LT</button></div>
+      <p class="phase-note">Aviso de fase sobre superficie interior.</p>
+    </div>
+  </section>
+
+  <section class="wrap section g">
+    <h2 class="t-h3">Búsqueda, campos y ficha</h2>
+    <div class="search"><input aria-label="Buscar componente" placeholder="polea, bisagra, empaque, 57"><button class="btn btn--sm">Buscar</button></div>
+    <form class="form2" id="form" novalidate>
+      <label class="field">Nombre<input autocomplete="name"></label>
+      <label class="field">Correo<input id="mail" type="email" autocomplete="email" aria-describedby="mailErr"><span class="field__error" id="mailErr" hidden>Escribe un correo con el formato nombre@empresa.com</span></label>
+      <label class="field">Temperatura de trabajo<select><option>No aplica o no lo sé</option><option>Refrigeración</option><option>Congelación</option></select></label>
+      <label class="field">Medidas del vano<input placeholder="ancho × alto, en metros"><span class="field__hint">Opcional</span></label>
+      <div><button class="btn">Validar correo</button></div>
+    </form>
+    <dl class="spec" style="max-width:720px"><div><dt>Movimiento</dt><dd>Abatible, una hoja</dd></div><div><dt>Acabados</dt><dd>Negro, inoxidable, blanco sanitario</dd></div><div><dt>Bumper</dt><dd>Inox diamante</dd></div></dl>
+  </section>
+
+  <section class="surface-ice section">
+    <div class="wrap g">
+      <div class="stack" style="--stack:8px"><h2 class="t-h3">Piezas reales del catálogo</h2><p class="t-soft t-small" id="stats"></p></div>
+      <div id="parts"></div>
+    </div>
+  </section>
+</main>
+<script type="module" src="/src/pages/lab-sistema.js"></script>
+</body>
+</html>

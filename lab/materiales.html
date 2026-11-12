@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calibración de materiales — ST Doors (interno)</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png">
+<style>
+  .viewer.lab-viewer { height: min(68svh, 640px); background: linear-gradient(#f6f8f9, #e3e9ed); border-radius: var(--r-surface); }
+  .lab-bar { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: center; justify-content: space-between; margin-top: var(--s-4); }
+  .lab-bar label { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-sm); }
+  .lab-bar input[type=range] { width: 200px; height: var(--tap); accent-color: var(--c-tech); }
+  table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); margin-top: var(--s-5); }
+  th, td { text-align: left; padding: var(--s-3) var(--s-2); border-bottom: 1px solid var(--c-line); font-variant-numeric: tabular-nums; }
+  thead th { color: var(--c-ink-soft); font-weight: var(--w-medium); }
+  .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--c-line-strong); vertical-align: -2px; margin-right: 6px; }
+  .tablewrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main id="main" class="wrap section stack" style="--stack:24px">
+  <div class="stack" style="--stack:12px">
+    <h1 class="t-h2">Calibración de materiales</h1>
+    <p class="t-lead">Las muestras usan las mismas instancias que usarán las puertas. Si un acabado se ve bien aquí, se ve igual en la abatible y en la vaivén.</p>
+  </div>
+  <div>
+    <div class="viewer lab-viewer" id="viewer" aria-label="Muestras de material en 3D"></div>
+    <div class="lab-bar">
+      <div class="segmented" role="group" aria-label="Vista"><button data-view="frontal" aria-pressed="false">Frontal</button><button data-view="tres4" aria-pressed="true">3/4</button><button data-view="detalle" aria-pressed="false">Detalle</button></div>
+      <label>Girar el entorno <input id="envRot" type="range" min="0" max="360" value="0"> <span id="envRotV" class="t-num">0°</span></label>
+      <div class="segmented" role="group" aria-label="Calidad"><button data-q="alta">Alta</button><button data-q="media">Media</button><button data-q="baja">Baja</button></div>
+    </div>
+  </div>
+  <section class="stack" style="--stack:8px">
+    <h2 class="t-h3">Parámetros</h2>
+    <p class="t-soft t-small">Leídos en vivo de <code>src/materials/FinishRegistry.js</code>. Es el único lugar donde se definen.</p>
+    <div class="tablewrap"><table><thead><tr><th>Muestra</th><th>Token</th><th>Color base</th><th>Metal</th><th>Rugosidad</th><th>Clearcoat</th><th>Anisotropía</th></tr></thead><tbody id="params"></tbody></table></div>
+  </section>
+  <section class="stack" style="--stack:8px">
+    <h2 class="t-h3">Cómo revisar</h2>
+    <p>Gira el entorno: el inoxidable debe mostrar bandas de luz alargadas que se mueven, el negro un reflejo suave sin tinte azul y el blanco sanitario debe seguir blanco, con un brillo tenue en el canto. En calidad baja se quitan anisotropía y barniz, pero el color base no cambia.</p>
+  </section>
+</main>
+<script type="module" src="/src/pages/lab-materiales.js"></script>
+</body>
+</html>

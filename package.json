@@ -1,0 +1,25 @@
+{
+  "name": "st-doors-web",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "assets": "node scripts/build-assets.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "sharp": "^0.35.5",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "@fontsource/outfit": "^5.3.0",
+    "gsap": "^3.15.1",
+    "three": "^0.169.0"
+  },
+  "private": true,
+  "type": "module"
+}
