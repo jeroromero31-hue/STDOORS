@@ -24,19 +24,19 @@ export function guessQuality() {
 // Entorno de estudio propio: sala gris clara y neutra (sin tinte) con bandas de luz largas (dan lectura al metal cepillado).
 export function studioEnvironment(renderer) {
   const scene = new THREE.Scene();
-  const room = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 20), new THREE.MeshBasicMaterial({ color: 0xb4b4b4, side: THREE.BackSide }));
+  const room = new THREE.Mesh(new THREE.BoxGeometry(20, 10, 20), new THREE.MeshBasicMaterial({ color: 0xc4c4c4, side: THREE.BackSide }));
   room.position.y = 4; scene.add(room);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshBasicMaterial({ color: 0x8c8c8c }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshBasicMaterial({ color: 0x8e8e8e }));
   floor.rotation.x = -Math.PI / 2; floor.position.y = -0.99; scene.add(floor);
   const panel = (w, h, x, y, z, ry, rx, intensity) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(intensity, intensity, intensity) }));
     m.position.set(x, y, z); m.rotation.set(rx, ry, 0); scene.add(m);
   };
-  panel(14, 1.2, 0, 8.9, 0, 0, Math.PI / 2, 5.5);          // banda cenital
-  panel(1.4, 7, -9.9, 3.5, -2, Math.PI / 2, 0, 3.2);       // lateral izquierda
-  panel(1.4, 7, 9.9, 3.5, 2, -Math.PI / 2, 0, 2.4);        // lateral derecha
-  panel(10, 3, 0, 4, -9.9, 0, 0, 1.6);                     // fondo
-  panel(6, 2.2, 3, 3, 9.9, Math.PI, 0, 2.0);               // frontal (rebote del observador)
+  panel(16, 3, 0, 8.9, 2, 0, Math.PI / 2, 5.0);                              // banda cenital
+  for (const x of [-7, -2.4, 2.4, 7]) panel(2.0, 7.5, x, 3.6, 9.9, Math.PI, 0, 4.2);   // tiras verticales frente a la puerta
+  panel(2.4, 7.5, -9.9, 3.6, 4.5, Math.PI / 2, 0, 3.4);                     // tira lateral izquierda
+  panel(2.4, 7.5, 9.9, 3.6, 4.5, -Math.PI / 2, 0, 3.4);                     // tira lateral derecha
+  panel(12, 3, 0, 4, -9.9, 0, 0, 1.4);                                      // fondo
   const pmrem = new THREE.PMREMGenerator(renderer);
   const env = pmrem.fromScene(scene, 0.02).texture;
   pmrem.dispose(); scene.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
@@ -65,11 +65,14 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   controls.enableDamping = true; controls.dampingFactor = 0.08;
   controls.enablePan = false;
   controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE }; // un dedo desplaza la página; dos giran y acercan
+  canvas.style.touchAction = 'pan-y';              // OrbitControls pone 'none'; así el dedo sigue desplazando la página
+  // La rueda desplaza la página; solo acerca el modelo con Ctrl/⌘ o con el gesto de pellizco del trackpad
+  container.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopPropagation(); }, { capture: true });
 
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  const key = new THREE.DirectionalLight(0xffffff, 1.35);
   key.position.set(3, 5, 4); key.castShadow = true; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
   Object.assign(key.shadow.camera, { left: -2.5, right: 2.5, top: 3, bottom: -1, near: 0.5, far: 15 });
-  scene.add(key, new THREE.HemisphereLight(0xffffff, 0xbdbdbd, 0.45));
+  scene.add(key, new THREE.HemisphereLight(0xffffff, 0xbdbdbd, 0.3));
 
   const stage = { renderer, scene, camera, controls, key, canvas, container, quality, onFrame: new Set() };
   stage.setQuality = (q) => {
@@ -95,8 +98,19 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
     stage.onFrame.forEach((f) => f(dt, t));
     controls.update(); renderer.render(scene, camera);
   });
+  // distancia para encuadrar una caja de w × h metros con margen, según el aspecto actual
+  stage.fitDistance = (w, h, margin = 1.12) => {
+    const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    return Math.max(h / (2 * t), w / (2 * t * camera.aspect)) * margin;
+  };
+  stage.onResize = new Set();
+  new ResizeObserver(() => stage.onResize.forEach((f) => f())).observe(container);
   stage.setQuality(quality);
   return stage;
 }
 
 export const rbox = (w, h, d, r = 0.004, seg = 3) => new RoundedBoxGeometry(w, h, d, seg, Math.min(r, w / 2 - 1e-4, h / 2 - 1e-4, d / 2 - 1e-4));
+
+// utilidades de UV: escalar (texturas en metros reales) e intercambiar ejes (veta vertical)
+export function scaleUV(geo, sx, sy) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy); uv.needsUpdate = true; return geo; }
+export function swapUV(geo) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i)); uv.needsUpdate = true; return geo; }

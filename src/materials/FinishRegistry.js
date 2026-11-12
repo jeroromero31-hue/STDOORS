@@ -25,8 +25,7 @@ export function createFinishRegistry(renderer) {
     peel: orangePeelNormal(),
     diamond: diamondPlate(),
   };
-  // placa diamante: ~60 mm por motivo sobre una hoja de referencia de 0.34 × 0.62 m; cada visor ajusta el repeat a su tamaño real
-  tex.diamond.normal.repeat.set(6, 10); tex.diamond.roughness.repeat.set(6, 10);
+  // placa diamante: el repeat queda en 1; cada geometría escala sus UV a metros reales (ver scaleUV)
   Object.values(tex).flatMap((t) => (t.isTexture ? [t] : Object.values(t))).forEach((t) => { t.anisotropy = maxAniso; });
 
   const m = {
@@ -37,8 +36,8 @@ export function createFinishRegistry(renderer) {
     }),
     // Acero inoxidable cepillado: metal pleno, vetas anisotrópicas que cambian al mover la cámara.
     stainless: new THREE.MeshPhysicalMaterial({
-      name: 'stainless', color: new THREE.Color('#c9cdd0'), metalness: 1, roughness: 0.24, roughnessMap: tex.brushed,
-      anisotropy: 0.65, anisotropyRotation: 0, envMapIntensity: 1.15,
+      name: 'stainless', color: new THREE.Color('#d6d9db'), metalness: 1, roughness: 0.24, roughnessMap: tex.brushed,
+      anisotropy: 0.65, anisotropyRotation: 0, envMapIntensity: 1.45,
     }),
     // Blanco sanitario: lámina pintada/laminada, reflejo suave, piel de naranja apenas perceptible.
     hygienicWhite: new THREE.MeshPhysicalMaterial({
@@ -49,18 +48,18 @@ export function createFinishRegistry(renderer) {
     // Bumper: inoxidable con relieve diamante (único bumper de la abatible)
     stainlessDiamond: new THREE.MeshPhysicalMaterial({
       name: 'stainlessDiamond', color: new THREE.Color('#d2d6d9'), metalness: 1, roughness: 0.22,
-      roughnessMap: tex.diamond.roughness, normalMap: tex.diamond.normal, normalScale: new THREE.Vector2(1, 1), envMapIntensity: 1.2,
+      roughnessMap: tex.diamond.roughness, normalMap: tex.diamond.normal, normalScale: new THREE.Vector2(1, 1), envMapIntensity: 1.5,
     }),
     // Perfil perimetral de aluminio anodizado natural
-    aluminum: new THREE.MeshPhysicalMaterial({ name: 'aluminum', color: new THREE.Color('#c4c9cd'), metalness: 1, roughness: 0.34, roughnessMap: tex.satinAlu, envMapIntensity: 1.0 }),
+    aluminum: new THREE.MeshPhysicalMaterial({ name: 'aluminum', color: new THREE.Color('#c4c9cd'), metalness: 1, roughness: 0.34, roughnessMap: tex.satinAlu, envMapIntensity: 1.4 }),
     // Aluminio negro CDS (marco y hojas Reach-In)
     blackAluminum: new THREE.MeshPhysicalMaterial({ name: 'blackAluminum', color: new THREE.Color('#141517'), metalness: 0.55, roughness: 0.42, roughnessMap: tex.satinBlack, clearcoat: 0.15, clearcoatRoughness: 0.45, envMapIntensity: 0.9 }),
     // Vidrio: transparente con reflejo moderado. Sin transmisión real para mantener el rendimiento en móvil.
     glass: new THREE.MeshPhysicalMaterial({ name: 'glass', color: new THREE.Color('#ffffff'), metalness: 0, roughness: 0.03, ior: 1.52, transparent: true, opacity: 0.1, envMapIntensity: 1.5, depthWrite: false, side: THREE.DoubleSide }),
     rubber: new THREE.MeshStandardMaterial({ name: 'rubber', color: new THREE.Color('#0d0e0f'), roughness: 0.88, metalness: 0 }),
-    plasticGray: new THREE.MeshPhysicalMaterial({ name: 'plasticGray', color: new THREE.Color('#8a9095'), roughness: 0.55, metalness: 0, clearcoat: 0.1 }),
+    plasticGray: new THREE.MeshPhysicalMaterial({ name: 'plasticGray', color: new THREE.Color('#9da2a6'), roughness: 0.55, metalness: 0, clearcoat: 0.1 }),
     plasticBlack: new THREE.MeshPhysicalMaterial({ name: 'plasticBlack', color: new THREE.Color('#141618'), roughness: 0.5, metalness: 0, clearcoat: 0.2, clearcoatRoughness: 0.4 }),
-    steelHardware: new THREE.MeshStandardMaterial({ name: 'steelHardware', color: new THREE.Color('#d4d8db'), metalness: 1, roughness: 0.22 }),
+    steelHardware: new THREE.MeshStandardMaterial({ name: 'steelHardware', color: new THREE.Color('#d4d8db'), metalness: 1, roughness: 0.22, envMapIntensity: 1.35 }),
   };
 
   registry = {

@@ -1,0 +1,43 @@
+/* Página de puerta: el visor queda fijo y el contenido de la derecha lo recorre. */
+.subnav { position: sticky; top: 68px; z-index: 30; background: color-mix(in srgb, var(--c-wall) 94%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--c-line); }
+.subnav__in { display: flex; align-items: center; gap: var(--s-5); min-height: 52px; overflow-x: auto; scrollbar-width: none; }
+.subnav__name { font-weight: var(--w-bold); white-space: nowrap; margin-right: auto; }
+.subnav a { display: inline-flex; align-items: center; min-height: var(--tap); white-space: nowrap; text-decoration: none; font-size: var(--t-sm); font-weight: var(--w-medium); color: var(--c-ink-soft); border-bottom: 2px solid transparent; }
+.subnav a[aria-current=true] { color: var(--c-ink); border-color: var(--c-navy); }
+@media (max-width: 640px) { .subnav__name { display: none; } }
+
+.door { --top: 121px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 36%); background: var(--c-wall); color: var(--c-ink); transition: background var(--d-mode), color var(--d-mode); }
+.door.is-inside { background: var(--c-navy); color: var(--c-on-navy); --c-ink-soft: var(--c-on-navy-soft); --c-line: var(--c-line-navy); }
+.door__viewer { position: sticky; top: var(--top); height: calc(100svh - var(--top)); min-height: 420px; }
+.door__viewer .viewer { height: 100%; }
+.door__col { padding: 0 var(--pad-x) 0 var(--s-5); }
+.door__hero { min-height: calc(100svh - var(--top)); display: flex; flex-direction: column; justify-content: flex-end; gap: var(--s-4); padding-block: var(--s-7) var(--s-8); }
+.door__hero h1 { font-size: var(--t-3xl); }
+.door__ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-4); margin-top: var(--s-3); }
+.door__finish { display: flex; align-items: center; gap: var(--s-3); }
+.door__step { min-height: 84svh; display: flex; flex-direction: column; justify-content: center; gap: var(--s-3); }
+.door__step h2 { font-size: var(--t-2xl); }
+.door__n { font-size: var(--t-sm); font-weight: var(--w-bold); color: var(--c-tech); }
+.door.is-inside .door__n { color: var(--c-cyan); }
+.door.is-inside .btn { background: var(--c-white); color: var(--c-navy); border-color: var(--c-white); }
+.door.is-inside .btn--line { background: transparent; color: var(--c-on-navy); border-color: var(--c-on-navy); }
+@media (max-width: 900px) {
+  .door { grid-template-columns: minmax(0, 1fr); }
+  .door__viewer { height: 46svh; min-height: 300px; z-index: 5; background: inherit; border-bottom: 1px solid var(--c-line); }
+  .door__col { padding: 0 var(--pad-x); }
+  .door__hero { min-height: 0; padding-block: var(--s-5) var(--s-7); }
+  .door__step { min-height: 52svh; justify-content: flex-start; padding-top: var(--s-6); }
+}
+
+/* puntos de pieza */
+.hotspots { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hotspot { position: absolute; left: 0; top: 0; width: var(--tap); height: var(--tap); border-radius: 50%; border: 2px solid var(--c-cyan); background: color-mix(in srgb, var(--c-navy) 82%, transparent); color: #fff; font-weight: var(--w-bold); font-size: var(--t-sm); cursor: pointer; pointer-events: auto; will-change: transform; }
+.hotspot[aria-pressed=true] { background: var(--c-cyan); color: var(--c-navy); }
+.hotcard { position: absolute; left: var(--s-4); bottom: var(--s-4); max-width: min(340px, calc(100% - 32px)); padding: var(--s-4); border-radius: var(--r-field); background: var(--c-white); color: var(--c-ink); display: flex; gap: var(--s-3); align-items: center; box-shadow: 0 12px 32px rgba(0, 0, 0, .25); }
+.hotcard img { width: 84px; height: 63px; object-fit: contain; flex: none; }
+.hotcard b { display: block; line-height: 1.25; }
+.viewer__hint { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); pointer-events: none; transition: opacity var(--d-panel); white-space: nowrap; }
+.viewer__hint.is-off { opacity: 0; }
+
+.door-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--s-4); }
+.door-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-5); flex-wrap: wrap; margin-bottom: var(--s-7); }

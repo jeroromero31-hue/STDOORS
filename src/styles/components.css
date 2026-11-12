@@ -87,7 +87,6 @@
 .part:hover { border-color: var(--c-line-strong); }
 .part picture { display: block; }
 .part img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: contain; background: var(--c-white); }
-img[width][height] { height: auto; }
 .part__t { padding: var(--s-3) var(--s-3) var(--s-4); font-size: var(--t-sm); line-height: 1.35; font-weight: var(--w-medium); }
 .part__t small { display: block; margin-top: 2px; color: var(--c-ink-soft); font-weight: var(--w-regular); }
 

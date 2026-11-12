@@ -1,7 +1,7 @@
 // Escena de calibración: todas las muestras bajo la misma luz, vistas frontal y 3/4.
 import * as THREE from 'three';
 import { mountSite } from '../ui/site.js';
-import { createStage, rbox } from '../core/stage.js';
+import { createStage, rbox, scaleUV } from '../core/stage.js';
 import { createFinishRegistry, FINISH_LABEL } from '../materials/FinishRegistry.js';
 
 mountSite('lab');
@@ -20,7 +20,8 @@ if (stage) {
   backdrop.position.set(0, 2, -0.6); backdrop.receiveShadow = true; scene.add(backdrop);
   SAMPLES.forEach(([key], i) => {
     const x = -total / 2 + W / 2 + i * (W + gap), mat = reg.get(key);
-    const slab = new THREE.Mesh(rbox(W, 0.62, 0.05, 0.012, 4), mat);   // canto con radio: lee el borde
+    const slabGeo = rbox(W, 0.62, 0.05, 0.012, 4); if (key === 'stainlessDiamond') scaleUV(slabGeo, W / 0.15, 0.62 / 0.15);
+    const slab = new THREE.Mesh(slabGeo, mat);   // canto con radio: lee el borde
     slab.position.set(x, 0.33, 0); slab.castShadow = slab.receiveShadow = true; scene.add(slab);
     const ball = new THREE.Mesh(new THREE.SphereGeometry(0.085, 64, 32), mat);
     ball.position.set(x, 0.085, 0.24); ball.castShadow = true; scene.add(ball);
