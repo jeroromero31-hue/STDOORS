@@ -4,7 +4,7 @@ import '../styles/door.css';
 import { mountSite, solicitud, toast, url } from './site.js';
 import { partPicture } from './picture.js';
 import { createStage } from '../core/stage.js';
-import { createFinishRegistry, FINISH_LABEL } from '../materials/FinishRegistry.js';
+import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
 import { createCameraRig } from '../core/cameraRig.js';
 import { attachHingeDrag } from '../core/hinge.js';
 import { createHotspots } from '../core/hotspots.js';
@@ -13,6 +13,20 @@ import catalog from '../data/components.json';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
+// Cómo se mueve una puerta, visto desde la página. Las abisagradas usan este adaptador;
+// las que se mueven de otra forma (la corrediza) traen el suyo en viewer.motion.
+function hingeMotion(stage, viewer) {
+  const hinges = viewer.hinges || [viewer.hinge];
+  return {
+    hinges,
+    attachDrag: (opts) => attachHingeDrag(stage, hinges, { pickables: viewer.pickables, ...opts }),
+    onOpenChange: (f) => hinges[0].onChange((h) => f(h.target > 45)),
+    setOpen: (on) => hinges.forEach((h) => h.set(on ? 90 : 0)),
+    inside: (on) => hinges.forEach((h) => h.set(on ? Math.min(85, h.max) : 0)),
+    step: (d) => { if (d.open !== undefined) hinges.forEach((h) => h.set(Number(d.open))); },
+  };
+}
+
 export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   mountSite('industriales');
   const door = $('.door'), viewerEl = $('#viewer');
@@ -20,24 +34,41 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
   // ---------- 3D ----------
-  const stage = createStage(viewerEl, { fallback: `<img src="${url(poster)}" alt="${nombre}"><p class="t-small t-soft">Este dispositivo no pudo iniciar el visor 3D. Aquí tienes una imagen de la puerta.</p>` });
+  const still = (why) => `<img src="${url(poster)}" alt="${nombre}"><p class="t-small t-soft">${why} Aquí tienes una imagen de la puerta.</p>`;
+  const stage = createStage(viewerEl, { fallback: still('Este dispositivo no pudo iniciar el visor 3D.') });
   let viewer = null, rig = null, state = { finish: null, open: false, inside: false };
   const openBtn = $('#openBtn'), insideBtn = $('#insideBtn'), hint = $('#hint'), live = $('#live');
+  const noViewer = () => { $$('.door__ctl > *').forEach((el) => { el.hidden = true; }); hint.hidden = true; };
   if (stage) {
-    const reg = createFinishRegistry(stage.renderer); reg.setQuality(stage.quality);
+    // el registro compartido solo se crea para las puertas con acabados a elegir; las de un solo acabado traen sus materiales
+    const finishes = FINISHES_BY_DOOR[familia] || [];
+    const reg = finishes.length ? createFinishRegistry(stage.renderer) : null; if (reg) reg.setQuality(stage.quality);
     viewer = createViewer(stage, reg);
     rig = createCameraRig(stage, viewer.views); rig.go('general', 0);
-    stage.controls.minDistance = 0.4; stage.controls.maxDistance = 9; stage.controls.maxPolarAngle = Math.PI * 0.55;
-    const hinges = viewer.hinges || [viewer.hinge];
-    attachHingeDrag(stage, hinges, { pickables: viewer.pickables, onGrab: () => hint.classList.add('is-off') });
+    Object.assign(stage.controls, { minDistance: 0.4, maxDistance: 9, maxPolarAngle: Math.PI * 0.55 }, viewer.limits);
+    const motion = viewer.motion || hingeMotion(stage, viewer);
+
+    // los modelos que se descargan avisan cuando están listos; si fallan, queda la imagen fija
+    if (viewer.ready) {
+      viewerEl.classList.add('is-loading');
+      viewer.ready.then(() => viewerEl.classList.remove('is-loading'), (err) => {
+        console.error(err); stage.renderer.setAnimationLoop(null);
+        viewerEl.classList.remove('is-loading'); viewerEl.innerHTML = `<div class="viewer__fallback">${still('No se pudo cargar el modelo 3D.')}</div>`;
+        $('#hotspots').hidden = true; door.classList.remove('is-inside'); noViewer();
+      });
+    }
+
+    motion.attachDrag({ onGrab: () => hint.classList.add('is-off') });
     stage.controls.addEventListener('start', () => hint.classList.add('is-off'));
-    hinges[0].onChange((h) => {
-      const isOpen = h.target > 45; if (isOpen !== state.open) { state.open = isOpen; openBtn.textContent = isOpen ? 'Cerrar' : 'Abrir'; }
-    });
-    openBtn.onclick = () => { const to = state.open ? 0 : 90; hinges.forEach((h) => h.set(to)); live.textContent = to ? 'Puerta abierta' : 'Puerta cerrada'; if (to && rig.current === 'general') rig.go('abierta'); if (!to && rig.current === 'abierta') rig.go('general'); hint.classList.add('is-off'); };
+    motion.onOpenChange((isOpen) => { if (isOpen !== state.open) { state.open = isOpen; openBtn.textContent = isOpen ? 'Cerrar' : 'Abrir'; } });
+    openBtn.onclick = () => {
+      const to = !state.open; motion.setOpen(to); live.textContent = to ? 'Puerta abierta' : 'Puerta cerrada';
+      if (to && rig.current === 'general') rig.go('abierta'); if (!to && rig.current === 'abierta') rig.go('general');
+      hint.classList.add('is-off');
+    };
 
     // acabados: solo las opciones reales de esta puerta
-    const finishes = reg.finishFor(familia), sw = $('#swatches'), fin = $('#finishName');
+    const sw = $('#swatches'), fin = $('#finishName');
     const cls = { blackMetal: 'swatch--black', stainless: 'swatch--stainless', hygienicWhite: 'swatch--white' };
     const setFinish = (f) => { state.finish = f; viewer.setFinish(f); fin.textContent = FINISH_LABEL[f]; $$('.swatch', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === f)); };
     if (finishes.length) {
@@ -58,24 +89,34 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
       state.inside = !state.inside; door.classList.toggle('is-inside', state.inside); viewer.setInside(state.inside);
       layer.hidden = !state.inside; card.hidden = true; hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', 'false'));
       insideBtn.setAttribute('aria-pressed', state.inside); insideBtn.textContent = state.inside ? 'Volver al exterior' : 'Ver por dentro';
-      hinges.forEach((h) => h.set(state.inside ? Math.min(85, h.max) : 0)); rig.go(state.inside ? (viewer.views.interior ? 'interior' : 'abierta') : 'general');
+      motion.inside(state.inside); rig.go(state.inside ? (viewer.views.interior ? 'interior' : 'abierta') : 'general');
       live.textContent = state.inside ? `Vista interior: ${items.length} piezas señaladas` : 'Vista exterior';
       hint.classList.add('is-off');
     };
 
-    // cómo cierra: cada bloque de texto fija una cámara y un ángulo de la hoja
-    const blocks = $$('[data-view]');
-    let currentBlock = null;
-    const io = new IntersectionObserver((es) => es.forEach((e) => {
+    // cómo cierra: cada bloque de texto fija una cámara y una posición de la puerta.
+    // La línea de disparo va donde se está leyendo: a media pantalla cuando el texto corre junto al visor;
+    // cuando el visor queda fijo arriba (móvil), en la franja de texto que se ve debajo de él.
+    const blocks = $$('[data-view]'), sticky = $('.door__viewer'), col = $('.door__col');
+    let currentBlock = null, io = null, timer = 0;
+    const onBlock = (es) => es.forEach((e) => {
       if (!e.isIntersecting || e.target === currentBlock) return; currentBlock = e.target;
+      if (e.target !== blocks[0]) hint.classList.add('is-off');   // el aviso de arrastre solo acompaña a la vista inicial
       if (state.inside) return;                                   // en modo interior manda el usuario
-      rig.go(e.target.dataset.view); if (e.target.dataset.open !== undefined) hinges.forEach((h) => h.set(Number(e.target.dataset.open)));
-    }), { rootMargin: '-48% 0px -48% 0px' });
-    blocks.forEach((b) => io.observe(b));
-    window.__door = { stage, viewer, rig, hinges };
-  } else {
-    $$('.door__ctl > *').forEach((el) => { el.hidden = true; }); hint.hidden = true;
-  }
+      rig.go(e.target.dataset.view); motion.step(e.target.dataset);
+    });
+    const watch = () => {
+      if (io) io.disconnect();
+      const H = innerHeight, v = sticky.getBoundingClientRect(), stacked = col.getBoundingClientRect().left < v.right - 1;
+      const below = (parseFloat(getComputedStyle(sticky).top) || 0) + v.height;      // borde inferior del visor fijo
+      // sin pasar del primer bloque: al cargar la página manda la vista general
+      const line = Math.round(stacked ? below + Math.min((H - below) * 0.75, blocks[0].offsetHeight * 0.85) : H * 0.5);
+      io = new IntersectionObserver(onBlock, { rootMargin: `-${line - 1}px 0px -${H - line - 1}px 0px` });
+      blocks.forEach((el) => io.observe(el));
+    };
+    watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
+    window.__door = { stage, viewer, rig, motion, hinges: motion.hinges };
+  } else noViewer();
 
   // ---------- piezas, ficha, cotizar ----------
   $('#partsLead').textContent = `${parts.length} piezas con fotografía en el catálogo.`;
@@ -94,5 +135,5 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   const links = $$('.subnav a');
   const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
   links.forEach((a) => { const t = $(a.getAttribute('href')); t && io2.observe(t); });
-  return { stage, viewer, famLabel };
+  return { stage, viewer, rig, famLabel };
 }

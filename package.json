@@ -6,7 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host",
-    "assets": "node scripts/build-assets.mjs"
+    "assets": "node scripts/build-assets.mjs",
+    "corrediza": "node scripts/convert-corrediza.mjs && node scripts/verify-corrediza.mjs",
+    "verificar": "node scripts/verify-corrediza.mjs"
   },
   "keywords": [],
   "author": "",

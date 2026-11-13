@@ -109,6 +109,7 @@
 .viewer canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .viewer__fallback { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); text-align: center; padding: var(--s-6); background: var(--c-ice); }
 .viewer__fallback img { max-height: 70%; width: auto; }
+.viewer.is-loading::after { content: 'Cargando modelo 3D…'; position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); padding: var(--s-2) var(--s-3); border-radius: var(--r-control); background: color-mix(in srgb, var(--c-white) 86%, transparent); font-size: var(--t-sm); color: var(--c-ink-soft); pointer-events: none; }
 .hint { display: inline-flex; align-items: center; gap: var(--s-2); padding: var(--s-2) var(--s-3); border-radius: var(--r-control); background: color-mix(in srgb, var(--c-white) 86%, transparent); font-size: var(--t-sm); color: var(--c-ink-soft); }
 
 /* ---------- aviso de fase ---------- */

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { rbox, scaleUV, swapUV } from '../core/stage.js';
 import { Hinge } from '../core/hinge.js';
+import { createBackdrop } from '../core/backdrop.js';
 
 // ---------- medidas (m), iguales al modelo base ----------
 const OW = 0.90, OH = 1.95;              // paso libre
@@ -33,19 +34,8 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   };
 
   // ---------- muro, piso e interior ("blanco es afuera, azul marino es adentro") ----------
-  const env = {
-    wall: new THREE.MeshStandardMaterial({ color: 0xf4f6f7, roughness: 0.92 }),
-    floor: new THREE.MeshStandardMaterial({ color: 0xe2e7ea, roughness: 0.75 }),
-    interior: new THREE.MeshBasicMaterial({ color: 0x052f49 }),
-  };
-  {
-    const wt = 0.12, wx = 7, wy = 3.4, L = OW / 2;
-    add(root, new THREE.BoxGeometry(wx - L, wy, wt), env.wall, -(L + (wx - L) / 2), wy / 2, -wt / 2);
-    add(root, new THREE.BoxGeometry(wx - L, wy, wt), env.wall, L + (wx - L) / 2, wy / 2, -wt / 2);
-    add(root, new THREE.BoxGeometry(OW, wy - OH, wt), env.wall, 0, OH + (wy - OH) / 2, -wt / 2);
-    const floor = add(root, new THREE.PlaneGeometry(14, 9), env.floor, 0, 0, 4.4); floor.rotation.x = -Math.PI / 2; floor.castShadow = false;
-    const box = new THREE.Mesh(new THREE.BoxGeometry(OW + 0.4, OH + 0.2, 1.2), env.interior); box.material.side = THREE.BackSide; box.position.set(0, OH / 2, -0.6 - wt); root.add(box);
-  }
+  const backdrop = createBackdrop(stage, { opening: { left: -OW / 2, right: OW / 2, top: OH } });
+  root.add(backdrop.group);
 
   // ---------- marco ----------
   const frame = new THREE.Group(); frame.name = 'Marco'; root.add(frame);
@@ -193,26 +183,14 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   }
   setFinish(finish);
 
-  // ---------- modo interior: el muro pasa de blanco a azul marino ----------
-  const OUT = { wall: new THREE.Color(0xf4f6f7), floor: new THREE.Color(0xe2e7ea) }, IN = { wall: new THREE.Color(0x052f49), floor: new THREE.Color(0x04283f) }, BLACK = new THREE.Color(0x000000);
-  let inside = 0, insideTarget = 0;
-  stage.onFrame.add((dt) => {
-    hinge.update(dt);
-    if (inside !== insideTarget) {
-      const step = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : dt / 0.5;
-      inside = insideTarget > inside ? Math.min(1, inside + step) : Math.max(0, inside - step);
-      // hacia adentro el muro deja de recibir luz y emite el azul marino exacto de la página
-      env.wall.color.lerpColors(OUT.wall, BLACK, inside); env.floor.color.lerpColors(OUT.floor, BLACK, inside);
-      env.wall.emissive.lerpColors(BLACK, IN.wall, inside); env.floor.emissive.lerpColors(BLACK, IN.floor, inside);
-    }
-  });
+  stage.onFrame.add((dt) => hinge.update(dt));
 
   stage.scene.add(root);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
     root, pivot, leaf, hinge, pickables: () => pickables,
     get finish() { return finish; }, setFinish,
-    setInside(on) { insideTarget = on ? 1 : 0; },
+    setInside: backdrop.setInside,   // el muro pasa de blanco a azul marino
     // anclas para los puntos de pieza (numero = pieza del catálogo)
     anchors: [
       { numero: '30', parent: frame, position: V(PX - 0.03, hingeYs[1], FD + 0.07) },

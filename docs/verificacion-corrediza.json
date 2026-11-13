@@ -1,0 +1,33 @@
+{
+  "fecha": "2026-11-13",
+  "geometria": {
+    "mallas": 124,
+    "triangulos": 43466,
+    "valores_comparados": 782388,
+    "valores_distintos": 0,
+    "vertices_fuente": 130398,
+    "vertices_unicos": 38710
+  },
+  "cinematica": {
+    "poses_comparadas": 1660,
+    "tolerancia": 0.000002,
+    "diferencia_maxima_por_grupo": {
+      "static": 0,
+      "door": 5.96e-8,
+      "seal": 5.96e-8,
+      "cover": 4.23e-7,
+      "wheel-left": 5.21e-7,
+      "wheel-right": 5.16e-7
+    },
+    "diferencia_motion": 0,
+    "error_inversa_arrastre": 2.78e-16,
+    "recorrido_m": 1.92,
+    "descenso_m": 0.026,
+    "acercamiento_m": 0.007
+  },
+  "camaras": {
+    "vistas": 14,
+    "diferencia_maxima": 2.81e-7
+  },
+  "ok": true
+}

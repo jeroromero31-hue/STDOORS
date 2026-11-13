@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 export const QUALITY = {
-  alta: { pixelRatio: 2, shadows: true, shadowMap: 2048 },
+  alta: { pixelRatio: 2, minPixelRatio: 1.5, shadows: true, shadowMap: 2048 },   // en pantallas de densidad 1 se dibuja a 1.5×: los cantos finos dejan de verse a trazos
   media: { pixelRatio: 1.5, shadows: true, shadowMap: 1024 },
   baja: { pixelRatio: 1, shadows: false, shadowMap: 512 },
 };
@@ -77,7 +77,7 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   const stage = { renderer, scene, camera, controls, key, canvas, container, quality, onFrame: new Set() };
   stage.setQuality = (q) => {
     stage.quality = q; const Q = QUALITY[q];
-    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, Q.pixelRatio));
+    renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio));
     renderer.shadowMap.enabled = Q.shadows; key.castShadow = Q.shadows; key.shadow.mapSize.set(Q.shadowMap, Q.shadowMap);
     if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; }
     scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((mm) => { mm.needsUpdate = true; }); });
@@ -94,7 +94,7 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; last = performance.now(); }).observe(container);
   renderer.setAnimationLoop((t) => {
     if (!visible) return;
-    const dt = Math.min(0.05, (t - last) / 1000); last = t;
+    const dt = Math.min(0.1, (t - last) / 1000); last = t;   // por debajo de 10 cuadros/s la animación se alarga en vez de saltar
     stage.onFrame.forEach((f) => f(dt, t));
     controls.update(); renderer.render(scene, camera);
   });

@@ -68,6 +68,8 @@ export function createSheet(label) {
 
 // ---------- marco de página ----------
 export function mountSite(page) {
+  // los enlaces escritos en el HTML como "/ruta/" siguen funcionando si el sitio se publica en una subcarpeta
+  if (BASE !== '/') document.querySelectorAll('a[href^="/"]').forEach((a) => a.setAttribute('href', url(a.getAttribute('href'))));
   const header = document.createElement('header');
   header.className = 'nav';
   header.innerHTML = `
