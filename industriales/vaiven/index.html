@@ -3,15 +3,94 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Puerta vaivén — ST Doors</title>
-<meta name="description" content="Dos hojas que abren hacia ambos lados.">
+<meta name="description" content="Puerta vaivén de doble hoja: cada hoja abre hacia los dos lados. Negro, inoxidable o blanco sanitario.">
 <link rel="icon" href="/favicon.png">
 </head>
-<body data-page="industriales">
-<main id="main" class="wrap section stack" style="--stack:20px;min-height:60svh">
-  <h1>Puerta vaivén</h1>
-  <p class="t-lead">Dos hojas que abren hacia ambos lados.</p>
-  <p class="phase-note">El visor migrado y corregido (marco frontal completo) se construye en la Fase 3C.</p>
+<body>
+<main id="main">
+  <nav class="subnav" aria-label="Secciones de la puerta vaivén"><div class="wrap subnav__in">
+    <span class="subnav__name">Puerta vaivén</span>
+    <a href="#como">Cómo abre</a><a href="#piezas">Piezas</a><a href="#ficha">Ficha</a><a href="#cotizar">Cotizar</a>
+  </div></nav>
+
+  <div class="door" id="como">
+    <div class="door__viewer">
+      <div class="viewer" id="viewer" role="img" aria-label="Modelo 3D de la puerta vaivén de doble hoja"></div>
+      <div class="hotspots" id="hotspots" hidden></div>
+      <div class="hotcard" id="hotcard" hidden></div>
+      <span class="hint viewer__hint" id="hint">Arrastra una hoja: abre hacia los dos lados</span>
+    </div>
+    <div class="door__col">
+      <section class="door__hero" data-view="general" data-open="0">
+        <h1>Puerta vaivén</h1>
+        <p class="t-lead">Dos hojas que abren hacia los dos lados.</p>
+        <div class="door__ctl">
+          <button class="btn" id="openBtn">Abrir</button>
+          <div class="door__finish"><div class="swatches" id="swatches" role="group" aria-label="Acabado de las hojas"></div><span class="t-soft t-small" id="finishName"></span></div>
+          <button class="btn btn--line" id="insideBtn" aria-pressed="false">Ver por dentro</button>
+        </div>
+        <p class="sr-only" id="live" role="status" aria-live="polite"></p>
+      </section>
+      <section class="door__step" data-view="dosLados" data-open="-63,63">
+        <h2>Cada hoja, hacia los dos lados</h2>
+        <p class="t-soft">Las dos hojas son independientes. Cada una gira hacia el frente o hacia atrás, según de qué lado se empuje.</p>
+      </section>
+      <section class="door__step" data-view="bisagra" data-open="0">
+        <h2>Dos bisagras por hoja</h2>
+        <p class="t-soft">Cada hoja gira sobre dos bisagras para puerta vaivén, una arriba y otra abajo.</p>
+      </section>
+      <section class="door__step" data-view="empaque" data-open="49,0">
+        <h2>Empaque lateral</h2>
+        <p class="t-soft">El empaque lateral corre por los cantos verticales de cada hoja. En catálogo mide 2.415 m.</p>
+      </section>
+      <section class="door__step" data-view="mirilla" data-open="0">
+        <h2>Ventanilla</h2>
+        <p class="t-soft">Cada hoja lleva una ventanilla para ver quién viene del otro lado. La de catálogo es de 40 mm y mide 250 × 750 mm.</p>
+      </section>
+      <section class="door__step" data-view="bumper" data-open="0">
+        <h2>Bumper y placa inferior</h2>
+        <p class="t-soft">Un bumper recto a media altura y una placa en la parte baja de cada hoja. En catálogo hay bumper de 150, 500 y 1000 mm.</p>
+      </section>
+      <section class="door__step" data-view="frontal" data-open="0">
+        <h2>Marco perimetral</h2>
+        <p class="t-soft">El marco metálico rodea el vano por los lados y por arriba. Entre el marco y cada hoja corre el empaque.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="surface-ice section" id="piezas">
+    <div class="wrap">
+      <div class="door-head"><div class="stack"><h2>Piezas de esta puerta</h2><p class="t-lead" id="partsLead"></p></div><a class="btn btn--line" id="partsAll" href="/componentes/">Ver todas</a></div>
+      <div class="door-parts" id="parts" data-featured="02,01,03,06,07,08,vaiven-perfil-aluminio-40-mm,04,vaiven-perfil-aluminio-h,05"></div>
+    </div>
+  </section>
+
+  <section class="section" id="ficha">
+    <div class="wrap stack" style="--stack:32px">
+      <h2>Ficha</h2>
+      <dl class="spec" style="max-width:860px">
+        <div><dt>Movimiento</dt><dd>Vaivén, dos hojas independientes</dd></div>
+        <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
+        <div><dt>Bisagra</dt><dd>Bisagra para puerta vaivén, dos por hoja</dd></div>
+        <div><dt>Ventanilla</dt><dd>40 mm, 250 × 750 mm</dd></div>
+        <div><dt>Bumper en catálogo</dt><dd>150, 500 o 1000 mm</dd></div>
+        <div><dt>Perfil de hoja</dt><dd>Aluminio vaivén de 40 mm</dd></div>
+        <div><dt>Empaque</dt><dd>Lateral para vaivén, 2.415 m</dd></div>
+        <div><dt>Piezas en catálogo</dt><dd id="specCount"></dd></div>
+        <div><dt>Medidas de hoja</dt><dd><span class="badge badge--warn">Pendiente: falta la fuente técnica</span></dd></div>
+      </dl>
+      <p class="t-small t-soft" style="max-width:640px">El modelo 3D es una reconstrucción a partir de fotografías y del catálogo. No sustituye medidas ni planos de fabricación.</p>
+    </div>
+  </section>
+
+  <section class="surface-navy section" id="cotizar">
+    <div class="wrap stack">
+      <h2>Cotizar la puerta vaivén</h2>
+      <p class="t-lead">Se agrega con el acabado que elegiste. Después nos dices las medidas del vano.</p>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addDoor">Agregar a mi solicitud</button><a class="btn btn--line" href="/cotizar/">Ir a mi solicitud</a></div>
+    </div>
+  </section>
 </main>
-<script type="module" src="/src/pages/shell.js"></script>
+<script type="module" src="/src/pages/vaiven.js"></script>
 </body>
 </html>

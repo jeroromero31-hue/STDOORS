@@ -88,3 +88,97 @@ No es una copia píxel a píxel del sombreado y no pretende serlo. Las capturas 
 - **Parte de la guía inferior queda dentro del muro.** El brazo de la brida de la hoja entra en el muro y termina detrás de él, con un rodillo y una ranura que no se ven desde el frente. Lo que se ve (brida sobre el riel guía) es lo aprobado.
 - **La hoja queda 15 cm por encima del piso de estudio**, y el marco, 14.5 cm por delante del muro. Así está el modelo aprobado; no se tocó.
 - **El muro es continuo:** al abrir la hoja no se ve un vano, se ve muro. También así está el modelo aprobado.
+
+## Puerta vaivén (Fase 3C-1)
+
+Base: `VAIVEN_V13_MODELO_BASE.html`. Igual que en la corrediza, la geometría y el giro no se copiaron a mano: se extraen del archivo original con `scripts/convert-vaiven.mjs` y se comprueban con `scripts/verify-vaiven.mjs`.
+
+Esta fase es solo la migración. Las correcciones de bisagras e intersecciones van en la Fase 3C-2 (ver "Defectos del modelo original que siguen igual").
+
+### Lo que no cambia (comprobado)
+
+| Elemento | Comprobación | Resultado |
+|---|---|---|
+| Geometría: 33 mallas, 25 476 triángulos, 76 428 vértices | Cada posición y cada normal `float32` del binario contra el original | 458 568 valores comparados, 0 distintos |
+| Giro de las hojas: ejes en x = ±1.145 m, apertura de 1.10 rad (63.03°), hacia el frente y hacia atrás | Matrices del motor original contra las del visor nuevo en 2 482 poses | Diferencia máxima 0.00000003 (redondeo) |
+| Las 7 cámaras con nombre del original | Matriz de vista del original contra la conversión | Diferencia máxima 0.0000002 |
+| Orden de dibujo y caras | Cada malla conserva su posición en la lista; se dibuja una sola cara y, a igual profundidad, gana la primera | Igual |
+| Logo de las hojas | Mismo PNG, mismo tamaño (156 × 64 mm) y misma posición, en las cuatro caras | Igual |
+| Estado inicial | Hojas cerradas, acabado negro, cámara a la derecha y un poco por debajo del centro | Igual |
+
+### Lo que cambia
+
+| Elemento | Modelo base | Visor nuevo | Motivo |
+|---|---|---|---|
+| Acabados de hoja | «Negro metálico», «Blanco satinado» y «Acero inoxidable», cada uno con una fórmula propia del sombreador | `blackMetal`, `hygienicWhite` y `stainless` del registro compartido, con los nombres Negro, Blanco sanitario e Inoxidable | Matriz de acabados y brief §4: mismo registro y mismo sombreado que la abatible |
+| Reflejos sobre la hoja negra | Rectángulos de luz dibujados por el sombreador (un estudio simulado) | Reflejo real del estudio común | Mismo motivo |
+| Motor de dibujo | WebGL propio con un sombreado no físico | Three.js con materiales físicos, y la luz, el entorno y las sombras comunes del sitio | Brief §4; coherencia con las otras puertas |
+| Materiales que no son acabado (marco, bisagras, hules, vidrio, tornillos, placa inferior) | 15 materiales definidos por color, metal y rugosidad | Los mismos 15, con los mismos valores de tabla, convertidos al modelo físico y ajustados de tono (ver abajo) | El sombreado del original no es PBR estándar |
+| Placa inferior | Acero cepillado; negra mate cuando la hoja es de acero inoxidable | Igual | Se conserva |
+| Frente del marco | Cambia un poco de tono con cada acabado de hoja | El mismo tono en los tres acabados, más satinado | Con el retoque del inoxidable quedaba casi blanco y se perdía contra el muro (ver abajo) |
+| Muro y piso | No hay: la puerta flota sobre un fondo claro | Muro blanco con vano y piso, comunes del sitio. Detrás del vano, el interior azul marino | Concepto de la Fase 1 |
+| Sombras | No hay | Sombra de la luz principal sobre el muro, el piso y entre las piezas | Escenario común |
+| Mover las hojas | Botones para abrir ambas hojas, solo la izquierda o solo la derecha, cerrar y cambiar el sentido de apertura | Arrastre directo de cada hoja hacia los dos lados, botón Abrir / Cerrar y pasos de la página | Brief §8: máximo 3 controles |
+| Abrir con el botón | Las dos hojas hacia el frente (o hacia atrás con el sentido invertido) | Las dos hojas hacia el frente. Hacia atrás: arrastrando, o en el paso "Cada hoja, hacia los dos lados" | Mismo criterio |
+| Soltar una hoja casi cerrada | No aplica (solo botones) | A menos de 2° del marco termina de cerrar. En cualquier otro punto se queda donde se suelta | Decisión de interacción; no hay retorno automático porque el original no lo tiene |
+| Cámaras | Frontal, 3/4, lateral y posterior con botón; enfoques de bisagra y empaque; giro automático | 9 encuadres que acompañan a los pasos. Órbita libre limitada al frente del muro (±74°) | Detrás del muro no hay nada que ver |
+| Encuadre | Distancia fija: en pantallas angostas la vista frontal cortaba el marco | Cada encuadre se ajusta a la proporción del visor. Marco y hojas quedan completos, con margen | Brief §5: "no cortar el contorno superior ni laterales", "auto-fit en móvil" |
+| Volver al encuadre | Botón «Reiniciar» (también cierra las hojas) | Botón "Reencuadrar", que solo aparece cuando el usuario movió la cámara | Brief §5; no es un control fijo |
+| Óptica | Campo de visión de 45° | 32°, el del sitio | Menos deformación en primeros planos |
+| Rueda del ratón | Acerca y aleja; la página no se desplaza | Desplaza la página; acerca con Ctrl o pellizco | Igual que en las otras puertas |
+| Señaladores de pieza | 4 señaladores con texto propio (mirilla, bisagra, bumper, marco) | "Ver por dentro": hojas entreabiertas a 28°, muro azul marino y 5 puntos ligados a piezas del catálogo | Las piezas salen del catálogo, no de texto suelto |
+| Galería de fotos y descarga del modelo | Enlazan a 9 imágenes y a un archivo GLB que no vienen en el paquete | No se incluyen | Faltan los archivos (auditoría de la Fase 0) |
+| Borde del logo | Recortado, sin suavizar | Suavizado | Se ve limpio a cualquier distancia |
+
+### Cómo se convirtieron los materiales
+
+Se usa la misma conversión de la corrediza (`src/materials/fromOriginal.js`), con dos clases de superficie más que este modelo trae: fundición satinada (bisagras y tornillos) y vidrio esmerilado (ventanillas). Después se midió el tono medio de cada material en los dos renders, desde las 14 cámaras de prueba y sin sombras, y se ajustó donde el estudio común iluminaba distinto:
+
+| Ajuste | Valor | Por qué |
+|---|---|---|
+| Frente del marco | Rugosidad × 2.4 y ganancia 0.68; igual en los tres acabados | Es una placa plana que mira a la cámara. Con la rugosidad de tabla reflejaba las luces del estudio como un espejo: de frente quedaba casi blanca y no se distinguía del muro |
+| Placa inferior | Ganancia 1.12 | Quedaba un 9–17 % más oscura que en el original |
+| Bumper y empaques | Ganancia 2.6 y 1.5 | El mapeo de tono del sitio hunde los negros; así el hule se acerca al gris muy oscuro del original |
+| Tornillos | Ganancia 0.85 | Quedaban más brillantes que en el original |
+
+Tono medio de cada material, original contra nuevo:
+
+| Material | Original (RGB) | Nuevo (RGB) | Luminancia nuevo / original |
+|---|---|---|---|
+| Frente del marco, con hoja negra | 196, 202, 206 | 190, 196, 199 | 0.93 |
+| Frente del marco, con hoja blanca | 201, 205, 208 | 188, 194, 197 | 0.88 |
+| Frente del marco, con hoja inoxidable | 184, 192, 198 | 191, 197, 200 | 1.06 |
+| Perfil de la hoja y cantos del marco, con hoja negra | 170, 180, 187 | 183, 189, 194 | 1.13 |
+| Perfil de la hoja y cantos del marco, con hoja blanca | 178, 187, 195 | 165, 172, 176 | 0.83 |
+| Placa inferior, con hoja negra | 145, 158, 168 | 151, 158, 165 | 1.02 |
+| Placa inferior, con hoja blanca | 149, 161, 170 | 149, 155, 160 | 0.94 |
+| Placa inferior negra, con hoja inoxidable | 21, 23, 26 | 19, 22, 24 | 0.84 |
+| Vidrio de la ventanilla | 174–177, 186–188, 189–191 | 165–180, 180–195, 182–197 | 0.92 a 1.10 |
+| Bisagra (cuerpo) | 150, 160, 167 | 148, 157, 164 | 0.96 |
+| Bisagra (nudillos) | 139, 151, 160 | 136, 147, 154 | 0.93 |
+| Tornillos | 209, 212, 213 | 214, 218, 219 | 1.07 |
+| Bumper | 32, 35, 37 | 21, 27, 31 | 0.54 |
+| Canto del bumper | 41, 47, 52 | 43, 49, 55 | 1.12 |
+| Empaques | 25, 28, 31 | 21, 25, 29 | 0.76 |
+| Hoja negra (registro compartido, sin calibrar) | 85, 87, 87 | 42, 43, 44 | 0.21 |
+| Hoja blanca (registro compartido, sin calibrar) | 217, 217, 217 | 225, 227, 223 | 1.10 |
+| Hoja inoxidable (registro compartido, sin calibrar) | 187, 191, 191 | 190, 192, 194 | 1.02 |
+
+Medido en calidad baja, sin sombras ni muro, sobre los píxeles donde cada material se ve en las dos imágenes. El perfil de la hoja con el acabado inoxidable ocupa muy pocos píxeles en estas vistas (2 888) y su medida no es fiable; no se incluye.
+
+Cómo leer la tabla:
+
+- **La hoja no se calibró.** Usa los acabados del registro compartido, los mismos de la abatible. El negro del sitio es satinado y más profundo que el del original, que pintaba encima rectángulos de luz. El blanco sanitario es un poco más cálido.
+- **El inoxidable refleja el estudio.** El promedio de la tabla coincide con el original, pero en calidad alta el reparto no es parejo: la parte de la hoja que queda por encima de la altura de la cámara se ve gris oscuro y la de abajo, muy clara. Es el mismo material de la abatible y se comporta igual allá. Si se quiere más parejo, el cambio se hace en el registro y aplica a las dos puertas.
+- **No es una copia píxel a píxel del sombreado** y no pretende serlo. Las capturas con la misma cámara están en `docs/capturas/ST_FASE_3C1_antes_despues_*.png`.
+
+### Defectos del modelo original que siguen igual (se corrigen en la Fase 3C-2)
+
+Se midieron sobre la geometría, sin tocarla:
+
+- **La bisagra entera gira con la hoja.** Placas, nudillos y perno pertenecen al grupo de la hoja y giran con ella sobre el eje central. No hay una mitad fija en el marco.
+- **La hoja atraviesa el marco al girar.** Cerrada, el empaque del lado de la bisagra ya está 30 mm dentro del poste y el canto superior de la hoja entra 3.5 mm en el cabezal. Al abrir a 63°, el empaque llega a 40 mm dentro del poste; el perfil de la hoja, los tornillos y las piezas de la bisagra, a entre 27 y 30 mm; la cara de la hoja, a 10 mm.
+- **El frente del marco es una placa separada 5.5 mm del cuerpo del marco.** De cerca se ve una rendija fina entre los dos.
+- **320 triángulos con el orden de vértices invertido y 176 sin área.** El original dibuja una sola cara, así que no se ven; el visor nuevo hace lo mismo.
+
+Lo que sí está bien y se comprobó: las dos hojas son independientes y **no se cruzan entre sí**. El punto más lejano de cada hoja queda a 1.1441 m de su eje y el centro del vano está a 1.145 m; cerradas, la holgura entre hojas es de 2.4 mm.

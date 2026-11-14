@@ -38,6 +38,9 @@
 .hotcard b { display: block; line-height: 1.25; }
 .viewer__hint { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); pointer-events: none; transition: opacity var(--d-panel); white-space: nowrap; }
 .viewer__hint.is-off { opacity: 0; }
+.door__viewer .viewer__reframe { position: absolute; top: var(--s-4); right: var(--s-4); background: var(--c-white); }
+.door__viewer .viewer__reframe:hover { background: var(--c-ice); }
+.door.is-inside .door__viewer .viewer__reframe { background: var(--c-navy); }
 
 .door-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--s-4); }
 .door-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-5); flex-wrap: wrap; margin-bottom: var(--s-7); }

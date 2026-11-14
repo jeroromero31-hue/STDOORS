@@ -10,43 +10,25 @@
 // Uso:  ST_PAQUETE=../ST_DOORS_PAQUETE node scripts/verify-corrediza.mjs   (sale con código 1 si algo no coincide)
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
+import { root, readModel, compareGeometry } from './lib/meshpack.mjs';
 import { readSource, originalViews } from './convert-corrediza.mjs';
-import { MECH, TRAVEL, motion, progressForSlide, applyPose, originalCamera } from '../src/viewers/corrediza.kinematics.js';
+import { MECH, TRAVEL, motion, progressForSlide, applyPose } from '../src/viewers/corrediza.kinematics.js';
+import { originalCamera } from '../src/core/cameraRig.js';
 import { createRig } from '../src/viewers/corrediza.rig.js';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const report = { fecha: new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Mexico_City' }), geometria: {}, cinematica: {}, camaras: {}, ok: true };
 const fail = (msg) => { report.ok = false; (report.errores ||= []).push(msg); console.error('✗', msg); };
 
 const { html, model, sha256 } = readSource();
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'src/models/corrediza.json'), 'utf8'));
-const bin = fs.readFileSync(path.join(root, 'src/models/corrediza.bin'));
-const buf = bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength);
+const { manifest, bin } = readModel('corrediza');
 
 // ---------- 1. geometría ----------
 {
   if (manifest.fuente.sha256 !== sha256) fail('El manifiesto se generó a partir de otro archivo fuente');
-  if (crypto.createHash('sha256').update(bin).digest('hex') !== manifest.formato.sha256) fail('El binario no corresponde al manifiesto');
-  const src = model.meshes.map((m, i) => ({ ...m, i })).filter((m) => m.p.length);
-  if (src.length !== manifest.mallas.length) fail(`Número de mallas distinto: fuente ${src.length}, binario ${manifest.mallas.length}`);
-  let values = 0, diffs = 0, tris = 0;
-  const bitsEqual = (a, b) => { const x = new Uint32Array(a.buffer, a.byteOffset, a.length), y = new Uint32Array(b.buffer, b.byteOffset, b.length); let d = 0; for (let k = 0; k < x.length; k++) if (x[k] !== y[k]) d++; return d; };
-  manifest.mallas.forEach(([i, grupo, material, nv, ni, po, no, io], k) => {
-    const s = src[k];
-    if (!s || s.i !== i || s.group !== grupo || s.material !== material) return fail(`Malla ${k}: orden, grupo o material distintos`);
-    const pos = new Float32Array(buf, po, nv * 3), nrm = new Float32Array(buf, no, nv * 3), idx = new Uint16Array(buf, io, ni);
-    if (ni * 3 !== s.p.length) return fail(`Malla ${i}: número de vértices distinto`);
-    const P = new Float32Array(ni * 3), N = new Float32Array(ni * 3);
-    for (let v = 0; v < ni; v++) for (let c = 0; c < 3; c++) { P[v * 3 + c] = pos[idx[v] * 3 + c]; N[v * 3 + c] = nrm[idx[v] * 3 + c]; }
-    const d = bitsEqual(P, Float32Array.from(s.p)) + bitsEqual(N, Float32Array.from(s.n));   // Float32Array.from = lo que el original sube a la GPU
-    if (d) fail(`Malla ${i} (${grupo}/${material}): ${d} valores distintos`);
-    values += ni * 6; diffs += d; tris += ni / 3;
-  });
-  report.geometria = { mallas: manifest.mallas.length, triangulos: tris, valores_comparados: values, valores_distintos: diffs, vertices_fuente: manifest.totales.vertices_fuente, vertices_unicos: manifest.totales.vertices_unicos };
-  console.log(`geometría: ${manifest.mallas.length} mallas, ${tris} triángulos, ${values} valores float32 comparados, ${diffs} distintos`);
+  report.geometria = compareGeometry(manifest, bin, model.meshes, fail);
+  const g = report.geometria;
+  console.log(`geometría: ${g.mallas} mallas, ${g.triangulos} triángulos, ${g.valores_comparados} valores float32 comparados, ${g.valores_distintos} distintos`);
 }
 
 // ---------- 2. cinemática ----------

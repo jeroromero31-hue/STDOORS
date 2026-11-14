@@ -6,26 +6,12 @@ import { partPicture } from './picture.js';
 import { createStage } from '../core/stage.js';
 import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
 import { createCameraRig } from '../core/cameraRig.js';
-import { attachHingeDrag } from '../core/hinge.js';
+import { hingeMotion } from '../core/hinge.js';
 import { createHotspots } from '../core/hotspots.js';
 import catalog from '../data/components.json';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-
-// Cómo se mueve una puerta, visto desde la página. Las abisagradas usan este adaptador;
-// las que se mueven de otra forma (la corrediza) traen el suyo en viewer.motion.
-function hingeMotion(stage, viewer) {
-  const hinges = viewer.hinges || [viewer.hinge];
-  return {
-    hinges,
-    attachDrag: (opts) => attachHingeDrag(stage, hinges, { pickables: viewer.pickables, ...opts }),
-    onOpenChange: (f) => hinges[0].onChange((h) => f(h.target > 45)),
-    setOpen: (on) => hinges.forEach((h) => h.set(on ? 90 : 0)),
-    inside: (on) => hinges.forEach((h) => h.set(on ? Math.min(85, h.max) : 0)),
-    step: (d) => { if (d.open !== undefined) hinges.forEach((h) => h.set(Number(d.open))); },
-  };
-}
 
 export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   mountSite('industriales');
@@ -38,7 +24,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   const stage = createStage(viewerEl, { fallback: still('Este dispositivo no pudo iniciar el visor 3D.') });
   let viewer = null, rig = null, state = { finish: null, open: false, inside: false };
   const openBtn = $('#openBtn'), insideBtn = $('#insideBtn'), hint = $('#hint'), live = $('#live');
-  const noViewer = () => { $$('.door__ctl > *').forEach((el) => { el.hidden = true; }); hint.hidden = true; };
+  const noViewer = () => { $$('.door__ctl > *, .viewer__reframe').forEach((el) => { el.hidden = true; }); hint.hidden = true; };
   if (stage) {
     // el registro compartido solo se crea para las puertas con acabados a elegir; las de un solo acabado traen sus materiales
     const finishes = FINISHES_BY_DOOR[familia] || [];
@@ -46,7 +32,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
     viewer = createViewer(stage, reg);
     rig = createCameraRig(stage, viewer.views); rig.go('general', 0);
     Object.assign(stage.controls, { minDistance: 0.4, maxDistance: 9, maxPolarAngle: Math.PI * 0.55 }, viewer.limits);
-    const motion = viewer.motion || hingeMotion(stage, viewer);
+    // cómo se mueve: las abisagradas usan el adaptador común; las demás (la corrediza) traen el suyo
+    const motion = viewer.motion || hingeMotion(stage, viewer.hinges || [viewer.hinge], viewer.pickables);
 
     // los modelos que se descargan avisan cuando están listos; si fallan, queda la imagen fija
     if (viewer.ready) {
@@ -57,6 +44,17 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
         $('#hotspots').hidden = true; door.classList.remove('is-inside'); noViewer();
       });
     }
+
+    // Reencuadre: el botón aparece solo cuando el usuario movió la cámara y devuelve el encuadre de la vista en curso.
+    // No es un control fijo: se oculta en cuanto la cámara vuelve a un encuadre con nombre.
+    const reframe = document.createElement('button'); let userCam = false;
+    Object.assign(reframe, { type: 'button', className: 'btn btn--line btn--sm viewer__reframe', textContent: 'Reencuadrar', hidden: true });
+    $('.door__viewer').append(reframe);
+    stage.controls.addEventListener('start', () => { userCam = true; });
+    stage.controls.addEventListener('end', () => { userCam = false; });
+    stage.controls.addEventListener('change', () => { if (userCam) reframe.hidden = false; });
+    rig.onGo(() => { reframe.hidden = true; });
+    reframe.onclick = () => rig.go(rig.current || 'general', 0.6);
 
     motion.attachDrag({ onGrab: () => hint.classList.add('is-off') });
     stage.controls.addEventListener('start', () => hint.classList.add('is-off'));
@@ -79,7 +77,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
 
     // ver por dentro: fondo azul marino y puntos de pieza
     const layer = $('#hotspots'), card = $('#hotcard');
-    const items = viewer.anchors.map((a) => { const p = parts.find((x) => x.numero === a.numero); return p && { ...a, piece: p, label: p.nombre }; }).filter(Boolean);
+    // cada ancla señala una pieza del catálogo: por número o, si no lo tiene, por su id interno
+    const items = viewer.anchors.map((a) => { const p = parts.find((x) => (a.id ? x.id === a.id : x.numero === a.numero)); return p && { ...a, piece: p, label: p.nombre }; }).filter(Boolean);
     const hs = createHotspots(stage, layer, items, (it, btn) => {
       hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', n.b === btn));
       card.hidden = false;
@@ -99,14 +98,20 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
     // cuando el visor queda fijo arriba (móvil), en la franja de texto que se ve debajo de él.
     const blocks = $$('[data-view]'), sticky = $('.door__viewer'), col = $('.door__col');
     let currentBlock = null, io = null, timer = 0;
-    const onBlock = (es) => es.forEach((e) => {
-      if (!e.isIntersecting || e.target === currentBlock) return; currentBlock = e.target;
-      if (e.target !== blocks[0]) hint.classList.add('is-off');   // el aviso de arrastre solo acompaña a la vista inicial
+    const touching = new Set();                                   // bloques que tocan la línea de disparo ahora mismo
+    // Un mismo aviso puede traer varios cambios juntos (desplazamiento rápido, equipo lento): entra un bloque, entra
+    // otro y sale. Se aplican todos en orden y manda el estado final, no el último bloque que "entró" en la lista.
+    const onBlock = (es) => {
+      [...es].sort((a, b) => a.time - b.time).forEach((e) => (e.isIntersecting ? touching.add(e.target) : touching.delete(e.target)));
+      const now = blocks.filter((b) => touching.has(b)).pop();    // si la línea toca dos bloques vecinos, el de más abajo
+      if (!now || now === currentBlock) return; currentBlock = now;
+      if (now !== blocks[0]) hint.classList.add('is-off');        // el aviso de arrastre solo acompaña a la vista inicial
       if (state.inside) return;                                   // en modo interior manda el usuario
-      rig.go(e.target.dataset.view); motion.step(e.target.dataset);
-    });
+      rig.go(now.dataset.view); motion.step(now.dataset);
+    };
     const watch = () => {
       if (io) io.disconnect();
+      touching.clear();
       const H = innerHeight, v = sticky.getBoundingClientRect(), stacked = col.getBoundingClientRect().left < v.right - 1;
       const below = (parseFloat(getComputedStyle(sticky).top) || 0) + v.height;      // borde inferior del visor fijo
       // sin pasar del primer bloque: al cargar la página manda la vista general
@@ -121,7 +126,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   // ---------- piezas, ficha, cotizar ----------
   $('#partsLead').textContent = `${parts.length} piezas con fotografía en el catálogo.`;
   $('#partsAll').textContent = `Ver las ${parts.length}`; $('#partsAll').href = `${url('componentes/')}?fam=${familia}`;
-  const featured = ($('#parts').dataset.featured || '').split(',').map((n) => parts.find((p) => p.numero === n)).filter(Boolean);
+  const featured = ($('#parts').dataset.featured || '').split(',').map((n) => parts.find((p) => p.numero === n || p.id === n)).filter(Boolean);   // por número o por id
   $('#parts').innerHTML = (featured.length ? featured : parts.slice(0, 12)).map((p) => `<a class="part" href="${url('componentes/')}?id=${p.id}">${partPicture(p)}<span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}</small></span></a>`).join('');
   $('#specCount').textContent = parts.length;
   const add = $('#addDoor');
@@ -132,8 +137,13 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   };
 
   // subnavegación activa
-  const links = $$('.subnav a');
-  const io2 = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) links.forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
-  links.forEach((a) => { const t = $(a.getAttribute('href')); t && io2.observe(t); });
+  // (mismo criterio que los pasos: un aviso puede traer varios cambios; manda el estado final de cada sección)
+  const links = $$('.subnav a'), sections = links.map((a) => $(a.getAttribute('href'))).filter(Boolean), inBand = new Set();
+  const io2 = new IntersectionObserver((es) => {
+    [...es].sort((a, b) => a.time - b.time).forEach((e) => (e.isIntersecting ? inBand.add(e.target) : inBand.delete(e.target)));
+    const now = sections.filter((t) => inBand.has(t)).pop(); if (!now) return;
+    links.forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + now.id));
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach((t) => io2.observe(t));
   return { stage, viewer, rig, famLabel };
 }

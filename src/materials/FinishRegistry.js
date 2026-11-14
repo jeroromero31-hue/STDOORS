@@ -13,6 +13,24 @@ export const FINISHES_BY_DOOR = {
 export const FINISH_LABEL = { blackMetal: 'Negro', stainless: 'Inoxidable', hygienicWhite: 'Blanco sanitario' };
 export const BUMPER_BY_DOOR = { abatible: 'stainlessDiamond' }; // solo inox diamante
 
+// Densidad de las texturas de acabado. La cara de la hoja abatible (1.914 m de alto × 0.914 m de ancho) recorre
+// una vez las UV, con la veta en vertical. Cualquier otra hoja que use estos acabados debe mapearlos con la
+// misma densidad para que el cepillado y la piel de naranja se vean del mismo tamaño en todas las puertas.
+export const FINISH_UV = { alto: 1.914, ancho: 0.914 };
+
+// UV planas, en metros, para una malla que viene sin UV (la hoja de la vaivén). Veta en vertical.
+export function finishUV(geometry) {
+  const p = geometry.attributes.position, n = geometry.attributes.normal, uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
+    const across = az >= ax && az >= ay ? p.getX(i) : ax >= ay ? p.getZ(i) : p.getX(i);     // a lo ancho de la cara
+    const along = ay > ax && ay > az ? p.getZ(i) : p.getY(i);                                // a lo largo de la veta
+    uv[i * 2] = along / FINISH_UV.alto; uv[i * 2 + 1] = across / FINISH_UV.ancho;
+  }
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  return geometry;
+}
+
 let registry = null;
 
 export function createFinishRegistry(renderer) {

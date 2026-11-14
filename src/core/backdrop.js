@@ -21,9 +21,10 @@ export function createBackdrop(stage, { wallZ = 0, floorY = 0, centerX = 0, half
   const x0 = centerX - halfWidth, x1 = centerX + halfWidth, yTop = floorY + height;
   if (opening) {
     const { left, right, top } = opening;
-    slab(left - x0, height, (x0 + left) / 2, floorY + height / 2);
-    slab(x1 - right, height, (right + x1) / 2, floorY + height / 2);
-    slab(right - left, yTop - top, (left + right) / 2, (top + yTop) / 2);
+    // una sola pieza con el vano recortado: con tres losas juntas, las uniones se veían como rayas finas sobre el marco
+    const outline = new THREE.Shape([[x0, floorY], [left, floorY], [left, top], [right, top], [right, floorY], [x1, floorY], [x1, yTop], [x0, yTop]].map(([x, y]) => new THREE.Vector2(x, y)));
+    const wall = new THREE.Mesh(new THREE.ExtrudeGeometry(outline, { depth: thickness, bevelEnabled: false }), materials.wall);
+    wall.position.z = wallZ - thickness; wall.castShadow = true; wall.receiveShadow = true; group.add(wall);
     const inner = new THREE.Mesh(new THREE.BoxGeometry(right - left + 0.4, top - floorY + 0.2, interiorDepth), materials.interior);
     inner.position.set((left + right) / 2, (top + floorY) / 2, wallZ - thickness - interiorDepth / 2); group.add(inner);
   } else {

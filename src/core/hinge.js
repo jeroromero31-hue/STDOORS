@@ -1,5 +1,6 @@
 // Hoja abisagrada: lo único que se anima es pivot.rotation.y, y el pivote está sobre el eje real de la bisagra.
-// dir = +1 si la hoja se extiende hacia +x desde el eje; -1 si se extiende hacia -x. Abre hacia +z.
+// dir = +1 si la hoja se extiende hacia +x desde el eje; -1 si se extiende hacia -x. Ángulo positivo: abre hacia +z
+// (el frente). Con min < 0 la hoja es de doble acción y también gira hacia atrás.
 import * as THREE from 'three';
 
 export class Hinge {
@@ -40,20 +41,58 @@ export function attachHingeDrag(stage, hinges, { pickables, onGrab, onRelease } 
     if (t < 0) return null;
     return THREE.MathUtils.radToDeg(Math.atan2(oz + d.z * t, h.dir * (ox + d.x * t)));
   };
+  // Hojas de doble acción (min < 0). Visto en planta, el punto tomado recorre un círculo y el rayo lo corta en dos
+  // sitios: uno del lado de la cámara y otro del lado contrario. La hoja sigue el corte que pasa por el punto tomado,
+  // así queda siempre bajo el puntero, gire hacia el frente o hacia atrás. Si el puntero se sale del círculo, la hoja
+  // sigue girando en el mismo sentido, a ritmo constante: se puede cruzar de un lado al otro sin soltarla.
+  const PAST = 1.5;   // radianes de giro por cada radio que el puntero se aleja del círculo (parecido al ritmo de jalar)
+  const cuts = (h, radius) => {
+    h.pivot.getWorldPosition(axis);
+    const o = ray.ray.origin, d = ray.ray.direction, ox = h.dir * (o.x - axis.x), oz = o.z - axis.z, dx = h.dir * d.x, dz = d.z;
+    const A = dx * dx + dz * dz; if (A < 1e-8) return null;
+    const t = -(ox * dx + oz * dz) / A, cx = ox + dx * t, cz = oz + dz * t, rho = Math.hypot(cx, cz);   // punto del rayo más cercano al eje
+    const px = rho > 1e-6 ? cx : -dz, pz = rho > 1e-6 ? cz : dx, beta = Math.atan2(pz, px), eps = pz * dx - px * dz >= 0 ? 1 : -1;
+    const g = rho <= radius ? Math.acos(rho / radius) : -PAST * (rho / radius - 1);
+    return { near: THREE.MathUtils.radToDeg(beta + eps * g), far: THREE.MathUtils.radToDeg(beta - eps * g) };
+  };
+  const turnsTo = (a, ref) => a + 360 * Math.round((ref - a) / 360);            // el mismo ángulo, en la vuelta más cercana a ref
   const hit = (e) => { setRay(e); const list = pickables(); const x = ray.intersectObjects(list, false)[0]; return x && x.object.userData.hinge ? x : null; };
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button > 0) return; const x = hit(e); if (!x) return;
     const h = x.object.userData.hinge; h.pivot.getWorldPosition(axis);
-    const radius = Math.max(0.15, Math.hypot(x.point.x - axis.x, x.point.z - axis.z)), a0 = angleAt(h, radius);
-    active = { h, radius, offset: a0 === null ? 0 : h.angle - a0 };
+    const radius = Math.max(0.15, Math.hypot(x.point.x - axis.x, x.point.z - axis.z));
+    let a0, root = null;
+    if (h.min < 0) {
+      const s = cuts(h, radius), at = THREE.MathUtils.radToDeg(Math.atan2(x.point.z - axis.z, h.dir * (x.point.x - axis.x)));
+      if (s) { root = Math.abs(turnsTo(s.near, at) - at) <= Math.abs(turnsTo(s.far, at) - at) ? 'near' : 'far'; a0 = turnsTo(s[root], at); } else a0 = null;
+    } else a0 = angleAt(h, radius);
+    active = { h, radius, root, last: a0, offset: a0 === null ? 0 : h.angle - a0 };
     h.dragging = true; controls.enabled = false; e.stopImmediatePropagation();
     try { canvas.setPointerCapture(e.pointerId); } catch { /* sin captura */ }
     canvas.style.cursor = 'grabbing'; onGrab && onGrab(h);
   }, { capture: true });
   canvas.addEventListener('pointermove', (e) => {
     if (!active) { if (e.pointerType === 'mouse') canvas.style.cursor = hit(e) ? 'grab' : ''; return; }
-    setRay(e); const a = angleAt(active.h, active.radius); if (a !== null) active.h.set(a + active.offset);
+    setRay(e);
+    if (active.root) { const s = cuts(active.h, active.radius); if (s) { active.last = turnsTo(s[active.root], active.last); active.h.set(active.last + active.offset); } return; }
+    const a = angleAt(active.h, active.radius); if (a !== null) active.h.set(a + active.offset);
   });
   const end = () => { if (!active) return; active.h.release(); onRelease && onRelease(active.h); active = null; controls.enabled = true; canvas.style.cursor = ''; };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
+}
+
+// Cómo se mueve una puerta abisagrada, visto desde la página (ver ui/doorPage.js). Sirve para una hoja o para varias.
+export function hingeMotion(stage, hinges, pickables) {
+  // con "reducir movimiento" la hoja cambia de posición sin animarse
+  const to = (h, deg) => (matchMedia('(prefers-reduced-motion: reduce)').matches ? h.jump(deg) : h.set(deg));
+  return {
+    hinges,
+    attachDrag: (opts) => attachHingeDrag(stage, hinges, { pickables, ...opts }),
+    onOpenChange: (f) => hinges.forEach((h) => h.onChange(() => f(hinges.some((x) => Math.abs(x.target) > 45)))),
+    setOpen: (on) => hinges.forEach((h) => to(h, on ? 90 : 0)),              // cada bisagra recorta a su apertura máxima
+    inside: (on) => hinges.forEach((h) => to(h, on ? Math.min(85, h.max) : 0)),
+    // pasos de la página: data-open="40" (todas las hojas) o data-open="63,-63" (una cifra por hoja)
+    step: (d) => { if (d.open === undefined) return; const a = String(d.open).split(',').map(Number); hinges.forEach((h, i) => to(h, a[i] ?? a[0])); },
+    to,
+  };
 }

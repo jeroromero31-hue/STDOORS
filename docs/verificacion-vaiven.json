@@ -1,0 +1,33 @@
+{
+  "fecha": "2026-11-13",
+  "geometria": {
+    "mallas": 33,
+    "triangulos": 25476,
+    "valores_comparados": 458568,
+    "valores_distintos": 0,
+    "vertices_fuente": 76428,
+    "vertices_unicos": 43595
+  },
+  "giro": {
+    "poses_comparadas": 2482,
+    "tolerancia": 0.000002,
+    "diferencia_maxima_por_grupo": {
+      "static": 0,
+      "left": 2.97e-8,
+      "right": 2.97e-8
+    },
+    "eje_x_m": 1.145,
+    "apertura_rad": 1.1,
+    "apertura_grados": 63.025
+  },
+  "camaras": {
+    "vistas": 7,
+    "diferencia_maxima": 2.02e-7
+  },
+  "ok": true,
+  "acabados_originales": {
+    "light": "Blanco satinado",
+    "black": "Negro metálico",
+    "steel": "Acero inoxidable"
+  }
+}

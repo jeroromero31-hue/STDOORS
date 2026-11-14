@@ -6,10 +6,12 @@
 import * as THREE from 'three';
 import manifest from '../models/corrediza.json';
 import binUrl from '../models/corrediza.bin?url';
-import logoUrl from '../models/corrediza-logo.png';
+import logoUrl from '../models/logo-hoja.png';
 import { MECH, motion, progressForSlide, applyPose } from './corrediza.kinematics.js';
 import { createRig } from './corrediza.rig.js';
 import { createBackdrop } from '../core/backdrop.js';
+import { frameBox as frame, orbitView as orbit } from '../core/cameraRig.js';
+import { materialFromOriginal } from '../materials/fromOriginal.js';
 import { Slider, attachSlideDrag, attachTap } from '../core/slider.js';
 
 // Escenografía de estudio del original (muro, piso y hueco). La sustituye el fondo común del sitio, en los mismos planos.
@@ -18,66 +20,14 @@ const WALL_Z = -0.10, FLOOR_Y = -0.495;
 const CENTER_X = 1.0;                                    // el riel va de x = −1.15 a 3.16 m
 const smooth = (t) => t * t * (3 - 2 * t);
 
-// ---------- materiales ----------
-// Uno por cada material del original, a partir de su misma tabla (color, metal, rugosidad). El original no sombrea
-// con PBR estándar: su reflejo vale f0 = mix(0.055, 0.91, metal) con un tinte frío y su difuso alb·(1 − 0.82·metal).
-// Con los mismos tres números, un material estándar daría plásticos casi negros y aluminios apagados. Aquí se
-// despejan los parámetros físicos que reproducen esa respuesta. CAL ajusta la exposición del estudio común a la del
-// original; se calibró midiendo, material por material, ambos renders desde las mismas cámaras.
-const CAL = { kd: 0.76, ksMetal: 0.92, ksDielectric: 1.15, roughMetal: 0.85, roughDielectric: 1.0 };
-
-function physicalParams(d) {
-  const c = new THREE.Color(d.color), alb = [c.r, c.g, c.b], M = d.metal;
-  if (d.superficie === 'pintura') return { color: c, metalness: M, roughness: d.rough };            // hoja: tal cual
-  // hules y negros mates: el original los pinta sin reflejo, sea cual sea su valor de metal
-  if (d.superficie === 'elastomero') return { color: c, metalness: 0, roughness: Math.max(d.rough, 0.85), envMapIntensity: 0.8 };
-  const f0 = 0.055 + (0.91 - 0.055) * M;
-  const tint = [0.86, 0.91, 0.95].map((t, i) => t + (Math.max(alb[i], 0.2) - t) * 0.38 * M);
-  const A = alb.map((a) => a * (1 - 0.82 * M) * CAL.kd);                                           // difuso
-  if (M <= 0.2) {                                                                                   // plásticos
-    const S = tint.map((t) => t * f0 * CAL.ksDielectric), F = (S[0] + S[1] + S[2]) / 3, Fc = Math.min(0.16, F), q = Math.sqrt(Fc), mx = Math.max(...S);
-    return {
-      color: new THREE.Color().setRGB(A[0], A[1], A[2]), metalness: 0, roughness: Math.max(0.08, d.rough * CAL.roughDielectric),
-      ior: (1 + q) / (1 - q), specularIntensity: F / Fc, specularColor: new THREE.Color().setRGB(S[0] / mx, S[1] / mx, S[2] / mx),
-    };
-  }
-  const S = tint.map((t) => t * f0 * CAL.ksMetal);                                                  // metales
-  let lo = 0, hi = 0.98;
-  for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (0.04 * (1 - m) + (A[1] * m) / (1 - m) < S[1]) lo = m; else hi = m; }
-  const m = (lo + hi) / 2;
-  return { color: new THREE.Color().setRGB(...A.map((a) => Math.min(1, a / (1 - m)))), metalness: m, roughness: Math.max(0.08, d.rough * CAL.roughMetal) };
-}
-
+// Un material por cada material del original, con su misma tabla de color, metal y rugosidad
+// (la conversión al modelo físico está en materials/fromOriginal.js). Dos caras, como dibuja el original.
 function buildMaterials() {
   const out = {};
   for (const [name, d] of Object.entries(manifest.materiales)) {
-    if (SCENERY.has(name)) continue;
-    out[name] = new THREE.MeshPhysicalMaterial({ name: `corrediza/${name}`, side: THREE.DoubleSide, ...physicalParams(d) });   // dos caras, como dibuja el original
+    if (!SCENERY.has(name)) out[name] = materialFromOriginal(`corrediza/${name}`, d, { side: THREE.DoubleSide });
   }
   return out;
-}
-
-// misma convención de cámara que el original: yaw positivo = cámara hacia la izquierda de la puerta
-const direction = (yaw, pitch) => new THREE.Vector3(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
-const orbit = (tx, ty, tz, yaw, pitch, d) => { const t = new THREE.Vector3(tx, ty, tz); return { pos: t.clone().addScaledVector(direction(yaw, pitch), d).toArray(), tgt: t.toArray() }; };
-
-// Encuadre: desde (yaw, pitch), la cámara más cercana que deja la caja completa dentro del visor, centrada y con margen.
-// Se recalcula con la proporción real del visor, así que nada queda cortado en móvil ni en escritorio.
-const UP = new THREE.Vector3(0, 1, 0);
-function frame(st, [x0, y0, z0, x1, y1, z1], yaw, pitch, margin = 1.07) {
-  const tanV = Math.tan(THREE.MathUtils.degToRad(st.camera.fov / 2)), tanH = tanV * st.camera.aspect;
-  const dir = direction(yaw, pitch), fwd = dir.clone().negate(), right = new THREE.Vector3().crossVectors(fwd, UP).normalize(), up = new THREE.Vector3().crossVectors(right, fwd);
-  const corners = []; for (const x of [x0, x1]) for (const y of [y0, y1]) for (const z of [z0, z1]) corners.push(new THREE.Vector3(x, y, z));
-  const tgt = new THREE.Vector3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), eye = new THREE.Vector3(), v = new THREE.Vector3();
-  let d = 6;
-  for (let i = 0; i < 16; i++) {
-    eye.copy(tgt).addScaledVector(dir, d);
-    let a0 = Infinity, a1 = -Infinity, b0 = Infinity, b1 = -Infinity;
-    for (const c of corners) { v.copy(c).sub(eye); const z = v.dot(fwd), a = v.dot(right) / (z * tanH), b = v.dot(up) / (z * tanV); a0 = Math.min(a0, a); a1 = Math.max(a1, a); b0 = Math.min(b0, b); b1 = Math.max(b1, b); }
-    tgt.addScaledVector(right, ((a0 + a1) / 2) * tanH * d).addScaledVector(up, ((b0 + b1) / 2) * tanV * d);
-    d *= Math.max((a1 - a0) / 2, (b1 - b0) / 2) * margin;
-  }
-  return { pos: tgt.clone().addScaledVector(dir, d).toArray(), tgt: tgt.toArray() };
 }
 
 // Cajas de encuadre (m): conjunto completo, conjunto con la tapa levantada y tramo del riel que recorre la hoja

@@ -57,11 +57,3 @@ export function applyPose(nodes, p, cover) {
   nodes.cover.rotation.x = -cover * MECH.coverAngle;
   return m;
 }
-
-// Cámara del original [yaw, pitch, dist, focusX, focusY] (fov vertical 45°) → posición y objetivo
-export function originalCamera([yaw, pitch, dist, fx, fy]) {
-  return {
-    pos: [fx - Math.sin(yaw) * Math.cos(pitch) * dist, fy + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist],
-    tgt: [fx, fy, 0], fov: 45,
-  };
-}

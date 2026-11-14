@@ -8,7 +8,8 @@
     "preview": "vite preview --host",
     "assets": "node scripts/build-assets.mjs",
     "corrediza": "node scripts/convert-corrediza.mjs && node scripts/verify-corrediza.mjs",
-    "verificar": "node scripts/verify-corrediza.mjs"
+    "vaiven": "node scripts/convert-vaiven.mjs && node scripts/verify-vaiven.mjs",
+    "verificar": "node scripts/verify-corrediza.mjs && node scripts/verify-vaiven.mjs"
   },
   "keywords": [],
   "author": "",
