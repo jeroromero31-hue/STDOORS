@@ -182,3 +182,23 @@ Se midieron sobre la geometría, sin tocarla:
 - **320 triángulos con el orden de vértices invertido y 176 sin área.** El original dibuja una sola cara, así que no se ven; el visor nuevo hace lo mismo.
 
 Lo que sí está bien y se comprobó: las dos hojas son independientes y **no se cruzan entre sí**. El punto más lejano de cada hoja queda a 1.1441 m de su eje y el centro del vano está a 1.145 m; cerradas, la holgura entre hojas es de 2.4 mm.
+
+## Puerta vaivén · Fase 3C-2, parte 1: perfil de aluminio completo en las dos caras
+
+**Problema (reportado por ST):** a una cara de la hoja le faltaba el perfil de aluminio de las orillas.
+
+**Causa, medida en el modelo original:** el marco fijo trae tres tiras negras (`static/gasket`) **solo por el frente**: una en cada poste y otra en el cabezal (z de 24.5 a 49.5 mm).
+- **Del lado de la bisagra y arriba tapaban el perfil de la hoja.** De frente se veía el empaque negro pegado al panel. Por detrás, el perfil sí aparecía: 29 px en la misma vista de prueba.
+- **Además se metían 7 mm en el perfil** con la hoja cerrada.
+- **No giran con la hoja:** al abrirla, se quedaban flotando junto al poste.
+
+**Cambio:** esas tres tiras ya no se dibujan. El binario no cambia y la geometría sigue siendo bit a bit la del original; solo se omiten esas mallas. El empaque real va en la hoja (`left/gasket`, `right/gasket`) y se conserva.
+
+**Comprobado** con una pasada de identificación por malla, en la misma fila de píxeles junto a la bisagra:
+
+| Vista | Antes | Después |
+|---|---|---|
+| Frente | empaque del marco y luego el panel; perfil 0 px | empaque de la hoja 24 px y perfil 29 px |
+| Atrás | perfil 29 px y empaque de la hoja 31 px | igual |
+
+Ahora se dibujan 32 mallas y 25 440 triángulos (antes 33 y 25 476).

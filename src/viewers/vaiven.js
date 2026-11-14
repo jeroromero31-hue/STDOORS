@@ -28,6 +28,12 @@ const TUNE = { 'frame-light': { gain: 0.68, rough: 2.4 }, kickplate: { gain: 1.1
 // el retoque del inoxidable (más metal, más pulido) volvía a dejarlo casi blanco contra el muro.
 const FIXED = new Set(['frame-light']);
 
+// Mallas del original que no se dibujan (Fase 3C-2, docs/DIFERENCIAS_CON_ORIGINALES.md):
+// static/gasket son tres tiras negras pegadas al marco SOLO por el frente. Tapaban el perfil de aluminio de cada hoja
+// del lado de la bisagra y arriba (por detrás sí se veía), se metían 7 mm en ese perfil y se quedaban en el aire al
+// abrir la hoja. El empaque real va en la hoja (left/gasket, right/gasket) y ese sí se conserva.
+const OMIT = new Set(['static/gasket']);
+
 // Cajas de encuadre (m): marco con las hojas cerradas, entreabiertas y abiertas hacia el frente
 const BOX = { closed: [-1.26, 0, -0.06, 1.26, 2.53, 0.10], ajar: [-1.26, 0, -0.06, 1.26, 2.53, 0.60], open: [-1.26, 0, -0.06, 1.26, 2.53, 1.07] };
 
@@ -66,6 +72,7 @@ export function createVaiven(stage, reg) {
   const ready = fetch(binUrl).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return r.arrayBuffer(); }).then((buf) => {
     if (buf.byteLength !== manifest.formato.bytes) throw new Error('El modelo llegó incompleto');
     for (const [i, grupo, material, nv, ni, po, no, io] of manifest.mallas) {
+      if (OMIT.has(`${grupo}/${material}`)) continue;
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, po, nv * 3), 3));
       geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(buf, no, nv * 3), 3));
