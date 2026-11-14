@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import manifest from '../models/vaiven.json';
 import binUrl from '../models/vaiven.bin?url';
 import logoUrl from '../models/logo-hoja.png';
-import { createRig, VAIVEN } from './vaiven.rig.js';
+import { createRig, VAIVEN, axisLocal, widenFrame, splitPieces } from './vaiven.rig.js';
 import { Hinge, hingeMotion } from '../core/hinge.js';
 import { createBackdrop } from '../core/backdrop.js';
 import { frameBox, orbitView } from '../core/cameraRig.js';
@@ -35,12 +35,13 @@ const FIXED = new Set(['frame-light']);
 const OMIT = new Set(['static/gasket']);
 
 // Cajas de encuadre (m): marco con las hojas cerradas, entreabiertas y abiertas hacia el frente
-const BOX = { closed: [-1.26, 0, -0.06, 1.26, 2.53, 0.10], ajar: [-1.26, 0, -0.06, 1.26, 2.53, 0.60], open: [-1.26, 0, -0.06, 1.26, 2.53, 1.07] };
+const W = 1.2495 + VAIVEN.frame.shift + 0.01, H = 2.5205 + VAIVEN.frame.lift + 0.01;
+const BOX = { closed: [-W, 0, -0.10, W, H, 0.10], ajar: [-W, 0, -0.10, W, H, 0.62], open: [-W, 0, -0.10, W, H, 1.16] };
 
 export function createVaiven(stage, reg) {
   const { root, slots } = createRig();
   // el marco queda dentro del vano del muro; detrás, el interior azul marino
-  const backdrop = createBackdrop(stage, { opening: { left: -1.24, right: 1.24, top: 2.51 }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
+  const backdrop = createBackdrop(stage, { opening: { left: -(1.24 + VAIVEN.frame.shift), right: 1.24 + VAIVEN.frame.shift, top: 2.51 + VAIVEN.frame.lift }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
   root.add(backdrop.group);
 
   // ---------- materiales ----------
@@ -64,7 +65,25 @@ export function createVaiven(stage, reg) {
   }
 
   // ---------- hojas: giran sobre el eje del original, hacia el frente (+) o hacia atrás (−) ----------
-  const hinges = [new Hinge(slots.left, { dir: 1, min: -MAX, max: MAX, mode: 'free' }), new Hinge(slots.right, { dir: -1, min: -MAX, max: MAX, mode: 'free' })];
+  const hinges = [new Hinge(slots.left, { dir: 1, min: -MAX, max: MAX, mode: 'free', axis: axisLocal(1) }), new Hinge(slots.right, { dir: -1, min: -MAX, max: MAX, mode: 'free', axis: axisLocal(-1) })];
+
+  // Mitad fija de cada bisagra: la columna de nudillos (todo el herraje que queda del lado del poste). Hay una por cara.
+  // La del lado hacia el que abre la hoja es el eje y se queda en el marco; la de la cara contraria acompaña a la hoja,
+  // como el eslabón central de una bisagra de doble acción. Cerrada, las dos están en reposo.
+  const knuckles = {};
+  for (const [grp, h] of [['left', hinges[0]], ['right', hinges[1]]]) {
+    const g = { front: new THREE.Group(), back: new THREE.Group() };
+    for (const k of ['front', 'back']) { g[k].name = `Nudillos-${grp}-${k}`; g[k].position.copy(slots[grp].position); slots.static.add(g[k]); }
+    knuckles[grp] = g;
+    h.onChange(() => {
+      const sd = h.side();
+      for (const [k, kside] of [['front', 1], ['back', -1]]) {
+        const follow = sd !== 0 && sd !== kside;
+        g[k].position.copy(follow ? h.pivot.position : h.base); g[k].rotation.y = follow ? h.pivot.rotation.y : 0;
+      }
+    });
+  }
+  const isHardware = (mat) => /^hinge|^screw/.test(mat);
   const hingeOf = { left: hinges[0], right: hinges[1] };
   stage.onFrame.add((dt) => hinges.forEach((h) => h.update(dt)));
 
@@ -77,13 +96,22 @@ export function createVaiven(stage, reg) {
       geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, po, nv * 3), 3));
       geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(buf, no, nv * 3), 3));
       geo.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, io, ni), 1));
+      if (grupo === 'static' && (material === 'frame' || material === 'frame-light')) widenFrame(geo, material === 'frame-light');
       const panel = manifest.materiales[material].superficie === 'acabado';
       if (panel) finishUV(geo);                                 // los acabados compartidos llevan textura: necesitan UV
-      const mesh = new THREE.Mesh(geo, panel ? reg.get(finish) : materials[material]);
-      mesh.name = `${grupo}/${material}/${i}`; mesh.renderOrder = i; mesh.castShadow = true; mesh.receiveShadow = true;
-      if (panel) panels.push(mesh);
-      if (hingeOf[grupo]) mesh.userData.hinge = hingeOf[grupo];                // se puede tomar para girar su hoja
-      slots[grupo].add(mesh); meshes.push(mesh);
+      const add = (g, parent, name, hinge) => {
+        const mesh = new THREE.Mesh(g, panel ? reg.get(finish) : materials[material]);
+        mesh.name = name; mesh.renderOrder = i; mesh.castShadow = true; mesh.receiveShadow = true;
+        if (panel) panels.push(mesh);
+        if (hinge) mesh.userData.hinge = hinge;                 // se puede tomar para girar su hoja
+        parent.add(mesh); meshes.push(mesh);
+      };
+      if (hingeOf[grupo] && isHardware(material)) {
+        // herraje: lo que queda del lado del poste (nudillos, tapas, perno) pasa a la mitad fija de su cara
+        const dir = hingeOf[grupo].dir, parts = splitPieces(geo, (c) => (dir * c.x < 0 ? (c.z > 0 ? 'front' : 'back') : 'leaf'));
+        if (parts.leaf) add(parts.leaf, slots[grupo], `${grupo}/${material}/${i}`, hingeOf[grupo]);
+        for (const k of ['front', 'back']) if (parts[k]) add(parts[k], knuckles[grupo][k], `${grupo}/${material}/${i}/fija-${k}`, null);
+      } else add(geo, slots[grupo], `${grupo}/${material}/${i}`, hingeOf[grupo]);
     }
     applyFinish(finish);
   });
@@ -104,7 +132,23 @@ export function createVaiven(stage, reg) {
   const blockers = []; backdrop.group.traverse((o) => { if (o.isMesh) blockers.push(o); });
   const pickables = () => [...meshes, ...blockers];
   const motion = hingeMotion(stage, hinges, pickables);
-  motion.inside = (on) => hinges.forEach((h) => motion.to(h, on ? AJAR : 0));
+  // Las dos hojas no se mueven a la vez cerca del cierre: sus empaques de canto se cruzarían hasta 6.7 mm hacia los 6°
+  // (docs/DIFERENCIAS_CON_ORIGINALES.md). Al abrir, la segunda arranca cuando la primera pasa de 12°; al cerrar, la
+  // primera espera a que la segunda esté cerrada.
+  const STAGGER = 12; let wait = null;
+  stage.onFrame.add(() => { if (wait && wait.ready()) { const w = wait; wait = null; w.go(); } });
+  const pair = ([a0, a1]) => {
+    const [h0, h1] = hinges; wait = null;
+    const same = (x, y) => x !== 0 && y !== 0 && Math.sign(x) === Math.sign(y);
+    if (same(a0, a1) && Math.abs(h0.angle) < STAGGER && Math.abs(h1.angle) < STAGGER) {           // abrir juntas
+      motion.to(h0, a0); wait = { ready: () => Math.abs(h0.angle) >= STAGGER || matchMedia('(prefers-reduced-motion: reduce)').matches, go: () => motion.to(h1, a1) };
+    } else if (a0 === 0 && a1 === 0 && same(h0.angle, h1.angle)) {                               // cerrar juntas
+      motion.to(h1, 0); wait = { ready: () => h1.angle === 0, go: () => motion.to(h0, 0) };
+    } else { motion.to(h0, a0); motion.to(h1, a1); }
+  };
+  motion.setOpen = (on) => pair(on ? [MAX, MAX] : [0, 0]);
+  motion.inside = (on) => pair(on ? [AJAR, AJAR] : [0, 0]);
+  motion.step = (d) => { if (d.open === undefined) return; const a = String(d.open).split(',').map(Number); pair([a[0], a[1] ?? a[0]]); };
 
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
@@ -117,7 +161,7 @@ export function createVaiven(stage, reg) {
     // anclas para los puntos de pieza: número de catálogo o, si la pieza no tiene, su id interno
     anchors: [
       { numero: '03', parent: slots.left, position: V(0.5675, 1.80, 0.03) },                       // ventanilla
-      { numero: '02', parent: slots.right, position: V(-0.08, 2.21, 0.085) },                      // bisagra
+      { numero: '02', parent: slots.right, position: V(-0.08, 2.17, 0.083) },                        // bisagra
       { numero: '06', parent: slots.left, position: V(0.56, 0.965, 0.07) },                        // bumper
       { numero: '01', parent: slots.right, position: V(0.0, 1.35, 0.04) },                         // empaque lateral
       { id: 'vaiven-perfil-aluminio-40-mm', parent: slots.left, position: V(1.125, 1.25, 0.034) }, // perfil de la hoja

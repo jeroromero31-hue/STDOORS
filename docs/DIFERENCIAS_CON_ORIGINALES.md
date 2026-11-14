@@ -202,3 +202,44 @@ Lo que sí está bien y se comprobó: las dos hojas son independientes y **no se
 | Atrás | perfil 29 px y empaque de la hoja 31 px | igual |
 
 Ahora se dibujan 32 mallas y 25 440 triángulos (antes 33 y 25 476).
+
+## Puerta vaivén · Fase 3C-2, parte 2: bisagras de dos ejes, mitad fija y marco sin intersecciones
+
+Decisiones de ST: "Dos ejes y mitad fija". En el ancho del vano no hubo preferencia; se tomó la opción recomendada, ensanchar el marco y no tocar las hojas.
+
+### Problema medido en el original
+
+- **Las hojas no caben en el marco.** Cada hoja con su empaque mide 30 mm más de lo que cabe entre los postes; en total faltan 59 mm.
+- **La hoja atraviesa el marco.** Gira sobre un eje pegado a la cara del poste. Cerrada, el empaque ya entra 30 mm en el poste y a 63° llega a 40 mm. El canto superior entra 3.5 mm en el cabezal.
+- **La bisagra entera gira con la hoja.** No había una parte fija en el marco.
+
+### Cambios
+
+| Elemento | Original | Ahora |
+|---|---|---|
+| Postes | Cara interior a ±1.1445 m | Cada poste 31.5 mm hacia afuera; holgura de 2 mm con el empaque de la hoja |
+| Cabezal | Parte baja a 2.4215 m | 6.5 mm más arriba; holgura de 3 mm |
+| Frente del marco | Separado 5.5 mm del cuerpo | Pegado al cuerpo |
+| Muro | Vano de ±1.24 m | Vano ensanchado lo mismo que el marco |
+| Eje de giro | Uno solo, en el canto, para los dos sentidos | Dos ejes, en la columna de nudillos: 30 mm hacia el poste y 78 mm hacia el frente o hacia atrás. La hoja gira sobre el del lado hacia el que abre |
+| Bisagra | Todo el herraje gira con la hoja | La columna de nudillos (con tapas y perno) es la mitad fija. Hay una por cara: la del lado hacia el que abre se queda en el marco; la de la cara contraria acompaña a la hoja, como el eslabón central de una bisagra de doble acción. Las placas con tornillos van siempre con la hoja |
+| Botón Abrir / Cerrar | Las dos hojas a la vez | La segunda hoja arranca cuando la primera pasa de 12°. Al cerrar, la primera espera a que la segunda cierre. Así los empaques del canto no se cruzan |
+| Arrastre | Un eje | Sigue al eje del lado en curso y cambia de eje al pasar por el cierre. El punto tomado sigue bajo el puntero (0.01 px de error en la prueba) |
+
+**Lo que no cambia:** la geometría de las hojas (panel, perfil, empaques, ventanilla, bumper, placa inferior, bisagras), su orientación en cada ángulo, su posición cerrada y la apertura máxima de 63.03°. `vaiven.bin` sigue idéntico al original. El ensanchado del marco y la separación de la bisagra se hacen al cargar, con las mismas funciones que usa la verificación (`src/viewers/vaiven.rig.js`).
+
+### Verificación (`scripts/verify-vaiven.mjs`, sección 3C-2)
+
+Se recorre la hoja izquierda de −63° a +63° en pasos de 0.5° (253 ángulos), con todos sus vértices. La derecha es su espejo.
+
+| Medida | Original | Ahora |
+|---|---|---|
+| Hoja dentro del marco (postes y cabezal) | 39.9 mm | 0 mm |
+| Mitad fija dentro del poste | — | 0 mm |
+| Orientación de la hoja frente al original | — | Igual (diferencia 0.00000003) |
+| Hoja cerrada frente al original | — | Igual (diferencia 0.00000002) |
+| Entre hojas | 0 mm | Solo empaques de canto, hasta 6.7 mm si las dos pasan a la vez cerca de los 6°. Con el escalonado del botón no pasa (0 cuadros en la prueba). Con la otra hoja cerrada, 1.5 mm |
+
+Prueba de control: con el eje y el marco del original, la misma verificación marca 39.89 mm y falla. Es decir, sí detecta el problema.
+
+**Límite:** al arrastrar una hoja mientras la otra está entreabierta entre 3° y 9°, sus empaques de canto pueden cruzarse hasta 6.7 mm. Es hule contra hule; en una puerta real se comprimen.
