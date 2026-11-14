@@ -268,3 +268,10 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 | Arrastre de una puerta | El ángulo se quedaba en la tangente cuando el puntero salía de la silueta de la hoja; desde el frente, la puerta no llegaba a 90° | Fuera de la silueta sigue girando en el mismo sentido (90° por cada radio). Al llegar a 90° queda enganchada hasta que el puntero regresa | Sin esto no se podía retener la puerta arrastrándola desde la vista general |
 | Velocidad de cierre y calidad | Deslizadores en el panel | Valores fijos (3.5 s; las filas de producto según la calidad del sitio) | Menos controles; se puede volver a exponer si hace falta |
 | Etiquetas de calidad automática | Mensaje al bajar la calidad | Lo maneja el escenario común | — |
+
+## CDS Legacy · Fase 4B: comparador y fotos de instalaciones
+
+- **Comparador de modelos.** El corte del vidrio de cada tarjeta es un dibujo explicativo hecho para el sitio, no un plano. Muestra solo lo que dice el PDF: Advanced con 2 vidrios sin resistencia y argón; Plus con 2 vidrios y resistencia; LT con 3 vidrios y resistencia. No indica espesores ni distancias reales. La tabla de modelos que estaba en la Ficha pasó a estas tarjetas.
+- **Fotos de instalaciones.** Se publican 11 de las 15 fotos de `04_PRODUCTOS_FOTOGRAFIAS/CDS_INSTALACIONES_REALES`, en WebP y AVIF a 480, 960 y 1600 px (`scripts/build-cds-photos.mjs`). Las originales no se tocaron. Se quitaron los metadatos.
+- **Fotos que quedan fuera hasta que el cliente dé permiso:** la del letrero "Beer Cave", la fachada de la tienda Kiosko y la del póster con personas y marca de una cadena. También queda fuera la foto de un almacén con panel y ventanilla, porque no muestra puertas CDS.
+- **Textos alternativos:** describen la foto sin nombres de clientes ni lugares, porque el paquete no los trae.

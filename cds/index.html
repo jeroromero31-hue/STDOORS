@@ -10,7 +10,7 @@
 <main id="main">
   <nav class="subnav" aria-label="Secciones de CDS Legacy"><div class="wrap subnav__in">
     <span class="subnav__name">CDS Legacy</span>
-    <a href="#como">Cómo funciona</a><a href="#ficha">Ficha</a><a href="#cotizar">Cotizar</a>
+    <a href="#como">Cómo funciona</a><a href="#modelos">Modelos</a><a href="#instalaciones">Instalaciones</a><a href="#ficha">Ficha</a><a href="#cotizar">Cotizar</a>
   </div></nav>
 
   <div class="door" id="como">
@@ -66,19 +66,30 @@
     </div>
   </div>
 
+  <section class="surface-ice section" id="modelos">
+    <div class="wrap stack" style="--stack:32px">
+      <div class="stack"><h2>Tres modelos, un mismo marco</h2><p class="t-lead">Por fuera son iguales. Cambia el vidrio: cuántos lleva, si tiene resistencia y si la cámara lleva argón.</p></div>
+      <div class="cds-models" id="modelos-grid"></div>
+    </div>
+  </section>
+
+  <section class="section" id="instalaciones">
+    <div class="wrap stack" style="--stack:32px">
+      <div class="stack"><h2>Instaladas</h2><p class="t-lead">Puertas CDS en tiendas y cámaras frigoríficas.</p></div>
+      <ul class="cds-gallery" id="galeria"></ul>
+    </div>
+  </section>
+  <dialog class="photo-dlg" id="visor-foto" aria-label="Foto de instalación">
+    <div class="photo-dlg__img"></div>
+    <div class="photo-dlg__bar">
+      <p class="photo-dlg__cap t-small" aria-live="polite"></p>
+      <div class="row"><button class="btn btn--line" data-prev aria-label="Foto anterior">Anterior</button><button class="btn btn--line" data-next aria-label="Foto siguiente">Siguiente</button><button class="btn" data-close>Cerrar</button></div>
+    </div>
+  </dialog>
+
   <section class="section" id="ficha">
     <div class="wrap stack" style="--stack:32px">
       <h2>Ficha</h2>
-      <div class="table-wrap">
-        <table class="spec-table">
-          <thead><tr><th scope="col">Modelo</th><th scope="col">Uso</th><th scope="col">Vidrios</th></tr></thead>
-          <tbody>
-            <tr><th scope="row">Legacy Advanced</th><td>Refrigeración</td><td>Dos vidrios sin resistencia, con gas argón</td></tr>
-            <tr><th scope="row">Legacy Plus</th><td>Refrigeración</td><td>Dos vidrios con resistencia</td></tr>
-            <tr><th scope="row">Legacy LT</th><td>Congelación</td><td>Tres vidrios con resistencia</td></tr>
-          </tbody>
-        </table>
-      </div>
       <dl class="spec" style="max-width:860px">
         <div><dt>Medidas estándar</dt><dd>Ancho 23", 26" o 30" · Alto 67", 73" o 79"</dd></div>
         <div><dt>Opcional en Advanced</dt><dd>Tres vidrios con argón, o dos vidrios con argón y Low-E</dd></div>

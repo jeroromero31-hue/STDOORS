@@ -1,0 +1,225 @@
+{
+ "origen": "04_PRODUCTOS_FOTOGRAFIAS/CDS_INSTALACIONES_REALES",
+ "fotos": [
+  {
+   "id": "instalacion-01",
+   "alt": "Pasillo con una pared continua de puertas CDS de cristal y marco negro",
+   "ancho": 585,
+   "alto": 1040,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-01-480.webp",
+     "avif": "instalacion-01-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-01-960.webp",
+     "avif": "instalacion-01-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-01-1600.webp",
+     "avif": "instalacion-01-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-02",
+   "alt": "Línea de puertas CDS a todo lo largo de un muro, vista en perspectiva",
+   "ancho": 1040,
+   "alto": 585,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-02-480.webp",
+     "avif": "instalacion-02-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-02-960.webp",
+     "avif": "instalacion-02-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-02-1600.webp",
+     "avif": "instalacion-02-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-03",
+   "alt": "Esquina de tienda con dos líneas de puertas CDS que se encuentran",
+   "ancho": 1040,
+   "alto": 585,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-03-480.webp",
+     "avif": "instalacion-03-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-03-960.webp",
+     "avif": "instalacion-03-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-03-1600.webp",
+     "avif": "instalacion-03-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-04",
+   "alt": "Muro de lácteos con puertas CDS en una tienda",
+   "ancho": 1115,
+   "alto": 728,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-04-480.webp",
+     "avif": "instalacion-04-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-04-960.webp",
+     "avif": "instalacion-04-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-04-1600.webp",
+     "avif": "instalacion-04-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-05",
+   "alt": "Puertas CDS para jugos y cervezas junto al área de frutas y verduras",
+   "ancho": 1296,
+   "alto": 728,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-05-480.webp",
+     "avif": "instalacion-05-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-05-960.webp",
+     "avif": "instalacion-05-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-05-1600.webp",
+     "avif": "instalacion-05-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-06",
+   "alt": "Puertas CDS surtidas con bebidas, vistas de cerca",
+   "ancho": 1280,
+   "alto": 960,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-06-480.webp",
+     "avif": "instalacion-06-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-06-960.webp",
+     "avif": "instalacion-06-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-06-1600.webp",
+     "avif": "instalacion-06-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-07",
+   "alt": "Puertas CDS con latas y botellas en sus parrillas",
+   "ancho": 1280,
+   "alto": 960,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-07-480.webp",
+     "avif": "instalacion-07-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-07-960.webp",
+     "avif": "instalacion-07-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-07-1600.webp",
+     "avif": "instalacion-07-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-08",
+   "alt": "Dos secciones de puertas CDS en esquina, con lácteos y bebidas",
+   "ancho": 1233,
+   "alto": 1600,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-08-480.webp",
+     "avif": "instalacion-08-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-08-960.webp",
+     "avif": "instalacion-08-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-08-1600.webp",
+     "avif": "instalacion-08-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-09",
+   "alt": "Fila de puertas CDS con productos, vista desde un costado",
+   "ancho": 901,
+   "alto": 1600,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-09-480.webp",
+     "avif": "instalacion-09-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-09-960.webp",
+     "avif": "instalacion-09-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-09-1600.webp",
+     "avif": "instalacion-09-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-10",
+   "alt": "Cámara frigorífica en obra con su frente de puertas CDS",
+   "ancho": 1080,
+   "alto": 804,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-10-480.webp",
+     "avif": "instalacion-10-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-10-960.webp",
+     "avif": "instalacion-10-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-10-1600.webp",
+     "avif": "instalacion-10-1600.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-11",
+   "alt": "Tienda recién terminada con un muro de puertas CDS al fondo",
+   "ancho": 1032,
+   "alto": 774,
+   "imagen": {
+    "480": {
+     "webp": "instalacion-11-480.webp",
+     "avif": "instalacion-11-480.avif"
+    },
+    "960": {
+     "webp": "instalacion-11-960.webp",
+     "avif": "instalacion-11-960.avif"
+    },
+    "1600": {
+     "webp": "instalacion-11-1600.webp",
+     "avif": "instalacion-11-1600.avif"
+    }
+   }
+  }
+ ]
+}

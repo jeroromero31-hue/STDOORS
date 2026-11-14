@@ -2,7 +2,7 @@
 .subnav { position: sticky; top: 68px; z-index: 30; background: color-mix(in srgb, var(--c-wall) 94%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--c-line); }
 .subnav__in { display: flex; align-items: center; gap: var(--s-5); min-height: 52px; overflow-x: auto; scrollbar-width: none; }
 .subnav__name { font-weight: var(--w-bold); white-space: nowrap; margin-right: auto; }
-.subnav a { display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); min-width: var(--tap); white-space: nowrap; text-decoration: none; font-size: var(--t-sm); font-weight: var(--w-medium); color: var(--c-ink-soft); border-bottom: 2px solid transparent; }
+.subnav a { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); min-width: var(--tap); white-space: nowrap; text-decoration: none; font-size: var(--t-sm); font-weight: var(--w-medium); color: var(--c-ink-soft); border-bottom: 2px solid transparent; }
 .subnav a[aria-current=true] { color: var(--c-ink); border-color: var(--c-navy); }
 @media (max-width: 640px) { .subnav__name { display: none; } }
 
