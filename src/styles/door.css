@@ -15,6 +15,9 @@
 .door__hero h1 { font-size: var(--t-3xl); }
 .door__ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-4); margin-top: var(--s-3); }
 .door__finish { display: flex; align-items: center; gap: var(--s-3); }
+/* opciones de texto (modelo CDS): botones en una fila y la descripción debajo */
+.door__finish:has(.chips) { flex-direction: column; align-items: flex-start; gap: var(--s-2); flex-basis: 100%; }
+.door__finish .chips { flex-wrap: nowrap; }
 .door__step { min-height: 84svh; display: flex; flex-direction: column; justify-content: center; gap: var(--s-3); }
 .door__step h2 { font-size: var(--t-2xl); }
 .door__n { font-size: var(--t-sm); font-weight: var(--w-bold); color: var(--c-tech); }
@@ -44,3 +47,7 @@
 
 .door-parts { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--s-4); }
 .door-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--s-5); flex-wrap: wrap; margin-bottom: var(--s-7); }
+
+/* opciones de texto sobre azul marino (ver por dentro) */
+.door.is-inside .chip { background: transparent; border-color: rgba(255,255,255,.35); color: var(--c-on-navy); }
+.door.is-inside .chip[aria-pressed=true] { background: var(--c-white); border-color: var(--c-white); color: var(--c-navy); }

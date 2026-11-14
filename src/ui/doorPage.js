@@ -13,16 +13,15 @@ import catalog from '../data/components.json';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-export function mountDoorPage({ familia, nombre, createViewer, poster }) {
-  mountSite('industriales');
+export function mountDoorPage({ familia, nombre, createViewer, poster, section = 'industriales' }) {
+  mountSite(section);
   const door = $('.door'), viewerEl = $('#viewer');
-  const famLabel = catalog.familias.find((f) => f.id === familia).nombre;
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
   // ---------- 3D ----------
   const still = (why) => `<img src="${url(poster)}" alt="${nombre}"><p class="t-small t-soft">${why} Aquí tienes una imagen de la puerta.</p>`;
   const stage = createStage(viewerEl, { fallback: still('Este dispositivo no pudo iniciar el visor 3D.') });
-  let viewer = null, rig = null, state = { finish: null, open: false, inside: false };
+  let viewer = null, rig = null, state = { finish: null, option: null, open: false, inside: false };
   const openBtn = $('#openBtn'), insideBtn = $('#insideBtn'), hint = $('#hint'), live = $('#live');
   const noViewer = () => { $$('.door__ctl > *, .viewer__reframe').forEach((el) => { el.hidden = true; }); hint.hidden = true; };
   if (stage) {
@@ -65,7 +64,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
       hint.classList.add('is-off');
     };
 
-    // acabados: solo las opciones reales de esta puerta
+    // acabados: solo las opciones reales de esta puerta. Una puerta sin acabados a elegir puede traer otras opciones
+    // (el modelo, en CDS): se muestran como botones de texto en el mismo lugar.
     const sw = $('#swatches'), fin = $('#finishName');
     const cls = { blackMetal: 'swatch--black', stainless: 'swatch--stainless', hygienicWhite: 'swatch--white' };
     const setFinish = (f) => { state.finish = f; viewer.setFinish(f); fin.textContent = FINISH_LABEL[f]; $$('.swatch', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === f)); };
@@ -73,23 +73,32 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
       sw.innerHTML = finishes.map((f) => `<button class="swatch ${cls[f]}" data-f="${f}" aria-label="${FINISH_LABEL[f]}" aria-pressed="false"></button>`).join('');
       $$('.swatch', sw).forEach((b) => { b.onclick = () => setFinish(b.dataset.f); });
       setFinish(new URLSearchParams(location.search).get('acabado') in cls ? new URLSearchParams(location.search).get('acabado') : viewer.finish);
+    } else if (viewer.options) {
+      const o = viewer.options;
+      sw.classList.add('chips'); sw.setAttribute('aria-label', o.label);
+      sw.innerHTML = o.items.map((it) => `<button class="chip" data-o="${it.id}" aria-pressed="false" title="${it.title || it.label}">${it.label}</button>`).join('');
+      const pick = (id) => { o.set(id); state.option = o.items.find((x) => x.id === id); fin.textContent = state.option.detail || ''; $$('.chip', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.o === id)); };
+      $$('.chip', sw).forEach((b) => { b.onclick = () => { pick(b.dataset.o); live.textContent = state.option.title || state.option.label; }; });
+      const q = new URLSearchParams(location.search).get('modelo'); pick(o.items.some((x) => x.id === q) ? q : o.current());
     } else { sw.remove(); fin.textContent = 'Un acabado'; }
 
     // ver por dentro: fondo azul marino y puntos de pieza
     const layer = $('#hotspots'), card = $('#hotcard');
     // cada ancla señala una pieza del catálogo: por número o, si no lo tiene, por su id interno
-    const items = viewer.anchors.map((a) => { const p = parts.find((x) => (a.id ? x.id === a.id : x.numero === a.numero)); return p && { ...a, piece: p, label: p.nombre }; }).filter(Boolean);
+    // (o, si trae texto propio, una función del producto: se muestra como nota, sin foto)
+    const items = viewer.anchors.map((a) => { if (a.text) return a; const p = parts.find((x) => (a.id ? x.id === a.id : x.numero === a.numero)); return p && { ...a, piece: p, label: p.nombre }; }).filter(Boolean);
     const hs = createHotspots(stage, layer, items, (it, btn) => {
       hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', n.b === btn));
       card.hidden = false;
-      card.innerHTML = `${partPicture(it.piece, { sizes: '84px' })}<div><b>${it.piece.nombre}</b><a class="link t-small" href="${url('componentes/')}?id=${it.piece.id}">Ver pieza en el catálogo</a></div>`;
+      card.innerHTML = it.piece ? `${partPicture(it.piece, { sizes: '84px' })}<div><b>${it.piece.nombre}</b><a class="link t-small" href="${url('componentes/')}?id=${it.piece.id}">Ver pieza en el catálogo</a></div>`
+        : `<div><b>${it.label}</b><p class="t-small">${it.text}</p></div>`;
     });
     insideBtn.onclick = () => {
       state.inside = !state.inside; door.classList.toggle('is-inside', state.inside); viewer.setInside(state.inside);
       layer.hidden = !state.inside; card.hidden = true; hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', 'false'));
       insideBtn.setAttribute('aria-pressed', state.inside); insideBtn.textContent = state.inside ? 'Volver al exterior' : 'Ver por dentro';
       motion.inside(state.inside); rig.go(state.inside ? (viewer.views.interior ? 'interior' : 'abierta') : 'general');
-      live.textContent = state.inside ? `Vista interior: ${items.length} piezas señaladas` : 'Vista exterior';
+      live.textContent = state.inside ? `Vista interior: ${items.length} ${items.some((x) => x.piece) ? 'piezas' : 'funciones'} señaladas` : 'Vista exterior';
       hint.classList.add('is-off');
     };
 
@@ -124,15 +133,18 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
   } else noViewer();
 
   // ---------- piezas, ficha, cotizar ----------
-  $('#partsLead').textContent = `${parts.length} piezas con fotografía en el catálogo.`;
-  $('#partsAll').textContent = `Ver las ${parts.length}`; $('#partsAll').href = `${url('componentes/')}?fam=${familia}`;
-  const featured = ($('#parts').dataset.featured || '').split(',').map((n) => parts.find((p) => p.numero === n || p.id === n)).filter(Boolean);   // por número o por id
-  $('#parts').innerHTML = (featured.length ? featured : parts.slice(0, 12)).map((p) => `<a class="part" href="${url('componentes/')}?id=${p.id}">${partPicture(p)}<span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}</small></span></a>`).join('');
-  $('#specCount').textContent = parts.length;
+  if ($('#parts')) {
+    $('#partsLead').textContent = `${parts.length} piezas con fotografía en el catálogo.`;
+    $('#partsAll').textContent = `Ver las ${parts.length}`; $('#partsAll').href = `${url('componentes/')}?fam=${familia}`;
+    const featured = ($('#parts').dataset.featured || '').split(',').map((n) => parts.find((p) => p.numero === n || p.id === n)).filter(Boolean);   // por número o por id
+    $('#parts').innerHTML = (featured.length ? featured : parts.slice(0, 12)).map((p) => `<a class="part" href="${url('componentes/')}?id=${p.id}">${partPicture(p)}<span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}</small></span></a>`).join('');
+    $('#specCount').textContent = parts.length;
+  }
   const add = $('#addDoor');
   add.onclick = () => {
-    const f = state.finish ? FINISH_LABEL[state.finish] : '';
-    solicitud.add({ id: `puerta-${familia}${state.finish ? '-' + state.finish : ''}`, nombre: `${nombre}${f ? ', ' + f.toLowerCase() : ''}`, tipo: 'Puerta' });
+    const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';
+    const key = state.finish || (state.option && state.option.id);
+    solicitud.add({ id: `puerta-${familia}${key ? '-' + key : ''}`, nombre: `${nombre}${f ? ', ' + f : ''}`, tipo: 'Puerta' });
     add.textContent = 'Agregada a tu solicitud'; toast('Agregada a tu solicitud');
   };
 
@@ -145,5 +157,5 @@ export function mountDoorPage({ familia, nombre, createViewer, poster }) {
     links.forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + now.id));
   }, { rootMargin: '-40% 0px -55% 0px' });
   sections.forEach((t) => io2.observe(t));
-  return { stage, viewer, rig, famLabel };
+  return { stage, viewer, rig };
 }

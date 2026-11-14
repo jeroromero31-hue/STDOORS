@@ -3,15 +3,104 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Puertas Reach-In CDS Legacy — ST Doors</title>
-<meta name="description" content="Se cierran solas y se quedan abiertas a 90° para surtir.">
+<meta name="description" content="Puertas Reach-In CDS Legacy: se quedan abiertas a 90° para surtir y se cierran solas. Advanced, Plus y LT.">
 <link rel="icon" href="/favicon.png">
 </head>
-<body data-page="cds">
-<main id="main" class="wrap section stack" style="--stack:20px;min-height:60svh">
-  <h1>Puertas Reach-In CDS Legacy</h1>
-  <p class="t-lead">Se cierran solas y se quedan abiertas a 90° para surtir.</p>
-  <p class="phase-note">El conjunto de tres puertas se integra en la Fase 4.</p>
+<body>
+<main id="main">
+  <nav class="subnav" aria-label="Secciones de CDS Legacy"><div class="wrap subnav__in">
+    <span class="subnav__name">CDS Legacy</span>
+    <a href="#como">Cómo funciona</a><a href="#ficha">Ficha</a><a href="#cotizar">Cotizar</a>
+  </div></nav>
+
+  <div class="door" id="como">
+    <div class="door__viewer">
+      <div class="viewer" id="viewer" role="img" aria-label="Modelo 3D de un juego de tres puertas Reach-In CDS Legacy"></div>
+      <div class="hotspots" id="hotspots" hidden></div>
+      <div class="hotcard" id="hotcard" hidden></div>
+      <span class="hint viewer__hint" id="hint">Arrastra una puerta para abrirla</span>
+    </div>
+    <div class="door__col">
+      <section class="door__hero" data-view="general" data-open="0" data-led="1">
+        <h1>Puertas CDS Legacy</h1>
+        <p class="t-lead">Puertas Reach-In que se quedan abiertas a 90° para surtir y se cierran solas.</p>
+        <div class="door__ctl">
+          <button class="btn" id="openBtn">Abrir</button>
+          <div class="door__finish"><div class="swatches" id="swatches" role="group" aria-label="Modelo"></div><span class="t-soft t-small" id="finishName"></span></div>
+          <button class="btn btn--line" id="insideBtn" aria-pressed="false">Ver por dentro</button>
+        </div>
+        <p class="sr-only" id="live" role="status" aria-live="polite"></p>
+      </section>
+      <section class="door__step" data-view="retencion" data-open="0,90,0">
+        <h2>Se queda abierta a 90°</h2>
+        <p class="t-soft">Abre la puerta por completo y se sostiene sola, sin brazo colgante. Así se surte con las dos manos.</p>
+      </section>
+      <section class="door__step" data-view="autocierre" data-open="0,55,0">
+        <h2>Si la sueltas antes, se cierra sola</h2>
+        <p class="t-soft">Kwik Torque regresa la puerta al marco. La velocidad de cierre se ajusta con 3 o 4 clics.</p>
+      </section>
+      <section class="door__step" data-view="parrillas" data-open="0,90,0">
+        <h2>Toma un producto</h2>
+        <p class="t-soft">Con la puerta retenida a 90°, toma un producto de la parrilla, gíralo y devuélvelo con doble clic o doble toque.</p>
+      </section>
+      <section class="door__step" data-view="kwikLevel" data-open="0">
+        <h2>Kwik Level</h2>
+        <p class="t-soft">En la parte alta de cada puerta: facilita nivelar una puerta con la de al lado.</p>
+      </section>
+      <section class="door__step" data-view="mullion" data-open="0">
+        <h2>Columna tipo "T"</h2>
+        <p class="t-soft">Las columnas entre puertas forman un solo marco, resistente y pensado para durar.</p>
+      </section>
+      <section class="door__step" data-view="sello" data-open="0,30,0">
+        <h2>Triple sello con imán</h2>
+        <p class="t-soft">El empaque de triple sello envuelve el marco por dentro y, con su imán integrado, sella la puerta al cerrar.</p>
+      </section>
+      <section class="door__step" data-view="keyled" data-open="0" data-led="1">
+        <h2>Iluminación KeyLED</h2>
+        <p class="t-soft">Sin balastro, con conexión eléctrica en un solo extremo y protección de vinilo.</p>
+      </section>
+      <section class="door__step" data-view="frontal" data-open="0">
+        <h2>Advanced, Plus o LT</h2>
+        <p class="t-soft">Por fuera se ven iguales. Cambia lo que va en el vidrio: Advanced, dos vidrios sin resistencia y con argón; Plus, dos vidrios con resistencia; LT, tres vidrios con resistencia, para congelación.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="section" id="ficha">
+    <div class="wrap stack" style="--stack:32px">
+      <h2>Ficha</h2>
+      <div class="table-wrap">
+        <table class="spec-table">
+          <thead><tr><th scope="col">Modelo</th><th scope="col">Uso</th><th scope="col">Vidrios</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Legacy Advanced</th><td>Refrigeración</td><td>Dos vidrios sin resistencia, con gas argón</td></tr>
+            <tr><th scope="row">Legacy Plus</th><td>Refrigeración</td><td>Dos vidrios con resistencia</td></tr>
+            <tr><th scope="row">Legacy LT</th><td>Congelación</td><td>Tres vidrios con resistencia</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <dl class="spec" style="max-width:860px">
+        <div><dt>Medidas estándar</dt><dd>Ancho 23", 26" o 30" · Alto 67", 73" o 79"</dd></div>
+        <div><dt>Opcional en Advanced</dt><dd>Tres vidrios con argón, o dos vidrios con argón y Low-E</dd></div>
+        <div><dt>Retención</dt><dd>Puerta a 90°, sin brazo colgante</dd></div>
+        <div><dt>Cierre</dt><dd>Kwik Torque, velocidad ajustable</dd></div>
+        <div><dt>Alineación</dt><dd>Kwik Level, en la parte alta</dd></div>
+        <div><dt>Sello</dt><dd>Triple sello con imán integrado</dd></div>
+        <div><dt>Iluminación</dt><dd>KeyLED</dd></div>
+        <div><dt>Garantía</dt><dd>5 años</dd></div>
+      </dl>
+      <p class="t-small t-soft" style="max-width:640px">El modelo 3D muestra un juego de tres puertas de 30" × 79". Los productos de las parrillas son ilustrativos.</p>
+    </div>
+  </section>
+
+  <section class="surface-navy section" id="cotizar">
+    <div class="wrap stack">
+      <h2>Cotizar puertas CDS Legacy</h2>
+      <p class="t-lead">Se agrega con el modelo que elegiste. Después nos dices cuántas puertas y qué medida.</p>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addDoor">Agregar a mi solicitud</button><a class="btn btn--line" href="/cotizar/">Ir a mi solicitud</a></div>
+    </div>
+  </section>
 </main>
-<script type="module" src="/src/pages/shell.js"></script>
+<script type="module" src="/src/pages/cds.js"></script>
 </body>
 </html>

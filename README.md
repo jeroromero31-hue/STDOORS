@@ -87,6 +87,7 @@ src/core/hotspots.js     puntos de pieza sobre el modelo
 src/viewers/abatible.js  puerta abatible
 src/viewers/corrediza.js puerta corrediza (corrediza.kinematics.js: trayectoria; corrediza.rig.js: nodos)
 src/viewers/vaiven.js    puerta vaivén de doble hoja (vaiven.rig.js: marco fijo y una hoja por eje)
+src/viewers/cds.js       juego Reach-In CDS Legacy sobre el escenario común (cds/legacy.js: núcleo del modelo aprobado)
 src/models/              geometría de la corrediza y de la vaivén generada desde los modelos aprobados
 src/ui/doorPage.js       lógica común de las páginas de puerta
 src/materials/           FinishRegistry (registro único de acabados), texturas procedurales y fromOriginal.js

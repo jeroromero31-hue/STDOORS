@@ -115,3 +115,10 @@
 /* ---------- aviso de fase ---------- */
 .phase-note { border-left: 3px solid var(--c-tech); padding: var(--s-3) var(--s-4); background: var(--c-ice); font-size: var(--t-sm); max-width: 640px; }
 .surface-navy .phase-note { background: var(--c-navy-2); }
+
+/* Tabla de ficha (comparación corta de modelos). En celular se desplaza dentro de su caja, no la página. */
+.table-wrap { overflow-x: auto; max-width: 860px; }
+.spec-table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.spec-table th, .spec-table td { text-align: left; padding: var(--s-3) var(--s-4) var(--s-3) 0; border-bottom: 1px solid var(--c-line); vertical-align: top; }
+.spec-table thead th { color: var(--c-ink-soft); font-weight: var(--w-medium); }
+.spec-table tbody th { font-weight: var(--w-bold); white-space: nowrap; }

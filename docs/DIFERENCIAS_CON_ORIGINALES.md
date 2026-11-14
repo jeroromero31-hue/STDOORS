@@ -243,3 +243,28 @@ Se recorre la hoja izquierda de −63° a +63° en pasos de 0.5° (253 ángulos)
 Prueba de control: con el eje y el marco del original, la misma verificación marca 39.89 mm y falla. Es decir, sí detecta el problema.
 
 **Límite:** al arrastrar una hoja mientras la otra está entreabierta entre 3° y 9°, sus empaques de canto pueden cruzarse hasta 6.7 mm. Es hule contra hule; en una puerta real se comprimen.
+
+## CDS Legacy (Fase 4A)
+
+Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyecto: la geometría se genera por código, no hay un modelo fijo. Su código se trajo al sitio tal cual, solo desminificado (`src/viewers/cds/legacy.js`). Los nombres cortos de variables vienen del original; el encabezado del archivo dice qué clase de Three.js es cada uno. Las líneas que cambian llevan la marca `[sitio]`.
+
+### Lo que no cambia
+
+- Marco maestro con mullions fijos, tres puertas independientes y la manija como hija del pivote de su puerta.
+- Mecánica: si se suelta antes de 90°, la puerta cierra sola (oscilador amortiguado, 3.5 s); a 90° queda retenida (umbral de 4°). Con un producto fuera, la puerta no cierra.
+- Productos (1 056 en calidad alta, todos de marcas inventadas): solo se toman con la puerta retenida a 90°, se giran y se devuelven con doble clic. Nunca atraviesan el vidrio.
+- Parrillas, KeyLED, gabinete, vidrios y materiales.
+- Modelos: Advanced y Plus con 2 vidrios, LT con 3.
+
+### Lo que cambia
+
+| Elemento | Original | Ahora | Motivo |
+|---|---|---|---|
+| Alto del vano por puerta | 1.905 m (75"), estimado | 2.007 m (79") | PDF: medidas estándar 30" × 79". El ancho de 30" ya coincidía. **Pendiente de confirmar** si el 79" es la hoja o el vano |
+| Escenario | Muro, piso, luces y cámara propios | Los comunes del sitio. El muro tiene el vano del marco; detrás, el interior azul marino | Coherencia con las puertas industriales |
+| Controles | Panel lateral con 24 controles (muchos de menos de 44 px); en celular la página se desbordaba | 3 controles: Abrir/Cerrar, modelo (Advanced, Plus, LT) y Ver por dentro | Brief §8 |
+| Funciones (Kwik Torque, Kwik Level, Mullion, Triple sello, KeyLED, 90°) | Botones de un panel, con textos propios | Pasos de la página y 6 puntos en "Ver por dentro". Textos tomados del PDF, sin cifras de protección | Brief §7 y procedencia: no anunciar porcentajes sin metodología |
+| Cámaras | Posiciones fijas | Cada vista encuadra una caja y se ajusta a la proporción del visor | Nada cortado en celular |
+| Arrastre de una puerta | El ángulo se quedaba en la tangente cuando el puntero salía de la silueta de la hoja; desde el frente, la puerta no llegaba a 90° | Fuera de la silueta sigue girando en el mismo sentido (90° por cada radio). Al llegar a 90° queda enganchada hasta que el puntero regresa | Sin esto no se podía retener la puerta arrastrándola desde la vista general |
+| Velocidad de cierre y calidad | Deslizadores en el panel | Valores fijos (3.5 s; las filas de producto según la calidad del sitio) | Menos controles; se puede volver a exponer si hace falta |
+| Etiquetas de calidad automática | Mensaje al bajar la calidad | Lo maneja el escenario común | — |
