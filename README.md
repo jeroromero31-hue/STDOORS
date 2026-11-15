@@ -1,6 +1,6 @@
 # ST Doors: sitio web
 
-Sitio estático multipágina hecho con Vite, Three.js r169 y GSAP. No usa framework ni servidor.
+Sitio estático multipágina hecho con Vite y Three.js r169. No usa framework ni servidor.
 
 ## Requisitos
 
@@ -24,6 +24,29 @@ npm run preview    # sirve dist/ en http://localhost:4173 para revisarlo
   ```bash
   VITE_BASE=/st-doors/ npm run build
   ```
+  Los enlaces escritos en el HTML (`href="/…"`) y las imágenes se ajustan solos a la subcarpeta.
+- **Con el dominio definitivo** agrega `SITE_URL` para generar el enlace canónico, la imagen para compartir y `sitemap.xml`:
+  ```bash
+  SITE_URL=https://www.tudominio.mx npm run build
+  ```
+  Sin `SITE_URL` se generan igual las etiquetas para compartir (título y descripción) y `robots.txt`.
+- **Página 404:** `dist/404.html`. Netlify, Cloudflare Pages y GitHub Pages la usan solos. En Vercel o en un servidor propio hay que indicarla. `npm run preview` no la usa: ahí cualquier ruta inexistente muestra el Inicio.
+- **Compresión:** conviene que el hosting sirva con brotli o gzip (los cuatro anteriores lo hacen solos). La geometría 3D y el código bajan a la cuarta parte.
+- **Correo y WhatsApp de Cotizar:** se cambian en `src/data/contacto.json`. Mientras `whatsapp` sea `null`, el botón de WhatsApp no aparece.
+
+## Páginas internas
+
+`lab/materiales.html` (calibración de materiales) y `lab/sistema.html` (sistema de diseño) se ven con `npm run dev`, pero **no se publican**. Para incluirlas en un build: `VITE_LAB=1 npm run build`.
+
+## Fotos de instalaciones y del Inicio
+
+```bash
+ST_PAQUETE=/ruta/al/paquete npm run fotos                     # las dos de abajo
+ST_PAQUETE=/ruta/al/paquete node scripts/build-cds-photos.mjs    # 11 fotos CDS → public/img/cds/ y src/data/cds-instalaciones.json
+ST_PAQUETE=/ruta/al/paquete node scripts/build-home-photos.mjs   # 7 fotos → public/img/inicio/ y src/data/inicio-fotos.json
+```
+
+Las fotos con marcas de clientes o de terceros quedan fuera; la lista está en cada script.
 
 ## Regenerar imágenes y datos del catálogo
 
@@ -79,6 +102,12 @@ src/styles/components.css botones, navegación, campos, chips, acabados, ficha, 
 src/ui/site.js           navegación, pie, "Mi solicitud", avisos, hoja lateral
 src/ui/picture.js        imagen responsiva AVIF/WebP del catálogo
 src/ui/catalog.js        catálogo de componentes: búsqueda, filtros, ficha y foto ampliada
+src/ui/cotizar.js        solicitud editable y envío por correo / copiar (WhatsApp listo, oculto sin número)
+src/ui/cdsPage.js        comparador de modelos CDS y galería de instalaciones
+src/ui/motion.js         movimiento de página (fichas, contador) con «reducir movimiento»
+src/pages/               un módulo por página (inicio, industriales, cds, componentes, cotizar, 404…)
+src/data/contacto.json   correo, teléfono y WhatsApp de ST
+src/data/inicio-fotos.json, cds-instalaciones.json   fotos generadas por los scripts de fotos
 src/core/stage.js        escenario 3D común: entorno de estudio, calidad, respaldo sin WebGL
 src/core/backdrop.js     muro y piso comunes (blanco afuera, azul marino adentro)
 src/core/hinge.js        hoja abisagrada: giro sobre su eje real y arrastre con el puntero (una o dos direcciones)
@@ -105,9 +134,15 @@ docs/                    resumen de cada fase, diferencias con los originales y 
 
 - **Acabados:** se crean solo en `src/materials/FinishRegistry.js`. Abatible y vaivén comparten las mismas instancias, así que un acabado se ve igual en las dos puertas. Los materiales propios de un modelo original (corrediza; herrajes y marco de la vaivén) se convierten con `src/materials/fromOriginal.js`.
 - **Acabados por puerta:** salen de `FINISHES_BY_DOOR`, que copia `MATRIZ_PRODUCTOS_ACABADOS.csv`.
-  - Corrediza y CDS no tienen selector.
+  - La corrediza no tiene selector. CDS no tiene acabados, pero sí selector de modelo (Advanced, Plus, LT).
   - La corrediza conserva su único acabado: sus materiales salen de la tabla del modelo original (`src/models/corrediza.json`), no del registro compartido.
   - La vaivén solo admite negro, inoxidable y blanco sanitario. La cara de la hoja usa el registro compartido; marco, bisagras, hules y vidrio salen de la tabla de su modelo original (`src/models/vaiven.json`).
   - El bumper de la abatible es solo inox diamante.
 - **Tipografía:** Outfit (licencia OFL) es provisional. Para cambiar a Nexa, agrega los archivos `.woff2` con licencia web, declara su `@font-face` y quita los imports de `@fontsource/outfit` en `src/ui/site.js`. Como `--font` ya pone "Nexa" primero, no hay que tocar nada más.
-- **3D:** solo se carga en las páginas que lo usan. La calidad se puede forzar con `?calidad=alta|media|baja`.
+- **3D:**
+  - Solo se carga en las páginas que lo usan.
+  - Solo dibuja cuando algo cambia.
+  - Baja la calidad sola si va a menos de 20 cuadros por segundo.
+  - La calidad se puede fijar con `?calidad=alta|media|baja`.
+  - El acabado y el modelo elegidos quedan en la URL (`?acabado=`, `?modelo=`).
+- **Medir en celular simulado:** `python3 scripts/medicion/medir_movil.py salida.json`, con `npm run preview` corriendo (necesita Python y Playwright).

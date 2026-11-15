@@ -9,7 +9,8 @@
     "assets": "node scripts/build-assets.mjs",
     "corrediza": "node scripts/convert-corrediza.mjs && node scripts/verify-corrediza.mjs",
     "vaiven": "node scripts/convert-vaiven.mjs && node scripts/verify-vaiven.mjs",
-    "verificar": "node scripts/verify-corrediza.mjs && node scripts/verify-vaiven.mjs"
+    "verificar": "node scripts/verify-corrediza.mjs && node scripts/verify-vaiven.mjs",
+    "fotos": "node scripts/build-cds-photos.mjs && node scripts/build-home-photos.mjs"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,6 @@
   },
   "dependencies": {
     "@fontsource/outfit": "^5.3.0",
-    "gsap": "^3.15.1",
     "three": "^0.169.0"
   },
   "private": true,

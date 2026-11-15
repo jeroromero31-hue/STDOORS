@@ -12,7 +12,9 @@ import { toast } from '../ui/site.js';
 
 const ROWS = { alta: 6, media: 3, baja: 2 };            // filas de producto por carril según la calidad
 const W = DIM.TOTAL_W, H = DIM.TOTAL_H;
-const BOX = { closed: [-W / 2, 0, -0.12, W / 2, H, 0.08], open: [-W / 2, 0, -0.12, W / 2, H, 0.85] };
+// La caja cerrada incluye cabezal y jaladeras (medidos: ±1.279 m de ancho, 0.093 m al frente) y el fondo del gabinete,
+// que se ve por el vidrio: en pantallas angostas la esquina trasera quedaba fuera del cuadro.
+const BOX = { closed: [-W / 2 - 0.012, 0, -DIM.CAB_DEPTH, W / 2 + 0.012, H, 0.1], open: [-W / 2, 0, -0.12, W / 2, H, 0.85] };
 
 export function createCDS(stage) {
   setTextureAnisotropy(Math.min(8, stage.renderer.capabilities.getMaxAnisotropy()));

@@ -351,3 +351,8 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
   .chip { transition: background var(--d-ui), border-color var(--d-ui), color var(--d-ui), transform var(--d-ui) var(--ease-out); }
   .cds-model { transition: box-shadow var(--d-panel) var(--ease-out); }
 }
+
+/* Fase 9 */
+.footer img[alt="ST Doors"] { height: 30px; width: auto; align-self: flex-start; }   /* el logo conserva su proporción */
+.search:focus-within { box-shadow: 0 2px 0 0 var(--c-cyan); }                         /* foco visible en la búsqueda */
+.search input:focus-visible { outline: 3px solid var(--c-cyan); outline-offset: 4px; }

@@ -81,7 +81,7 @@ export function mountSite(page) {
   header.className = 'nav';
   header.innerHTML = `
     <div class="wrap nav__in">
-      <a class="nav__logo" href="${url('')}" aria-label="ST Doors, inicio"><img src="${url('img/marca/st-logo-azul.webp')}" alt="ST Doors" width="62" height="30"></a>
+      <a class="nav__logo" href="${url('')}" aria-label="ST Doors, inicio"><img src="${url('img/marca/st-logo-azul.webp')}" alt="ST Doors" width="74" height="30"></a>
       <nav aria-label="Principal"><ul class="nav__links">
         ${NAV.map((n) => `<li><a href="${url(n.href)}"${page === n.key ? ' aria-current="page"' : ''}>${n.label}</a></li>`).join('')}
         <li class="nav__keep"><a class="btn btn--sm" href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}>Cotizar <span class="nav__count" data-solicitud-count aria-label="elementos en tu solicitud"></span></a></li>
@@ -98,7 +98,7 @@ export function mountSite(page) {
   footer.className = 'footer';
   footer.innerHTML = `
     <div class="wrap footer__in">
-      <div class="stack" style="--stack:8px"><img src="${url('img/marca/st-logo-azul.webp')}" alt="ST Doors" width="62" height="30"><p>Puertas para cámaras frigoríficas y puertas de exhibición Reach-In CDS.</p></div>
+      <div class="stack" style="--stack:8px"><img src="${url('img/marca/st-logo-azul.webp')}" alt="ST Doors" width="74" height="30"><p>Puertas para cámaras frigoríficas y puertas de exhibición Reach-In CDS.</p></div>
       <ul>${NAV.map((n) => `<li><a href="${url(n.href)}">${n.label}</a></li>`).join('')}<li><a href="${url('cotizar/')}">Cotizar</a></li></ul>
       <ul><li><a href="mailto:${contacto.correo}">${contacto.correo}</a></li><li><a href="tel:${contacto.telefono.replace(/[^+\d]/g, '')}">${contacto.telefono}</a></li><li><span class="badge badge--warn">Datos del PDF CDS, por confirmar</span></li></ul>
     </div>`;

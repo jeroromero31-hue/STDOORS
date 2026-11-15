@@ -1,3 +1,7 @@
 node_modules/
 dist/
 .DS_Store
+
+# pruebas de la Fase 9
+scripts/qa/capturas_qa/
+scripts/qa/auditoria.json

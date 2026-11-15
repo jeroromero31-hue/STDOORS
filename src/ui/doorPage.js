@@ -80,7 +80,9 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('is-out')));
       const done = () => ov.remove(); ov.addEventListener('transitionend', done); setTimeout(done, 900);
     };
-    const setFinish = (f) => { state.finish = f; viewer.setFinish(f); fin.textContent = FINISH_LABEL[f]; $$('.swatch', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === f)); };
+    // la elección queda en la URL (?acabado= / ?modelo=): al volver con «atrás» o compartir el enlace se conserva
+    const keep = (k, v) => { const q = new URLSearchParams(location.search); q.set(k, v); history.replaceState(history.state, '', `${location.pathname}?${q}${location.hash}`); };
+    const setFinish = (f) => { state.finish = f; viewer.setFinish(f); keep('acabado', f); fin.textContent = FINISH_LABEL[f]; $$('.swatch', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === f)); };
     if (finishes.length) {
       sw.innerHTML = finishes.map((f) => `<button class="swatch ${cls[f]}" data-f="${f}" aria-label="${FINISH_LABEL[f]}" aria-pressed="false"></button>`).join('');
       $$('.swatch', sw).forEach((b) => { b.onclick = () => { if (b.dataset.f !== state.finish) crossfade(() => setFinish(b.dataset.f)); }; });
@@ -89,7 +91,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const o = viewer.options;
       sw.classList.add('chips'); sw.setAttribute('aria-label', o.label);
       sw.innerHTML = o.items.map((it) => `<button class="chip" data-o="${it.id}" aria-pressed="false" title="${it.title || it.label}">${it.label}</button>`).join('');
-      const pick = (id) => { o.set(id); state.option = o.items.find((x) => x.id === id); fin.textContent = state.option.detail || ''; $$('.chip', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.o === id)); };
+      const pick = (id) => { o.set(id); keep('modelo', id); state.option = o.items.find((x) => x.id === id); fin.textContent = state.option.detail || ''; $$('.chip', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.o === id)); };
       $$('.chip', sw).forEach((b) => { b.onclick = () => { if (state.option && b.dataset.o === state.option.id) return; crossfade(() => pick(b.dataset.o)); live.textContent = state.option.title || state.option.label; }; });
       const q = new URLSearchParams(location.search).get('modelo'); pick(o.items.some((x) => x.id === q) ? q : o.current());
     } else { sw.remove(); fin.textContent = 'Un acabado'; }

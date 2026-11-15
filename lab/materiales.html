@@ -24,7 +24,7 @@
     <p class="t-lead">Las muestras usan las mismas instancias que usarán las puertas. Si un acabado se ve bien aquí, se ve igual en la abatible y en la vaivén.</p>
   </div>
   <div>
-    <div class="viewer lab-viewer" id="viewer" aria-label="Muestras de material en 3D"></div>
+    <div class="viewer lab-viewer" id="viewer" role="img" aria-label="Muestras de material en 3D"></div>
     <div class="lab-bar">
       <div class="segmented" role="group" aria-label="Vista"><button data-view="frontal" aria-pressed="false">Frontal</button><button data-view="tres4" aria-pressed="true">3/4</button><button data-view="detalle" aria-pressed="false">Detalle</button></div>
       <label>Girar el entorno <input id="envRot" type="range" min="0" max="360" value="0"> <span id="envRotV" class="t-num">0°</span></label>
@@ -34,7 +34,7 @@
   <section class="stack" style="--stack:8px">
     <h2 class="t-h3">Parámetros</h2>
     <p class="t-soft t-small">Leídos en vivo de <code>src/materials/FinishRegistry.js</code>. Es el único lugar donde se definen.</p>
-    <div class="tablewrap"><table><thead><tr><th>Muestra</th><th>Token</th><th>Color base</th><th>Metal</th><th>Rugosidad</th><th>Clearcoat</th><th>Anisotropía</th></tr></thead><tbody id="params"></tbody></table></div>
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Tabla de materiales"><table><thead><tr><th>Muestra</th><th>Token</th><th>Color base</th><th>Metal</th><th>Rugosidad</th><th>Clearcoat</th><th>Anisotropía</th></tr></thead><tbody id="params"></tbody></table></div>
   </section>
   <section class="stack" style="--stack:8px">
     <h2 class="t-h3">Cómo revisar</h2>
