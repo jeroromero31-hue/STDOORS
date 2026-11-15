@@ -121,6 +121,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       return true;
     };
     const macro = (it) => {
+      stage.scene.updateMatrixWorld();                         // la puerta pudo moverse desde el último cuadro dibujado
       const p = it.position.clone(); (it.parent || stage.scene).localToWorld(p);
       const d0 = rig.destination, dir0 = d0.pos.clone().sub(d0.tgt).normalize();   // si la cámara va en camino, desde donde llegará
       const D = Math.max((stage.controls.minDistance || 0.4) * 1.1, stage.fitDistance(0.34, 0.34));

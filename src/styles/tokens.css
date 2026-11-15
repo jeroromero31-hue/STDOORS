@@ -25,7 +25,7 @@
   --c-error: #B3261E;
 
   /* tipo: Nexa si hay licencia; Outfit (OFL) como sustituto */
-  --font: "Nexa", "Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font: "Nexa", "Outfit", "Outfit Fallback", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --w-regular: 400; --w-medium: 500; --w-bold: 700; --w-heavy: 800;
   /* escala modular 1.333 con base 16 px, fluida entre 360 y 1440 px */
   --t-xs: 0.8125rem;                                  /* 13 */

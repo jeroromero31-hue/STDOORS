@@ -57,3 +57,7 @@
 .viewer__fade.is-out { opacity: 0; }
 .hotcard__back { display: inline-flex; align-items: center; min-height: var(--tap); margin-top: 2px; }
 .hotcard .link { display: flex; align-items: center; min-height: var(--tap); }
+
+/* Fase 8: controles estables. «Ver por dentro» va antes que los acabados (que se llenan cuando el 3D está listo),
+   así al aparecer los acabados no empujan nada; en celular los acabados tienen su propio renglón reservado. */
+@media (max-width: 600px) { .door__finish { flex-basis: 100%; min-height: var(--tap); } }

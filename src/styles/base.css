@@ -1,3 +1,12 @@
+/* Fase 8: fuente de respaldo con las medidas de Outfit. Mientras Outfit descarga se usa Arial (o Roboto en Android)
+   ajustada al ancho y alto de Outfit, para que al llegar la fuente el texto no cambie de renglones ni empuje nada.
+   Valores calculados con la frecuencia de letras del español (Outfit 400 ≈ 0.4515 em por letra; Arial 0.4558;
+   Outfit 800 ≈ 0.4729; Arial Bold 0.4903). */
+@font-face { font-family: "Outfit Fallback"; font-weight: 100 600; src: local("Arial"), local("ArialMT"), local("Roboto"), local("Helvetica");
+  size-adjust: 99.1%; ascent-override: 100.9%; descent-override: 26.2%; line-gap-override: 0%; }
+@font-face { font-family: "Outfit Fallback"; font-weight: 700 900; src: local("Arial Bold"), local("Arial-BoldMT"), local("Roboto Bold"), local("Helvetica Bold");
+  size-adjust: 96.5%; ascent-override: 103.6%; descent-override: 26.9%; line-gap-override: 0%; }
+
 /* Base: reset, tipografía y superficies */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }

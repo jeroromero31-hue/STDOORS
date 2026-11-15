@@ -6,8 +6,10 @@ import { readdirSync, statSync } from 'node:fs';
 function htmlEntries(dir = '.', out = {}) {
   for (const f of readdirSync(dir)) {
     if (['node_modules', 'public', 'dist', 'scripts', 'src', '.git'].includes(f)) continue;
+    if (f.startsWith('.') || f.startsWith('vite.config')) continue;      // ocultos y archivos temporales de Vite
     const p = resolve(dir, f);
-    if (statSync(p).isDirectory()) htmlEntries(p, out);
+    let st; try { st = statSync(p); } catch { continue; }                // un archivo que desaparece mientras se lee
+    if (st.isDirectory()) htmlEntries(p, out);
     else if (f.endsWith('.html')) out[p.replace(resolve('.') + '/', '').replace(/\.html$/, '').replace(/\//g, '_')] = p;
   }
   return out;
