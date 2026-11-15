@@ -1,6 +1,6 @@
 # Prueba en teléfonos reales
 
-Toma unos 15 minutos por teléfono. Lo ideal son dos: un **iPhone** (Safari) y un **Android de gama media** (Chrome).
+Toma unos 15 minutos por teléfono. Lo ideal son dos: un **iPhone** (Safari) y un **Android de gama media** (Chrome). En un **iPhone Duo**, haz la prueba con el teléfono cerrado y abierto, y también **abre o cierra el teléfono con una puerta en pantalla**: la puerta debe volver a verse completa.
 
 ## 1. Tener el sitio en línea (5 minutos, gratis)
 

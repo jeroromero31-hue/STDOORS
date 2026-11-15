@@ -198,14 +198,21 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const touching = new Set();                                   // bloques que tocan la línea de disparo ahora mismo
     // Un mismo aviso puede traer varios cambios juntos (desplazamiento rápido, equipo lento): entra un bloque, entra
     // otro y sale. Se aplican todos en orden y manda el estado final, no el último bloque que "entró" en la lista.
-    const onBlock = (es) => {
-      [...es].sort((a, b) => a.time - b.time).forEach((e) => (e.isIntersecting ? touching.add(e.target) : touching.delete(e.target)));
-      const now = blocks.filter((b) => touching.has(b)).pop();    // si la línea toca dos bloques vecinos, el de más abajo
+    // En pantallas altas (tablet, plegable abierto) el paso 1 ya toca la línea al cargar: mientras la página no se
+    // haya desplazado manda la vista general, y al empezar a bajar se vuelve a evaluar.
+    const evaluate = () => {
+      const now = scrollY < 8 ? blocks[0] : blocks.filter((b) => touching.has(b)).pop();   // si la línea toca dos bloques vecinos, el de más abajo
       if (!now || now === currentBlock) return; currentBlock = now;
       if (now !== blocks[0]) hint.classList.add('is-off');        // el aviso de arrastre solo acompaña a la vista inicial
       if (state.inside) return;                                   // en modo interior manda el usuario
       rig.go(now.dataset.view); motion.step(now.dataset);
     };
+    const onBlock = (es) => {
+      [...es].sort((a, b) => a.time - b.time).forEach((e) => (e.isIntersecting ? touching.add(e.target) : touching.delete(e.target)));
+      evaluate();
+    };
+    let pend = false;
+    addEventListener('scroll', () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; evaluate(); }); }, { passive: true });
     const watch = () => {
       if (io) io.disconnect();
       touching.clear();

@@ -5,7 +5,7 @@ os.makedirs('capturas_qa', exist_ok=True)
 from playwright.async_api import async_playwright
 B='http://localhost:4173'
 GL=['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']
-DEV=[('iPhone SE',375,667,True),('Android estrecho',360,740,True),('Plegable cerrado',280,653,True),('Plegable abierto',717,841,True),('Tablet vertical',768,1024,True),('Tablet horizontal',1024,768,True),('Escritorio',1440,900,False)]
+DEV=[('iPhone SE',375,667,True),('Android estrecho',360,740,True),('Plegable cerrado',280,653,True),('Plegable abierto',717,841,True),('Tablet vertical',768,1024,True),('Tablet horizontal',1024,768,True),('iPhone Duo cerrado',466,678,True),('iPhone Duo abierto',626,890,True),('iPhone Duo abierto horizontal',890,626,True),('Escritorio',1440,900,False)]
 DOORS=['/industriales/abatible/','/industriales/corrediza/','/industriales/vaiven/','/cds/']
 res=[]
 def ok(name, cond, info=''): res.append(bool(cond)); print(('OK   ' if cond else 'FALLA'), name, '|', str(info)[:420], flush=True)
