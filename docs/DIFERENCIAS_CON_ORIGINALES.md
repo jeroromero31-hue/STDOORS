@@ -275,3 +275,9 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Fotos de instalaciones.** Se publican 11 de las 15 fotos de `04_PRODUCTOS_FOTOGRAFIAS/CDS_INSTALACIONES_REALES`, en WebP y AVIF a 480, 960 y 1600 px (`scripts/build-cds-photos.mjs`). Las originales no se tocaron. Se quitaron los metadatos.
 - **Fotos que quedan fuera hasta que el cliente dé permiso:** la del letrero "Beer Cave", la fachada de la tienda Kiosko y la del póster con personas y marca de una cadena. También queda fuera la foto de un almacén con panel y ventanilla, porque no muestra puertas CDS.
 - **Textos alternativos:** describen la foto sin nombres de clientes ni lugares, porque el paquete no los trae.
+
+## Catálogo de componentes · Fase 5
+
+- **Datos:** el catálogo usa `src/data/components.json` (Fase 2) sin cambios. No se agregó material ni disponibilidad porque las fuentes no los traen.
+- **Prototipo histórico:** el catálogo no copia `CATALOGO_COMPONENT_LAB_V1`. Se rehízo con el sistema de diseño del sitio.
+- **Nombres:** los textos de la ficha (tipo, "se usa en", fuente) salen del dataset y de los nombres de los PDF.

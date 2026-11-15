@@ -129,6 +129,10 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       blocks.forEach((el) => io.observe(el));
     };
     watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
+    // desde el catálogo: ?pieza=<id> entra a «Ver por dentro» con esa pieza señalada
+    const want = new URLSearchParams(location.search).get('pieza');
+    const node = want && hs.nodes.find((n) => n.it.piece && n.it.piece.id === want);
+    if (node) { insideBtn.click(); node.b.click(); live.textContent = `Vista interior: ${node.it.piece.nombre}`; }
     window.__door = { stage, viewer, rig, motion, hinges: motion.hinges };
   } else noViewer();
 

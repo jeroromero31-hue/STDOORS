@@ -3,15 +3,43 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Componentes — ST Doors</title>
-<meta name="description" content="Las piezas de las puertas ST, con su nombre de catálogo.">
+<meta name="description" content="Las piezas de las puertas ST con fotografía real, número y nombre del catálogo.">
 <link rel="icon" href="/favicon.png">
 </head>
 <body data-page="componentes">
-<main id="main" class="wrap section stack" style="--stack:20px;min-height:60svh">
-  <h1>Componentes</h1>
-  <p class="t-lead">Las piezas de las puertas ST, con su nombre de catálogo.</p>
-  <p class="phase-note">La búsqueda, los filtros y la ficha se construyen en la Fase 5. Los datos y las imágenes ya están listos: <a href="/lab/sistema.html">ver muestra</a>.</p>
+<main id="main">
+  <section class="wrap cat-head">
+    <h1>Componentes</h1>
+    <p class="t-lead" id="catLead">Las piezas de las puertas ST con fotografía real, con el número y el nombre del catálogo impreso.</p>
+    <form class="search cat-search" role="search" id="catForm">
+      <label class="sr-only" for="q">Buscar pieza por nombre o número</label>
+      <input id="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Bisagra, empaque, 57…">
+      <button type="button" class="cat-search__clear" id="qClear" aria-label="Borrar búsqueda" hidden>×</button>
+    </form>
+    <div class="cat-filters">
+      <div class="chips" role="group" aria-label="Puerta" id="famChips"></div>
+      <div class="chips cat-types" role="group" aria-label="Tipo de pieza" id="typeChips" hidden></div>
+    </div>
+  </section>
+
+  <section class="wrap cat-body" aria-labelledby="catCount">
+    <p class="cat-count t-small" id="catCount" aria-live="polite"></p>
+    <div class="cat-fams" id="catStart"></div>
+    <ul class="cat-grid" id="catGrid" hidden></ul>
+    <div class="cat-empty stack" id="catEmpty" hidden>
+      <p><b>No hay piezas que coincidan.</b> Prueba con otra palabra o con el número de la pieza.</p>
+      <button class="btn btn--line btn--sm" id="catReset">Quitar búsqueda y filtros</button>
+    </div>
+  </section>
 </main>
-<script type="module" src="/src/pages/shell.js"></script>
+
+<dialog class="photo-dlg cat-zoom" id="catZoom" aria-label="Foto ampliada de la pieza">
+  <div class="cat-zoom__img" tabindex="0"></div>
+  <div class="photo-dlg__bar">
+    <p class="photo-dlg__cap t-small"></p>
+    <div class="row"><button class="btn btn--line" data-zoom aria-pressed="false">Acercar</button><button class="btn" data-close>Cerrar</button></div>
+  </div>
+</dialog>
+<script type="module" src="/src/pages/componentes.js"></script>
 </body>
 </html>

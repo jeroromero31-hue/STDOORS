@@ -160,3 +160,57 @@
 .photo-dlg__cap { color: var(--c-on-navy-soft); margin: 0; flex: 1 1 260px; }
 .photo-dlg .btn--line { color: var(--c-on-navy); border-color: var(--c-line-navy); }
 .photo-dlg .btn:not(.btn--line) { background: var(--c-white); color: var(--c-navy); }
+
+/* ---------- Catálogo de componentes ---------- */
+.cat-head { padding-top: clamp(40px, 7vw, 96px); padding-bottom: var(--s-5); display: grid; gap: var(--s-5); }
+.cat-head h1 { font-size: var(--t-3xl); }
+.cat-search { position: relative; max-width: 760px; }
+.cat-search input { padding-right: calc(var(--tap) + 8px); }
+.cat-search input::-webkit-search-cancel-button { display: none; }
+.cat-search__clear { position: absolute; right: 0; top: 50%; translate: 0 -50%; width: var(--tap); height: var(--tap); border: 0; border-radius: 50%; background: var(--c-ice); font-size: 22px; line-height: 1; cursor: pointer; }
+.cat-filters { display: grid; gap: var(--s-3); }
+.cat-head > *, .cat-filters > * { min-width: 0; }           /* que la fila de tipos no ensanche la página */
+.chip__n { color: var(--c-ink-soft); font-weight: var(--w-regular); margin-left: 2px; }
+.chip[aria-pressed=true] .chip__n { color: var(--c-on-navy-soft); }
+.chip--sm { font-size: var(--t-xs); }
+@media (max-width: 700px) {
+  .cat-types { justify-self: stretch; flex-wrap: nowrap; overflow-x: auto; margin-inline: calc(var(--pad-x) * -1); padding-inline: var(--pad-x); scrollbar-width: none; }
+  .cat-types .chip { flex-shrink: 0; }
+}
+.cat-body { padding-bottom: var(--section-y); }
+.cat-count { color: var(--c-ink-soft); margin-bottom: var(--s-4); min-height: 1.5em; }
+.cat-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: var(--s-4); }
+.cat-grid .part { width: 100%; height: 100%; font: inherit; color: inherit; }
+.part:focus-visible { outline: 3px solid var(--c-cyan); outline-offset: 2px; }
+@media (max-width: 520px) { .cat-grid { grid-template-columns: repeat(2, 1fr); gap: var(--s-3); } }
+
+/* entrada: una tarjeta por puerta */
+.cat-fams { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-4); }
+.cat-fam { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--c-line); border-radius: var(--r-surface); background: var(--c-white); cursor: pointer; text-align: left; overflow: hidden; font: inherit; color: inherit; transition: border-color var(--d-ui); }
+.cat-fam:hover { border-color: var(--c-navy); }
+.cat-fam img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--c-ice); }
+.cat-fam__t { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); padding: var(--s-4); }
+.cat-fam__t b { font-size: var(--t-lg); }
+.cat-fam__t span { color: var(--c-ink-soft); font-size: var(--t-sm); }
+@media (max-width: 520px) {
+  .cat-fams { grid-template-columns: 1fr; }
+  .cat-fam { flex-direction: row; align-items: center; }
+  .cat-fam img { width: 112px; flex-shrink: 0; }
+  .cat-fam__t { flex: 1; flex-direction: column; gap: 2px; }
+}
+.cat-empty { padding: var(--s-6) 0; }
+
+/* ficha */
+.cat-pic { position: relative; display: block; width: 100%; margin: var(--s-4) 0 var(--s-5); padding: 0; border: 1px solid var(--c-line); border-radius: var(--r-surface); background: var(--c-white); cursor: zoom-in; overflow: hidden; }
+.cat-pic img { width: 100%; height: auto; }
+.cat-pic__hint { position: absolute; right: var(--s-2); bottom: var(--s-2); padding: 4px 10px; border-radius: var(--r-control); background: rgba(5, 47, 73, .78); color: var(--c-on-navy); font-weight: var(--w-medium); }
+.cat-warn { background: var(--c-warn-bg); color: var(--c-warn-ink); padding: var(--s-2) var(--s-3); border-radius: var(--r-surface); }
+.cat-spec > div { grid-template-columns: 96px 1fr; }
+.cat-pager { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); border-top: 1px solid var(--c-line); padding-top: var(--s-4); }
+
+/* foto ampliada: fondo blanco porque las piezas están fotografiadas sobre blanco */
+.cat-zoom .cat-zoom__img { background: var(--c-white); max-height: calc(100dvh - 140px); overflow: hidden; }
+.cat-zoom .cat-zoom__img img { width: 100%; height: auto; max-height: calc(100dvh - 140px); object-fit: contain; margin-inline: auto; }
+.cat-zoom.is-zoomed .cat-zoom__img { overflow: auto; cursor: zoom-out; }
+.cat-zoom.is-zoomed .cat-zoom__img img { width: 1600px; max-width: none; max-height: none; }
+.sheet .cat-spec { margin-top: var(--s-2); }

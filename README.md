@@ -78,6 +78,7 @@ src/styles/base.css      reset, tipografía y superficies (muro / hielo / navy)
 src/styles/components.css botones, navegación, campos, chips, acabados, ficha, aviso, visor
 src/ui/site.js           navegación, pie, "Mi solicitud", avisos, hoja lateral
 src/ui/picture.js        imagen responsiva AVIF/WebP del catálogo
+src/ui/catalog.js        catálogo de componentes: búsqueda, filtros, ficha y foto ampliada
 src/core/stage.js        escenario 3D común: entorno de estudio, calidad, respaldo sin WebGL
 src/core/backdrop.js     muro y piso comunes (blanco afuera, azul marino adentro)
 src/core/hinge.js        hoja abisagrada: giro sobre su eje real y arrastre con el puntero (una o dos direcciones)
@@ -93,6 +94,7 @@ src/ui/doorPage.js       lógica común de las páginas de puerta
 src/materials/           FinishRegistry (registro único de acabados), texturas procedurales y fromOriginal.js
                          (conversión de los materiales de un modelo original al sitio)
 src/data/components.json catálogo generado
+src/data/piezas-3d.json  piezas señaladas en cada puerta 3D (la prueba de la Fase 5 lo compara con las anclas)
 scripts/build-assets.mjs generador de imágenes y datos
 scripts/convert-*.mjs / verify-*.mjs   conversión sin pérdidas y verificación de la corrediza y la vaivén
 scripts/lib/meshpack.mjs empaquetado y comparación de geometría, comunes a las dos conversiones

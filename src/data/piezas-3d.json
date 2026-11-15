@@ -1,0 +1,28 @@
+{
+ "nota": "Piezas señaladas en cada puerta 3D (vista \"Ver por dentro\"). La prueba de la Fase 5 confirma que coincide con las anclas de cada visor.",
+ "puertas": {
+  "abatible": [
+   "abatible-30-bisagra-reversible-de-68-mm",
+   "abatible-27-kit-de-cerrojo-de-68-mm",
+   "abatible-11-empaque-perimetral-de-refrigeracion",
+   "abatible-09-marco-exterior-110-5-30-m",
+   "abatible-25-tapon-blanco-de-diametro-22-mm"
+  ],
+  "corrediza": [
+   "corrediza-59-cubre-riel-de-aluminio-6-25-m",
+   "corrediza-57-riel-de-aluminio-modelo-mirror-6-00-m",
+   "corrediza-47-bloque-cierre-para-riel",
+   "corrediza-48-bloque-central-para-riel",
+   "corrediza-38-polea-plastica-izquierda",
+   "corrediza-39-manija-externa-fija",
+   "corrediza-58-riel-guia-inferior-de-aluminio-7-00-m"
+  ],
+  "vaiven": [
+   "vaiven-03-ventanilla-40-mm-250-750-mm",
+   "vaiven-02-bisagra-ajustable-para-puerta-abatible",
+   "vaiven-06-bumper-de-150-mm",
+   "vaiven-01-empaque-lateral-para-vaiven-2-415-m",
+   "vaiven-perfil-aluminio-40-mm"
+  ]
+ }
+}

@@ -51,7 +51,7 @@ export function createSheet(label) {
   const api = {
     el, body: el.querySelector('[data-sheet-body]'), meta: el.querySelector('[data-sheet-meta]'),
     open() { last = document.activeElement; el.classList.add('is-open'); scrim.classList.add('is-on'); el.querySelector('.sheet__close').focus(); document.documentElement.style.overflow = 'hidden'; },
-    close() { el.classList.remove('is-open'); scrim.classList.remove('is-on'); document.documentElement.style.overflow = ''; last && last.focus && last.focus(); },
+    close() { el.classList.remove('is-open'); scrim.classList.remove('is-on'); document.documentElement.style.overflow = ''; last && last.focus && last.focus(); if (api.onclose) api.onclose(); },
   };
   el.querySelector('.sheet__close').onclick = api.close; scrim.onclick = api.close;
   el.addEventListener('keydown', (e) => {
