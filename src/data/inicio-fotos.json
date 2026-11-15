@@ -1,0 +1,129 @@
+{
+ "origen": "scripts/build-home-photos.mjs",
+ "fotos": [
+  {
+   "id": "vaiven-frente",
+   "alt": "Puerta vaivén ST de dos hojas de acero inoxidable con mirillas, vista de frente",
+   "ancho": 1920,
+   "alto": 1080,
+   "imagen": {
+    "640": {
+     "webp": "vaiven-frente-640.webp",
+     "avif": "vaiven-frente-640.avif"
+    },
+    "1280": {
+     "webp": "vaiven-frente-1280.webp",
+     "avif": "vaiven-frente-1280.avif"
+    },
+    "1920": {
+     "webp": "vaiven-frente-1920.webp",
+     "avif": "vaiven-frente-1920.avif"
+    }
+   }
+  },
+  {
+   "id": "vaiven-abierta",
+   "alt": "Puerta vaivén ST abierta hacia una nave de producción",
+   "ancho": 1920,
+   "alto": 1080,
+   "imagen": {
+    "640": {
+     "webp": "vaiven-abierta-640.webp",
+     "avif": "vaiven-abierta-640.avif"
+    },
+    "1280": {
+     "webp": "vaiven-abierta-1280.webp",
+     "avif": "vaiven-abierta-1280.avif"
+    },
+    "1920": {
+     "webp": "vaiven-abierta-1920.webp",
+     "avif": "vaiven-abierta-1920.avif"
+    }
+   }
+  },
+  {
+   "id": "corrediza",
+   "alt": "Puerta corrediza ST en el muro de una cámara frigorífica",
+   "ancho": 1920,
+   "alto": 1080,
+   "imagen": {
+    "640": {
+     "webp": "corrediza-640.webp",
+     "avif": "corrediza-640.avif"
+    },
+    "1280": {
+     "webp": "corrediza-1280.webp",
+     "avif": "corrediza-1280.avif"
+    },
+    "1920": {
+     "webp": "corrediza-1920.webp",
+     "avif": "corrediza-1920.avif"
+    }
+   }
+  },
+  {
+   "id": "abatible",
+   "alt": "Puerta abatible ST en la cámara de una cocina industrial",
+   "ancho": 806,
+   "alto": 1080,
+   "imagen": {
+    "640": {
+     "webp": "abatible-640.webp",
+     "avif": "abatible-640.avif"
+    },
+    "806": {
+     "webp": "abatible-806.webp",
+     "avif": "abatible-806.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-corrediza-1",
+   "alt": "Dos puertas corredizas instaladas en un pasillo de cámaras",
+   "ancho": 1152,
+   "alto": 864,
+   "imagen": {
+    "640": {
+     "webp": "instalacion-corrediza-1-640.webp",
+     "avif": "instalacion-corrediza-1-640.avif"
+    },
+    "1152": {
+     "webp": "instalacion-corrediza-1-1152.webp",
+     "avif": "instalacion-corrediza-1-1152.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-corrediza-2",
+   "alt": "Puerta corrediza recién instalada en una cámara frigorífica",
+   "ancho": 960,
+   "alto": 1280,
+   "imagen": {
+    "640": {
+     "webp": "instalacion-corrediza-2-640.webp",
+     "avif": "instalacion-corrediza-2-640.avif"
+    },
+    "960": {
+     "webp": "instalacion-corrediza-2-960.webp",
+     "avif": "instalacion-corrediza-2-960.avif"
+    }
+   }
+  },
+  {
+   "id": "instalacion-vaiven",
+   "alt": "Puerta vaivén instalada, con protección inferior negra",
+   "ancho": 959,
+   "alto": 1280,
+   "imagen": {
+    "640": {
+     "webp": "instalacion-vaiven-640.webp",
+     "avif": "instalacion-vaiven-640.avif"
+    },
+    "959": {
+     "webp": "instalacion-vaiven-959.webp",
+     "avif": "instalacion-vaiven-959.avif"
+    }
+   }
+  }
+ ]
+}

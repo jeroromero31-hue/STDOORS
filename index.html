@@ -3,15 +3,85 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
-<meta name="description" content="Puertas para cámaras frigoríficas y puertas de exhibición Reach-In.">
+<meta name="description" content="Puertas abatibles, corredizas y vaivén para cámaras frigoríficas, y puertas de exhibición Reach-In CDS Legacy.">
 <link rel="icon" href="/favicon.png">
 </head>
 <body data-page="inicio">
-<main id="main" class="wrap section stack" style="--stack:20px;min-height:60svh">
-  <h1>El frío se queda de su lado.</h1>
-  <p class="t-lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In.</p>
-  <p class="phase-note">La portada se construye en la Fase 6 y sus animaciones en la Fase 7.</p>
+<main id="main">
+  <!-- entrada: la foto es el vano abierto en el muro -->
+  <section class="home-hero">
+    <div class="wrap home-hero__in">
+      <div class="home-hero__t">
+        <h1>El frío se queda de su lado.</h1>
+        <p class="t-lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In.</p>
+        <p class="row home-hero__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
+      </div>
+      <figure class="home-hero__vano" data-foto="vaiven-frente" data-sizes="(max-width: 860px) 100vw, 58vw" data-eager></figure>
+    </div>
+  </section>
+
+  <!-- dos líneas de producto con el mismo peso -->
+  <section class="home-split" aria-label="Líneas de producto">
+    <div class="wrap home-split__in">
+      <article class="home-line">
+        <a class="home-line__img" href="/industriales/" tabindex="-1" aria-hidden="true" data-foto="corrediza" data-sizes="(max-width: 860px) 100vw, 46vw"></a>
+        <div class="home-line__t stack" style="--stack:14px">
+          <h2>Puertas industriales</h2>
+          <p>Para cámaras frigoríficas: tres formas de abrir, cada una para verla en 3D.</p>
+          <ul class="home-line__list">
+            <li><a href="/industriales/abatible/">Abatible</a></li>
+            <li><a href="/industriales/corrediza/">Corrediza</a></li>
+            <li><a href="/industriales/vaiven/">Vaivén</a></li>
+          </ul>
+          <p class="home-line__fact t-small" id="factInd"></p>
+        </div>
+      </article>
+      <article class="home-line">
+        <a class="home-line__img" href="/cds/" tabindex="-1" aria-hidden="true" data-cds="11" data-sizes="(max-width: 860px) 100vw, 46vw"></a>
+        <div class="home-line__t stack" style="--stack:14px">
+          <h2>Puertas CDS Legacy</h2>
+          <p>Puertas de exhibición Reach-In para tiendas, en juego de tres puertas.</p>
+          <ul class="home-line__list">
+            <li><a href="/cds/?modelo=advanced#modelos">Advanced</a></li>
+            <li><a href="/cds/?modelo=plus#modelos">Plus</a></li>
+            <li><a href="/cds/?modelo=lt#modelos">LT</a></li>
+          </ul>
+          <p class="home-line__fact t-small">Garantía de 5 años, según la ficha CDS Legacy.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- por dentro: lo que no se ve desde afuera -->
+  <section class="surface-navy home-inside">
+    <div class="wrap">
+      <div class="home-inside__head stack">
+        <h2>Lo que no se ve desde afuera</h2>
+        <p class="t-lead">Cada puerta se puede abrir y ver por dentro en 3D. Esto es lo que vas a encontrar.</p>
+      </div>
+      <ul class="home-feats" id="feats"></ul>
+    </div>
+  </section>
+
+  <!-- instalaciones reales -->
+  <section class="home-installs">
+    <div class="wrap stack" style="--stack:28px">
+      <div class="home-installs__head"><h2>Instaladas</h2><a class="link" href="/cds/#instalaciones">Ver más instalaciones CDS</a></div>
+      <ul class="home-mosaic" id="mosaic"></ul>
+    </div>
+  </section>
+
+  <!-- cotizar -->
+  <section class="home-quote surface-ice">
+    <div class="wrap home-quote__in">
+      <div class="stack">
+        <h2>¿Ya sabes qué necesitas?</h2>
+        <p class="t-lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
+      </div>
+      <p class="row"><a class="btn" href="/cotizar/">Ir a cotizar</a><a class="btn btn--line" id="homeMail" href="#">Escribir un correo</a></p>
+    </div>
+  </section>
 </main>
-<script type="module" src="/src/pages/shell.js"></script>
+<script type="module" src="/src/pages/inicio.js"></script>
 </body>
 </html>

@@ -281,3 +281,9 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Datos:** el catálogo usa `src/data/components.json` (Fase 2) sin cambios. No se agregó material ni disponibilidad porque las fuentes no los traen.
 - **Prototipo histórico:** el catálogo no copia `CATALOGO_COMPONENT_LAB_V1`. Se rehízo con el sistema de diseño del sitio.
 - **Nombres:** los textos de la ficha (tipo, "se usa en", fuente) salen del dataset y de los nombres de los PDF.
+
+## Inicio · Fase 6B
+
+- **No hay Inicio original en el paquete.** Los Inicio históricos (V2, V3, V4) no se copiaron; el diseño sigue el brief §7 y el sistema del sitio.
+- **Foto de la abatible:** `puerta_4_logo_ST.png` trae la foto en el 42 % izquierdo y blanco en el resto. Se publicó solo la parte con foto.
+- **Foto excluida:** `INDUSTRIAL_INSTALACION_FOTOGRAFIA_REAL.png`, por la marca del montacargas, hasta confirmar.
