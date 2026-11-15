@@ -3,82 +3,136 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
-<meta name="description" content="Puertas abatibles, corredizas y vaivén para cámaras frigoríficas, y puertas de exhibición Reach-In CDS Legacy.">
+<meta name="description" content="Puertas abatibles, corredizas y vaivén para cámaras frigoríficas, y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
 <link rel="icon" href="/favicon.png">
 </head>
 <body data-page="inicio">
 <main id="main">
-  <!-- entrada: la foto es el vano abierto en el muro -->
-  <section class="home-hero">
-    <div class="wrap home-hero__in">
-      <div class="home-hero__t">
-        <h1>El frío se queda de su lado.</h1>
-        <p class="t-lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In.</p>
-        <p class="row home-hero__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
+  <!-- Afuera: la puerta vaivén en 3D. Al bajar, abre y la cámara cruza hacia el interior (src/home/hero.js). -->
+  <section class="hx" id="hx" aria-labelledby="hxTitle">
+    <div class="hx__pin">
+      <div class="hx__gl" id="hxGl" aria-hidden="true"></div>
+      <div class="hx__hud" id="hxHud" aria-hidden="true"></div>
+      <div class="hx__veil" aria-hidden="true"></div>
+      <div class="wrap hx__copy">
+        <h1 id="hxTitle">El frío se queda de su lado.</h1>
+        <p class="hx__lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In. Ábrelas y recórrelas en 3D.</p>
+        <p class="row hx__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
       </div>
-      <!-- foto de entrada escrita en el HTML (no por JavaScript) para que empiece a bajar de inmediato -->
-      <figure class="home-hero__vano"><picture><source type="image/avif" srcset="/img/inicio/vaiven-frente-640.avif 640w, /img/inicio/vaiven-frente-1280.avif 1280w, /img/inicio/vaiven-frente-1920.avif 1920w" sizes="(max-width: 860px) 100vw, 58vw"><img src="/img/inicio/vaiven-frente-1280.webp" srcset="/img/inicio/vaiven-frente-640.webp 640w, /img/inicio/vaiven-frente-1280.webp 1280w, /img/inicio/vaiven-frente-1920.webp 1920w" sizes="(max-width: 860px) 100vw, 58vw" width="1920" height="1080" alt="Puerta vaivén ST de dos hojas de acero inoxidable con mirillas, vista de frente" fetchpriority="high" decoding="async"></picture></figure>
+      <p class="hx__load" id="hxLoad" aria-hidden="true"><span class="hx__bar"><i></i></span><span>Cargando la puerta en 3D <b>0 %</b></span></p>
+      <p class="hx__read" id="hxRead" aria-hidden="true"><span>Apertura de hoja</span><b>0°</b></p>
+      <p class="hx__cue" aria-hidden="true">Baja para abrir la puerta</p>
     </div>
   </section>
 
-  <!-- dos líneas de producto con el mismo peso -->
-  <section class="home-split" aria-label="Líneas de producto">
-    <div class="wrap home-split__in">
-      <article class="home-line">
-        <a class="home-line__img" href="/industriales/" tabindex="-1" aria-hidden="true" data-foto="corrediza" data-sizes="(max-width: 860px) 100vw, 46vw"></a>
-        <div class="home-line__t stack" style="--stack:14px">
-          <h2>Puertas industriales</h2>
-          <p>Para cámaras frigoríficas: tres formas de abrir, cada una para verla en 3D.</p>
-          <ul class="home-line__list">
-            <li><a href="/industriales/abatible/">Abatible</a></li>
-            <li><a href="/industriales/corrediza/">Corrediza</a></li>
-            <li><a href="/industriales/vaiven/">Vaivén</a></li>
-          </ul>
-          <p class="home-line__fact t-small" id="factInd"></p>
+  <!-- Adentro: lo que sigue es el interior de la cámara -->
+  <div class="inside surface-navy">
+    <section class="intro wrap" aria-labelledby="introTitle">
+      <h2 id="introTitle">Tres maneras de abrir una cámara frigorífica.</h2>
+      <p class="intro__lead">Cada puerta se puede abrir, girar y ver por dentro en 3D, pieza por pieza.</p>
+    </section>
+
+    <!-- Una puerta por capítulo. La foto se descubre abriéndose como esa puerta: gira, corre o se separa al centro. -->
+    <section class="ch" data-door="abatible" aria-labelledby="chAbatible">
+      <div class="ch__pin">
+        <div class="wrap ch__in">
+          <figure class="ch__door" data-foto="abatible" data-sizes="(max-width: 899px) 92vw, 34vw">
+            <div class="ch__leaf" aria-hidden="true"></div>
+          </figure>
+          <div class="ch__t">
+            <p class="ch__kind">Una hoja que gira sobre bisagras</p>
+            <h2 id="chAbatible">Abatible</h2>
+            <p class="ch__lead">Gira sobre bisagras reversibles y cierra con chapa de palanca.</p>
+            <dl class="ch__spec">
+              <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
+              <div><dt>Herrajes</dt><dd>Bisagra reversible y kit de cerrojo de 68, 92 y 121 mm</dd></div>
+              <div><dt>Empaque</dt><dd>Perimetral e inferior, de refrigeración o de congelación</dd></div>
+            </dl>
+            <p class="row"><a class="btn" href="/industriales/abatible/">Abrir la abatible en 3D</a></p>
+          </div>
         </div>
-      </article>
-      <article class="home-line">
-        <a class="home-line__img" href="/cds/" tabindex="-1" aria-hidden="true" data-cds="11" data-sizes="(max-width: 860px) 100vw, 46vw"></a>
-        <div class="home-line__t stack" style="--stack:14px">
-          <h2>Puertas CDS Legacy</h2>
-          <p>Puertas de exhibición Reach-In para tiendas, en juego de tres puertas.</p>
-          <ul class="home-line__list">
-            <li><a href="/cds/?modelo=advanced#modelos">Advanced</a></li>
-            <li><a href="/cds/?modelo=plus#modelos">Plus</a></li>
-            <li><a href="/cds/?modelo=lt#modelos">LT</a></li>
-          </ul>
-          <p class="home-line__fact t-small">Garantía de 5 años, según la ficha CDS Legacy.</p>
+      </div>
+    </section>
+
+    <section class="ch" data-door="corrediza" aria-labelledby="chCorrediza">
+      <div class="ch__pin">
+        <div class="wrap ch__in">
+          <figure class="ch__door" data-foto="corrediza" data-sizes="(max-width: 899px) 92vw, 52vw">
+            <div class="ch__leaf" aria-hidden="true"></div>
+          </figure>
+          <div class="ch__t">
+            <p class="ch__kind">Una hoja que corre colgada de un riel</p>
+            <h2 id="chCorrediza">Corrediza</h2>
+            <p class="ch__lead">Corre colgada de poleas sobre el riel de aluminio y, al cerrar, baja para sellar contra el marco.</p>
+            <dl class="ch__spec">
+              <div><dt>Riel</dt><dd>Aluminio, modelo Mirror, con cubre riel</dd></div>
+              <div><dt>Rodadura</dt><dd>Dos poleas plásticas</dd></div>
+              <div><dt>Guía inferior</dt><dd>Riel guía de aluminio</dd></div>
+            </dl>
+            <p class="row"><a class="btn" href="/industriales/corrediza/">Abrir la corrediza en 3D</a></p>
+          </div>
         </div>
-      </article>
-    </div>
-  </section>
-
-  <!-- por dentro: lo que no se ve desde afuera -->
-  <section class="surface-navy home-inside">
-    <div class="wrap">
-      <div class="home-inside__head stack">
-        <h2>Lo que no se ve desde afuera</h2>
-        <p class="t-lead">Cada puerta se puede abrir y ver por dentro en 3D. Esto es lo que vas a encontrar.</p>
       </div>
-      <ul class="home-feats" id="feats"></ul>
-    </div>
-  </section>
+    </section>
 
-  <!-- instalaciones reales -->
-  <section class="home-installs">
-    <div class="wrap stack" style="--stack:28px">
-      <div class="home-installs__head"><h2>Instaladas</h2><a class="link" href="/cds/#instalaciones">Ver más instalaciones CDS</a></div>
-      <ul class="home-mosaic" id="mosaic"></ul>
-    </div>
-  </section>
-
-  <!-- cotizar -->
-  <section class="home-quote surface-ice">
-    <div class="wrap home-quote__in">
-      <div class="stack">
-        <h2>¿Ya sabes qué necesitas?</h2>
-        <p class="t-lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
+    <section class="ch" data-door="vaiven" aria-labelledby="chVaiven">
+      <div class="ch__pin">
+        <div class="wrap ch__in">
+          <figure class="ch__door" data-foto="vaiven-abierta" data-sizes="(max-width: 899px) 92vw, 56vw">
+            <div class="ch__leaf" aria-hidden="true"></div><div class="ch__leaf" aria-hidden="true"></div>
+          </figure>
+          <div class="ch__t">
+            <p class="ch__kind">Dos hojas que abren hacia los dos lados</p>
+            <h2 id="chVaiven">Vaivén</h2>
+            <p class="ch__lead">Dos hojas independientes, con ventanilla para ver quién viene y bumper en la parte baja.</p>
+            <dl class="ch__spec">
+              <div><dt>Ventanilla</dt><dd>40 mm, 250 × 750 mm</dd></div>
+              <div><dt>Bumper</dt><dd>150, 500 o 1000 mm</dd></div>
+              <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
+            </dl>
+            <p class="row"><a class="btn" href="/industriales/vaiven/">Abrir la vaivén en 3D</a></p>
+          </div>
+        </div>
       </div>
+    </section>
+
+    <!-- El sistema: piezas reales con su número de catálogo -->
+    <section class="sys" aria-labelledby="sysTitle">
+      <div class="wrap sys__in">
+        <div class="sys__head">
+          <h2 id="sysTitle">Cada pieza tiene su número.</h2>
+          <p class="sys__lead" id="sysLead">Piezas de repuesto con fotografía y número de catálogo.</p>
+          <a class="btn btn--line" href="/componentes/">Ver todas las piezas</a>
+        </div>
+        <figure class="sys__fig" id="sysFig" aria-hidden="true"></figure>
+        <ol class="sys__list" id="sysList"></ol>
+      </div>
+    </section>
+
+    <!-- CDS: la puerta de exhibición, desde nuestro propio 3D; avanza cuadro por cuadro con el scroll -->
+    <section class="cds-seq" id="cdsSeq" aria-labelledby="cdsTitle">
+      <div class="cds-seq__pin">
+        <div class="cds-seq__media" id="cdsMedia" role="img" aria-label="CDS Legacy en 3D: juego de tres puertas; la central abre y se queda a 90°"></div>
+        <div class="wrap cds-seq__t">
+          <p class="ch__kind">Para la tienda</p>
+          <h2 id="cdsTitle">CDS Legacy</h2>
+          <p class="cds-seq__lead">Puertas de exhibición Reach-In, en juego de tres. Se quedan abiertas a 90° para surtir con las dos manos y, si las sueltas antes, regresan solas al marco.</p>
+          <ul class="cds-seq__models">
+            <li><a href="/cds/?modelo=advanced#modelos"><b>Advanced</b><span>Dos vidrios con argón</span></a></li>
+            <li><a href="/cds/?modelo=plus#modelos"><b>Plus</b><span>Dos vidrios con resistencia</span></a></li>
+            <li><a href="/cds/?modelo=lt#modelos"><b>LT</b><span>Tres vidrios con resistencia</span></a></li>
+          </ul>
+          <p class="row"><a class="btn" href="/cds/">Abrir CDS en 3D</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Afuera otra vez: cotizar -->
+  <section class="out" aria-labelledby="outTitle">
+    <div class="wrap out__in">
+      <h2 id="outTitle">¿Ya sabes qué necesitas?</h2>
+      <p class="out__lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
       <p class="row"><a class="btn" href="/cotizar/">Ir a cotizar</a><a class="btn btn--line" id="homeMail" href="#">Escribir un correo</a></p>
     </div>
   </section>

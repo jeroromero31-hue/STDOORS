@@ -23,7 +23,7 @@
   },
   {
    "id": "vaiven-abierta",
-   "alt": "Puerta vaivén ST abierta hacia una nave de producción",
+   "alt": "Puerta vaivén ST con las dos hojas abiertas hacia una nave de producción",
    "ancho": 1920,
    "alto": 1080,
    "imagen": {
@@ -43,8 +43,8 @@
   },
   {
    "id": "corrediza",
-   "alt": "Puerta corrediza ST en el muro de una cámara frigorífica",
-   "ancho": 1920,
+   "alt": "Puerta corrediza ST blanca con placa inferior de aluminio, en el muro de una cámara frigorífica",
+   "ancho": 1370,
    "alto": 1080,
    "imagen": {
     "640": {
@@ -55,73 +55,25 @@
      "webp": "corrediza-1280.webp",
      "avif": "corrediza-1280.avif"
     },
-    "1920": {
-     "webp": "corrediza-1920.webp",
-     "avif": "corrediza-1920.avif"
+    "1370": {
+     "webp": "corrediza-1370.webp",
+     "avif": "corrediza-1370.avif"
     }
    }
   },
   {
    "id": "abatible",
-   "alt": "Puerta abatible ST en la cámara de una cocina industrial",
-   "ancho": 806,
+   "alt": "Puerta abatible ST blanca con chapa de palanca, en la cámara de una cocina industrial",
+   "ancho": 810,
    "alto": 1080,
    "imagen": {
     "640": {
      "webp": "abatible-640.webp",
      "avif": "abatible-640.avif"
     },
-    "806": {
-     "webp": "abatible-806.webp",
-     "avif": "abatible-806.avif"
-    }
-   }
-  },
-  {
-   "id": "instalacion-corrediza-1",
-   "alt": "Dos puertas corredizas instaladas en un pasillo de cámaras",
-   "ancho": 1152,
-   "alto": 864,
-   "imagen": {
-    "640": {
-     "webp": "instalacion-corrediza-1-640.webp",
-     "avif": "instalacion-corrediza-1-640.avif"
-    },
-    "1152": {
-     "webp": "instalacion-corrediza-1-1152.webp",
-     "avif": "instalacion-corrediza-1-1152.avif"
-    }
-   }
-  },
-  {
-   "id": "instalacion-corrediza-2",
-   "alt": "Puerta corrediza recién instalada en una cámara frigorífica",
-   "ancho": 960,
-   "alto": 1280,
-   "imagen": {
-    "640": {
-     "webp": "instalacion-corrediza-2-640.webp",
-     "avif": "instalacion-corrediza-2-640.avif"
-    },
-    "960": {
-     "webp": "instalacion-corrediza-2-960.webp",
-     "avif": "instalacion-corrediza-2-960.avif"
-    }
-   }
-  },
-  {
-   "id": "instalacion-vaiven",
-   "alt": "Puerta vaivén instalada, con protección inferior negra",
-   "ancho": 959,
-   "alto": 1280,
-   "imagen": {
-    "640": {
-     "webp": "instalacion-vaiven-640.webp",
-     "avif": "instalacion-vaiven-640.avif"
-    },
-    "959": {
-     "webp": "instalacion-vaiven-959.webp",
-     "avif": "instalacion-vaiven-959.avif"
+    "810": {
+     "webp": "abatible-810.webp",
+     "avif": "abatible-810.avif"
     }
    }
   }

@@ -19,6 +19,13 @@ En los dos casos el enlace **dura una hora** si no creas cuenta. Para que no se 
 
 Anota el **modelo del teléfono** y, si algo falla, toma una **captura** o un video corto.
 
+**En el Inicio (lo nuevo):**
+- [ ] ¿Cuánto tarda en aparecer la puerta en 3D? Mientras carga se ve "Cargando la puerta en 3D" con el porcentaje.
+- [ ] Bajar despacio: ¿las hojas abren, aparecen las etiquetas 02, 03 y 06 sobre la puerta y la cámara cruza hasta el azul marino sin trabarse?
+- [ ] Al cruzar, ¿se ve el vaho dentro de la cámara? ¿El teléfono se calienta?
+- [ ] En las tres puertas: ¿cada foto se descubre abriéndose como su puerta (gira, corre, se separa al centro)?
+- [ ] En CDS: ¿la puerta central abre mientras bajas?
+
 **En cada puerta (Abatible, Corrediza, Vaivén, CDS):**
 - [ ] ¿Cuánto tarda en aparecer la puerta en 3D? Más o menos: menos de 3 s, de 3 a 8 s, o más de 8 s.
 - [ ] Girar con el dedo y abrir arrastrando la hoja: ¿va fluido, a saltos o muy trabado?
@@ -28,7 +35,6 @@ Anota el **modelo del teléfono** y, si algo falla, toma una **captura** o un vi
 - [ ] Solo en CDS: abrir una puerta, sacar un producto y devolverlo.
 
 **En el resto:**
-- [ ] **Inicio:** la foto de entrada se abre desde el centro; nada brinca al cargar.
 - [ ] **Componentes:** buscar "bisagra", abrir una pieza, ampliar la foto, "Agregar a tu solicitud".
 - [ ] **Cotizar:** cambiar cantidades, llenar el formulario y tocar "Abrir correo con la solicitud". ¿Se abre tu app de correo con todo escrito? No lo envíes, solo revisa.
 - [ ] **Galería CDS:** abrir una foto y deslizar con el dedo.

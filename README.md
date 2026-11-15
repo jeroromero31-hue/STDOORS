@@ -36,17 +36,29 @@ npm run preview    # sirve dist/ en http://localhost:4173 para revisarlo
 
 ## Páginas internas
 
-`lab/materiales.html` (calibración de materiales) y `lab/sistema.html` (sistema de diseño) se ven con `npm run dev`, pero **no se publican**. Para incluirlas en un build: `VITE_LAB=1 npm run build`.
+`lab/materiales.html` (calibración de materiales), `lab/sistema.html` (sistema de diseño) y `lab/cds-secuencia.html` (dibuja la secuencia CDS del Inicio) se ven con `npm run dev`, pero **no se publican**. Para incluirlas en un build: `VITE_LAB=1 npm run build`.
 
 ## Fotos de instalaciones y del Inicio
 
 ```bash
 ST_PAQUETE=/ruta/al/paquete npm run fotos                     # las dos de abajo
 ST_PAQUETE=/ruta/al/paquete node scripts/build-cds-photos.mjs    # 11 fotos CDS → public/img/cds/ y src/data/cds-instalaciones.json
-ST_PAQUETE=/ruta/al/paquete node scripts/build-home-photos.mjs   # 7 fotos → public/img/inicio/ y src/data/inicio-fotos.json
+ST_PAQUETE=/ruta/al/paquete node scripts/build-home-photos.mjs   # las 4 puertas mejoradas → public/img/inicio/ y src/data/inicio-fotos.json
 ```
 
 Las fotos con marcas de clientes o de terceros quedan fuera; la lista está en cada script.
+
+### Secuencia CDS del Inicio
+
+Los 36 cuadros que avanzan con el scroll en la sección CDS del Inicio se dibujan con el mismo modelo 3D de la página de CDS
+(dos formatos: horizontal 1440 × 900 y vertical 720 × 900). Solo hace falta regenerarlos si cambia el modelo CDS:
+
+```bash
+npx vite --port 5199 &                                        # servidor de desarrollo (sirve lab/cds-secuencia.html)
+python3 scripts/render-cds-sequence.py --nuevo                # → public/img/inicio/cds/ y src/data/cds-secuencia.json
+```
+
+Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.
 
 ## Regenerar imágenes y datos del catálogo
 
@@ -106,8 +118,13 @@ src/ui/cotizar.js        solicitud editable y envío por correo / copiar (WhatsA
 src/ui/cdsPage.js        comparador de modelos CDS y galería de instalaciones
 src/ui/motion.js         movimiento de página (fichas, contador) con «reducir movimiento»
 src/pages/               un módulo por página (inicio, industriales, cds, componentes, cotizar, 404…)
+src/home/hero.js         Inicio: la vaivén en 3D que abre con el scroll y la cámara que cruza al interior
+src/home/vapor.js        Inicio: vaho de la cámara frigorífica (partículas) al abrir la puerta
+src/home/scrub.js        Inicio: avance de cada sección con el scroll (sin secuestrar el desplazamiento)
+src/home/cdsSequence.js  Inicio: secuencia CDS cuadro por cuadro
+src/styles/home.css      estilos del Inicio (solo se cargan ahí)
 src/data/contacto.json   correo, teléfono y WhatsApp de ST
-src/data/inicio-fotos.json, cds-instalaciones.json   fotos generadas por los scripts de fotos
+src/data/inicio-fotos.json, cds-instalaciones.json, cds-secuencia.json   fotos y secuencia generadas por los scripts
 src/core/stage.js        escenario 3D común: entorno de estudio, calidad, respaldo sin WebGL
 src/core/backdrop.js     muro y piso comunes (blanco afuera, azul marino adentro)
 src/core/hinge.js        hoja abisagrada: giro sobre su eje real y arrastre con el puntero (una o dos direcciones)

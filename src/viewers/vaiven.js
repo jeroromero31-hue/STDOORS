@@ -38,7 +38,8 @@ const OMIT = new Set(['static/gasket']);
 const W = 1.2495 + VAIVEN.frame.shift + 0.01, H = 2.5205 + VAIVEN.frame.lift + 0.01;
 const BOX = { closed: [-W, 0, -0.10, W, H, 0.10], ajar: [-W, 0, -0.10, W, H, 0.62], open: [-W, 0, -0.10, W, H, 1.16] };
 
-export function createVaiven(stage, reg) {
+// opts.onProgress(0…1): avance de la descarga del modelo (la usa la entrada del Inicio)
+export function createVaiven(stage, reg, { onProgress } = {}) {
   const { root, slots } = createRig();
   // el marco queda dentro del vano del muro; detrás, el interior azul marino
   const backdrop = createBackdrop(stage, { opening: { left: -(1.24 + VAIVEN.frame.shift), right: 1.24 + VAIVEN.frame.shift, top: 2.51 + VAIVEN.frame.lift }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
@@ -88,7 +89,7 @@ export function createVaiven(stage, reg) {
   stage.onFrame.add((dt) => hinges.forEach((h) => h.update(dt)));
 
   // ---------- geometría ----------
-  const ready = fetch(binUrl).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return r.arrayBuffer(); }).then((buf) => {
+  const ready = fetch(binUrl).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return readBody(r, manifest.formato.bytes, onProgress); }).then((buf) => {
     if (buf.byteLength !== manifest.formato.bytes) throw new Error('El modelo llegó incompleto');
     for (const [i, grupo, material, nv, ni, po, no, io] of manifest.mallas) {
       if (OMIT.has(`${grupo}/${material}`)) continue;
@@ -178,4 +179,16 @@ export function createVaiven(stage, reg) {
       bumper: orbitView(-0.58, 0.62, 0.05, -0.35, 0.08, 2.4),
     },
   };
+}
+
+// Lee la respuesta por partes para poder avisar el avance; sin aviso que dar, la lee de una vez.
+async function readBody(r, total, onProgress) {
+  if (!onProgress || !r.body || !r.body.getReader) return r.arrayBuffer();
+  const out = new Uint8Array(total), reader = r.body.getReader(); let n = 0;
+  for (;;) {
+    const { done, value } = await reader.read(); if (done) break;
+    if (n + value.length > total) throw new Error('El modelo llegó con más datos de los esperados');
+    out.set(value, n); n += value.length; onProgress(n / total);
+  }
+  return n === total ? out.buffer : out.buffer.slice(0, n);
 }

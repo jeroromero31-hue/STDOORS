@@ -1,0 +1,16 @@
+{
+ "origen": "scripts/render-cds-sequence.py",
+ "cuadros": 36,
+ "formatos": {
+  "ancho": {
+   "ancho": 1440,
+   "alto": 900,
+   "bytes": 1365436
+  },
+  "alto": {
+   "ancho": 720,
+   "alto": 900,
+   "bytes": 870774
+  }
+ }
+}
