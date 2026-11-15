@@ -60,5 +60,5 @@ Probado en el build de producción, con Chromium:
 1. **Material y disponibilidad:** el brief los pide en el dataset, pero ni los PDF ni el inventario los traen. No se inventaron. ¿Hay una lista de materiales o existencias?
 2. **4 piezas del PDF sin fotografía** siguen sin publicar (`pendientes_sin_publicar`), por ejemplo la "Pija galvanizada 12X2", que es la posible pieza 36. ¿Hay fotos?
 3. **11 avisos "por confirmar"**, como el largo del perfil rompe puente (5.80 m o 4.50 m) y la numeración 69–76 de la Corrediza.
-4. **Las piezas CDS no están en el catálogo** porque no hay imágenes de piezas CDS en el paquete.
+4. **Piezas CDS:** confirmado por ST (14 nov), no habrá piezas CDS en el catálogo.
 5. **El envío de la solicitud** se construye en la Fase 6. Hoy la solicitud se guarda en el navegador.

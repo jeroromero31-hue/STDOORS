@@ -7,7 +7,10 @@ import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/components.css';
 
+import contacto from '../data/contacto.json';
+
 const BASE = import.meta.env.BASE_URL;
+export { contacto };
 export const url = (p) => BASE + p.replace(/^\//, '');
 
 const NAV = [
@@ -25,6 +28,8 @@ export const solicitud = {
   has(id) { return this.all().some((x) => x.id === id); },
   add(item) { const l = this.all(); if (!l.some((x) => x.id === item.id)) { l.push(item); this.save(l); } },
   remove(id) { this.save(this.all().filter((x) => x.id !== id)); },
+  update(id, patch) { this.save(this.all().map((x) => (x.id === id ? { ...x, ...patch } : x))); },
+  clear() { this.save([]); },
 };
 function emit() {
   const n = solicitud.all().length;
@@ -93,7 +98,7 @@ export function mountSite(page) {
     <div class="wrap footer__in">
       <div class="stack" style="--stack:8px"><img src="${url('img/marca/st-logo-azul.webp')}" alt="ST Doors" width="62" height="30"><p>Puertas para cámaras frigoríficas y puertas de exhibición Reach-In CDS.</p></div>
       <ul>${NAV.map((n) => `<li><a href="${url(n.href)}">${n.label}</a></li>`).join('')}<li><a href="${url('cotizar/')}">Cotizar</a></li></ul>
-      <ul><li><a href="mailto:info@strefrigeracion.mx">info@strefrigeracion.mx</a></li><li><a href="tel:+523336001376">+52 33 3600 1376</a></li><li><span class="badge badge--warn">Datos del PDF CDS, por confirmar</span></li></ul>
+      <ul><li><a href="mailto:${contacto.correo}">${contacto.correo}</a></li><li><a href="tel:${contacto.telefono.replace(/[^+\d]/g, '')}">${contacto.telefono}</a></li><li><span class="badge badge--warn">Datos del PDF CDS, por confirmar</span></li></ul>
     </div>`;
   document.body.append(footer);
   emit();

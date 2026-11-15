@@ -214,3 +214,51 @@
 .cat-zoom.is-zoomed .cat-zoom__img { overflow: auto; cursor: zoom-out; }
 .cat-zoom.is-zoomed .cat-zoom__img img { width: 1600px; max-width: none; max-height: none; }
 .sheet .cat-spec { margin-top: var(--s-2); }
+
+/* ---------- Industriales: selector de puertas ---------- */
+.ind-head { padding-top: clamp(40px, 7vw, 96px); padding-bottom: var(--s-6); }
+.ind-head h1 { font-size: var(--t-3xl); max-width: 16ch; }
+.ind-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-5); }
+.ind-door { display: flex; flex-direction: column; background: var(--c-white); border: 1px solid var(--c-line); border-radius: var(--r-surface); overflow: hidden; }
+.ind-door__img { display: block; background: var(--c-ice); }
+.ind-door__img img { width: 100%; height: auto; aspect-ratio: 960 / 810; object-fit: cover; transition: transform var(--d-panel) var(--ease-out); }
+@media (hover: hover) { .ind-door:hover .ind-door__img img { transform: scale(1.02); } }
+.ind-door__t { padding: var(--s-5); display: flex; flex-direction: column; flex: 1; }
+.ind-door__t .row { margin-top: auto; padding-top: var(--s-3); gap: var(--s-4); }
+.ind-door__t .link { min-height: var(--tap); display: inline-flex; align-items: center; }
+.ind-foot { padding-block: var(--s-7) var(--section-y); }
+@media (max-width: 900px) { .ind-list { grid-template-columns: 1fr; } .ind-door { flex-direction: row; } .ind-door__img { width: 42%; flex-shrink: 0; } .ind-door__img img { height: 100%; } }
+@media (max-width: 560px) { .ind-door { flex-direction: column; } .ind-door__img { width: 100%; } }
+
+/* ---------- Cotizar ---------- */
+.q-page { padding-block: clamp(40px, 7vw, 96px) var(--section-y); }
+.q-head h1 { font-size: var(--t-3xl); }
+.q-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 96px); margin-top: var(--s-7); align-items: start; }
+@media (max-width: 860px) { .q-grid { grid-template-columns: 1fr; } }
+.q-list__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); border-bottom: 2px solid var(--c-navy); padding-bottom: var(--s-3); }
+.q-list__head .link { min-height: var(--tap); }
+.q-items { list-style: none; margin: 0; padding: 0; }
+.q-item { display: grid; grid-template-columns: 1fr auto auto; gap: var(--s-3) var(--s-4); align-items: center; padding: var(--s-4) 0; border-bottom: 1px solid var(--c-line); }
+.q-item__t { display: flex; flex-direction: column; min-width: 0; }
+.q-item__t b { font-weight: var(--w-medium); line-height: 1.35; }
+.q-qty { display: inline-flex; align-items: center; border: 1.5px solid var(--c-line); border-radius: var(--r-control); }
+.q-qty button { width: var(--tap); height: var(--tap); border: 0; background: none; font-size: 20px; cursor: pointer; border-radius: 50%; }
+.q-qty button:hover { background: var(--c-ice); }
+.q-qty input { width: var(--tap); min-height: var(--tap); border: 0; background: none; text-align: center; font-weight: var(--w-bold); -moz-appearance: textfield; }
+.q-qty input::-webkit-inner-spin-button, .q-qty input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.q-item__x { min-height: var(--tap); padding: 0 var(--s-2); border: 0; background: none; color: var(--c-ink-soft); text-decoration: underline; text-underline-offset: .2em; cursor: pointer; font-size: var(--t-sm); }
+.q-item__x:hover { color: var(--c-error); }
+@media (max-width: 520px) { .q-item { grid-template-columns: 1fr auto; } .q-item__t { grid-column: 1 / -1; } }
+.q-empty { padding: var(--s-5) 0; }
+.q-form-wrap { background: var(--c-white); border: 1px solid var(--c-line); border-radius: var(--r-surface); padding: clamp(20px, 3vw, 36px); }
+.q-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); margin-top: var(--s-4); }
+.q-form .field input, .q-form .field textarea { width: 100%; min-width: 0; }
+.q-pair > * { min-width: 0; }
+.q-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+@media (max-width: 520px) { .q-pair { grid-template-columns: 1fr; } }
+.q-send { margin-top: var(--s-2); }
+.q-status:empty { display: none; }
+.q-status { background: var(--c-ice); padding: var(--s-3) var(--s-4); border-radius: var(--r-surface); }
+.q-preview summary { cursor: pointer; min-height: var(--tap); display: flex; align-items: center; font-size: var(--t-sm); font-weight: var(--w-medium); }
+.q-preview pre { white-space: pre-wrap; font: inherit; font-size: var(--t-sm); background: var(--c-wall); border: 1px solid var(--c-line); padding: var(--s-4); border-radius: var(--r-surface); margin: 0; }
+.q-qty { justify-self: start; }

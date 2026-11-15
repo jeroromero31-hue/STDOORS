@@ -3,15 +3,52 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cotizar — ST Doors</title>
-<meta name="description" content="Revisa lo que agregaste y dinos a dónde responderte.">
+<meta name="description" content="Revisa las puertas y piezas que agregaste y envíanos tu solicitud de cotización.">
 <link rel="icon" href="/favicon.png">
 </head>
 <body data-page="cotizar">
-<main id="main" class="wrap section stack" style="--stack:20px;min-height:60svh">
-  <h1>Tu solicitud</h1>
-  <p class="t-lead">Revisa lo que agregaste y dinos a dónde responderte.</p>
-  <p class="phase-note">El formulario se construye en la Fase 6, cuando esté definido el destino de las solicitudes.</p>
+<main id="main" class="wrap q-page">
+  <header class="q-head stack">
+    <h1>Tu solicitud</h1>
+    <p class="t-lead">Revisa lo que agregaste, ajusta cantidades y dinos cómo contactarte. Te respondemos con la cotización.</p>
+  </header>
+
+  <div class="q-grid">
+    <section class="q-list" aria-labelledby="qListT">
+      <div class="q-list__head"><h2 id="qListT" class="t-h3">Productos</h2><button class="link t-small" id="qClearAll" hidden>Vaciar solicitud</button></div>
+      <ul class="q-items" id="qItems"></ul>
+      <div class="q-empty stack" id="qEmpty" hidden>
+        <p>Tu solicitud está vacía. Agrega una puerta o una pieza, o escríbenos directamente con el formulario.</p>
+        <p class="row"><a class="btn btn--line btn--sm" href="/industriales/">Puertas industriales</a><a class="btn btn--line btn--sm" href="/cds/">Puertas CDS</a><a class="btn btn--line btn--sm" href="/componentes/">Componentes</a></p>
+      </div>
+    </section>
+
+    <section class="q-form-wrap" aria-labelledby="qFormT">
+      <h2 id="qFormT" class="t-h3">Tus datos</h2>
+      <form class="q-form" id="qForm" novalidate>
+        <label class="field">Nombre<input name="nombre" autocomplete="name" required aria-describedby="e-nombre"><span class="field__error" id="e-nombre" hidden></span></label>
+        <label class="field"><span>Empresa <span class="field__hint">(opcional)</span></span><input name="empresa" autocomplete="organization"></label>
+        <label class="field"><span>Ciudad <span class="field__hint">(opcional)</span></span><input name="ciudad" autocomplete="address-level2"></label>
+        <div class="q-pair">
+          <label class="field">Teléfono<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="e-telefono"><span class="field__error" id="e-telefono" hidden></span></label>
+          <label class="field">Correo<input name="correo" type="email" autocomplete="email" aria-describedby="e-correo"><span class="field__error" id="e-correo" hidden></span></label>
+        </div>
+        <p class="field__hint t-small">Déjanos al menos un teléfono o un correo.</p>
+        <label class="field"><span>Detalles <span class="field__hint">(opcional)</span></span><textarea name="mensaje" rows="4" placeholder="Medidas del vano, refrigeración o congelación, fecha en que lo necesitas…"></textarea></label>
+        <div class="q-send stack" style="--stack:12px">
+          <p class="t-small t-soft" id="qHow"></p>
+          <div class="row">
+            <button class="btn" type="submit" data-via="correo">Abrir correo con la solicitud</button>
+            <button class="btn btn--line" type="submit" data-via="whatsapp" hidden>Enviar por WhatsApp</button>
+            <button class="btn btn--line" type="submit" data-via="copiar">Copiar texto</button>
+          </div>
+          <p class="q-status t-small" id="qStatus" role="status"></p>
+          <details class="q-preview"><summary>Ver el texto que se enviará</summary><pre id="qText"></pre></details>
+        </div>
+      </form>
+    </section>
+  </div>
 </main>
-<script type="module" src="/src/pages/shell.js"></script>
+<script type="module" src="/src/pages/cotizar.js"></script>
 </body>
 </html>
