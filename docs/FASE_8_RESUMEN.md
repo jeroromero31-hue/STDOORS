@@ -46,7 +46,7 @@ El peso incluye las fotos que se cargan al bajar por la página. LCP es el tiemp
 | Pieza | Sin comprimir | Comprimido (gzip) | Nota |
 |---|---|---|---|
 | Three.js y código 3D común | 548 KB | ≈ 140 KB | Se descarga en cada puerta y queda en caché entre puertas |
-| Geometría corrediza / vaivén (.bin) | 1.16 / 1.17 MB | ≈ 400 / 270 KB | Es la geometría aprobada |
+| Geometría corrediza / vaivén (.bin) | 1.16 / 1.17 MB | ≈ 276 / 186 KB | Es la geometría aprobada |
 | Fuentes Outfit (4 pesos) | 54 KB | — | woff2, solo latín |
 
 Reducir la geometría con meshopt o Draco bajaría el .bin entre 50 y 70 %, pero cuantiza los vértices, es decir, cambia la geometría aprobada por fracciones de milímetro. No lo hice sin tu visto bueno.
