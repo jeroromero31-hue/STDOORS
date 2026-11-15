@@ -107,7 +107,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail }) {
 
     // cámara
     const P = poses(camera.aspect);
-    const cam = p < 0.3 ? mix(P[0], P[1], easeInOut(seg(p, 0, 0.3))) : p < 0.62 ? mix(P[1], P[2], easeInOut(seg(p, 0.3, 0.62))) : mix(P[2], P[3], easeInOut(seg(p, 0.62, 0.92)));
+    const cam = p < 0.3 ? mix(P[0], P[1], easeInOut(seg(p, 0, 0.3))) : p < 0.62 ? mix(P[1], P[2], easeInOut(seg(p, 0.3, 0.62))) : mix(P[2], P[3], easeInOut(seg(p, 0.62, 0.9)));
     const back = 1 + 0.22 * (1 - easeOut(intro));                        // al aparecer, la cámara se acerca un poco
     camera.position.copy(cam.tgt).addScaledVector(cam.pos.clone().sub(cam.tgt), back);
     ptr.sx += (ptr.x - ptr.sx) * (1 - Math.exp(-dt * 3)); ptr.sy += (ptr.y - ptr.sy) * (1 - Math.exp(-dt * 3));

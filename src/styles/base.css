@@ -11,7 +11,14 @@
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
-@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  /* Fase 10: al pasar de una página a otra el contenido se funde y el menú se queda quieto (navegadores que lo
+     soportan; en los demás la navegación es la de siempre) */
+  @view-transition { navigation: auto; }
+  .nav { view-transition-name: menu; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 320ms; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
+}
 body {
   margin: 0; background: var(--c-wall); color: var(--c-ink);
   font-family: var(--font); font-size: var(--t-md); line-height: var(--lh-body); font-weight: var(--w-regular);

@@ -23,6 +23,7 @@ El sitio ya usaba "blanco es afuera, azul marino es adentro". El Inicio lo convi
 - **`src/styles/home.css`**: estilos solo del Inicio. Los estilos del Inicio anterior se quitaron de `components.css`.
 - **Fotos**: `scripts/build-home-photos.mjs` ahora solo usa las 4 puertas mejoradas y recorta solo el área transparente que traen dos de ellas. Las fotos de instalaciones de baja calidad ya no están en el Inicio (siguen en la página de CDS).
 - **`src/viewers/vaiven.js`**: puede avisar el avance de la descarga del modelo (para el indicador de carga del Inicio). La geometría no cambia.
+- **Todo el sitio:** al pasar de una página a otra el contenido se funde y el menú se queda quieto (transiciones entre páginas del navegador; donde no hay soporte, la navegación es la de siempre; nada con «reducir movimiento»).
 
 ## Sin 3D, sin movimiento, teclado
 
@@ -38,6 +39,9 @@ El sitio ya usaba "blanco es afuera, azul marino es adentro". El Inicio lo convi
 | Encuadre de la entrada en 10 tamaños (escritorio, laptop, 4:3, ultra ancho, iPad, iPhone, iPhone SE y las 3 formas del iPhone Duo) | 10 de 10: la puerta completa, bajo el menú y sin tocar el texto |
 | Accesibilidad (axe, WCAG 2.1 A/AA), escritorio y celular | 0 fallas |
 | Celular simulado lento (4G lenta, CPU 4×) | LCP 0.7 s (el título), CLS 0.001, 3D listo a los 10.8 s con indicador de avance |
+| Pruebas anteriores (puertas, 3D, movimiento, catálogo, cotizar, CDS, 7 tamaños, iPhone Duo, revisión de las 20 páginas) | Todas pasan: 23/23, 19/19, 36/36, 11/11, 22/22, 13/13, 20/20, 10/10, 7/7, Duo 9 páginas OK, 20/20 páginas limpias |
+
+La prueba del Inicio anterior (Fase 6B) queda retirada: comprobaba un diseño que ya no existe, incluido "Inicio sin visores 3D", que ahora se cambió a pedido del propietario (un solo visor, que se descarga después del texto). La prueba de movimiento (Fase 7A) se actualizó al Inicio nuevo.
 
 ## Pendiente
 

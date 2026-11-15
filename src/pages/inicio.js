@@ -39,7 +39,7 @@ if (glOk) {
     const title = 1 - seg(p, 0.02, 0.13);
     hx.style.setProperty('--title', title.toFixed(3)); hx.classList.toggle('is-past', title < 0.02);
     hx.style.setProperty('--cue', (1 - seg(p, 0, 0.03)).toFixed(3));
-    hx.style.setProperty('--veil', easeInOut(seg(p, 0.8, 0.97)).toFixed(3));
+    hx.style.setProperty('--veil', easeInOut(seg(p, 0.78, 0.92)).toFixed(3));
   }, { mode: 'pin', smooth: 6 });
   import('../home/hero.js').then(({ mountHero }) => mountHero({
     section: hx, gl, hud: $('#hxHud'), load,

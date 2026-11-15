@@ -11,7 +11,7 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 
 /* ---------- entrada 3D ---------- */
 .hx { position: relative; background: var(--c-wall); color: var(--c-ink); }
-.hx--live { height: 330svh; }
+.hx--live { height: 310svh; }
 .hx__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; }
 .hx--live .hx__pin { position: sticky; top: 0; }
 .hx__gl { position: absolute; inset: 0; opacity: 0; transition: opacity 1400ms var(--ease-out); }
@@ -94,7 +94,7 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 /* ---------- adentro ---------- */
 .inside { background: var(--c-navy); color: var(--c-on-navy); }
 .inside a:not(.btn) { color: inherit; }
-.intro { padding-block: clamp(96px, 14vw, 200px) clamp(40px, 6vw, 96px); display: grid; gap: var(--s-5); }
+.intro { padding-block: clamp(56px, 9vw, 128px) clamp(40px, 6vw, 96px); display: grid; gap: var(--s-5); }
 .intro h2 { font-size: clamp(2.25rem, 0.9rem + 5vw, 5.5rem); line-height: .98; letter-spacing: -0.035em; max-width: 13ch; }
 .intro__lead { margin: 0; font-size: var(--t-lg); color: var(--c-on-navy-soft); max-width: 40ch; }
 
