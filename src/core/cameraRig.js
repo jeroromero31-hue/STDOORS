@@ -12,19 +12,26 @@ export function createCameraRig(stage, views) {
   const resolve = (name) => { const v = typeof views[name] === 'function' ? views[name](stage) : views[name]; return { pos: new THREE.Vector3(...v.pos), tgt: new THREE.Vector3(...v.tgt) }; };
   const rig = {
     get current() { return current; },
+    // a dónde va la cámara: el final de la transición en curso o, si no hay, donde está
+    get destination() { return anim ? { pos: anim.p1, tgt: anim.t1 } : { pos: camera.position, tgt: controls.target }; },
     onGo(f) { listeners.add(f); },                      // avisa cada vez que la cámara vuelve a un encuadre con nombre
-    go(name, duration = 1.0) {
+    // opts.via: punto de control para que la cámara rodee algo (curva de Bézier cuadrática) en vez de ir en línea recta
+    go(name, duration = 1.0, opts = {}) {
       if (!views[name]) return; current = name; const v = resolve(name); listeners.forEach((f) => f(name));
       // la inercia que quede de un giro del usuario se aplica de una vez: si no, seguiría desviando la cámara al llegar
       if (controls.enableDamping) { controls.enableDamping = false; controls.update(); controls.enableDamping = true; }
       if (duration <= 0 || reduced()) { camera.position.copy(v.pos); controls.target.copy(v.tgt); anim = null; return; }
-      anim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: v.pos, t1: v.tgt, k: 0, d: duration };
+      anim = { p0: camera.position.clone(), t0: controls.target.clone(), p1: v.pos, t1: v.tgt, c: opts.via ? opts.via.clone() : null, k: 0, d: duration };
     },
+    // mueve el encuadre entero (y la transición en curso) por un desplazamiento: para seguir una pieza que se mueve
+    shift(d) { if (anim) [anim.p0, anim.p1, anim.t0, anim.t1, anim.c].forEach((v) => v && v.add(d)); else { camera.position.add(d); controls.target.add(d); } },
     refit() { if (current && !anim) rig.go(current, 0); },
   };
   stage.onFrame.add((dt) => {
     if (!anim) return; anim.k = Math.min(1, anim.k + dt / anim.d); const e = ease(anim.k);
-    camera.position.lerpVectors(anim.p0, anim.p1, e); controls.target.lerpVectors(anim.t0, anim.t1, e);
+    if (anim.c) camera.position.copy(anim.p0).multiplyScalar((1 - e) ** 2).addScaledVector(anim.c, 2 * (1 - e) * e).addScaledVector(anim.p1, e * e);
+    else camera.position.lerpVectors(anim.p0, anim.p1, e);
+    controls.target.lerpVectors(anim.t0, anim.t1, e);
     if (anim.k >= 1) anim = null;
   });
   stage.onResize.add(() => rig.refit());
