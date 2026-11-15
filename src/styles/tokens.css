@@ -56,6 +56,7 @@
   --ease-inout: cubic-bezier(.6, 0, .2, 1);
   --d-ui: 180ms; --d-panel: 320ms; --d-mode: 500ms; --d-page: 600ms; --d-camera: 1000ms;
 
+  --nav-h: 69px;            /* alto del menú (68 + borde) */
   --z-nav: 40; --z-sheet: 60; --z-toast: 80;
   --shadow-sheet: -24px 0 60px rgba(5, 47, 73, .14);
   color-scheme: light;

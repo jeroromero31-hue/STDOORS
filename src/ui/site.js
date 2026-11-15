@@ -8,6 +8,7 @@ import '../styles/base.css';
 import '../styles/components.css';
 
 import contacto from '../data/contacto.json';
+import { revealSpecs, bumpCount } from './motion.js';
 
 const BASE = import.meta.env.BASE_URL;
 export { contacto };
@@ -35,6 +36,7 @@ function emit() {
   const n = solicitud.all().length;
   document.querySelectorAll('[data-solicitud-count]').forEach((el) => { el.textContent = n || ''; });
   document.dispatchEvent(new CustomEvent('st:solicitud', { detail: n }));
+  bumpCount(n);
 }
 
 // ---------- aviso breve ----------
@@ -102,5 +104,6 @@ export function mountSite(page) {
     </div>`;
   document.body.append(footer);
   emit();
+  requestAnimationFrame(() => revealSpecs());          // tras el primer cuadro, cuando la página ya tiene su alto
   addEventListener('storage', (e) => { if (e.key === KEY) emit(); });
 }

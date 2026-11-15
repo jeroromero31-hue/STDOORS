@@ -25,7 +25,9 @@
 /* ---------- navegación global ---------- */
 .nav { position: sticky; top: 0; z-index: var(--z-nav); background: color-mix(in srgb, var(--c-wall) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid transparent; transition: border-color var(--d-ui); }
 .nav.is-scrolled { border-color: var(--c-line); }
-.nav__in { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 68px; }
+.nav__in { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: calc(var(--nav-h) - 1px); }
+/* Antes de que el JavaScript ponga el menú, se reserva su alto: así el contenido no salta al aparecer el menú. */
+body:has(> main:first-child) { padding-top: var(--nav-h); }
 .nav__logo { display: flex; align-items: center; min-height: var(--tap); }
 .nav__logo img { height: 30px; width: auto; }
 .nav__links { display: flex; align-items: center; gap: clamp(14px, 2.4vw, 36px); margin: 0; padding: 0; list-style: none; }
@@ -325,3 +327,27 @@
 .home-quote__in { display: flex; justify-content: space-between; align-items: end; gap: var(--s-6); flex-wrap: wrap; }
 .home-quote h2 { font-size: var(--t-3xl); }
 .home-hero__vano picture, .home-line__img picture, .home-mosaic__i picture, .home-feat__img picture { display: block; width: 100%; height: 100%; }
+
+/* ---------- Movimiento (Fase 7A) · todo dentro de «sin preferencia de movimiento» ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  /* Entrada del Inicio: el vano se abre desde el centro, como las dos hojas de una puerta. Una sola vez. */
+  .home-hero__vano img { animation: vano-abre 1100ms var(--ease-inout) 120ms both; }
+  .home-hero__t > *, .home-hero h1, .home-hero .t-lead, .home-hero__cta { animation: aparece 520ms var(--ease-out) both; }
+  .home-hero .t-lead { animation-delay: 90ms; }
+  .home-hero__cta { animation-delay: 180ms; }
+  @keyframes vano-abre { from { clip-path: inset(0 47% 0 47%); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes aparece { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Fichas técnicas: renglón por renglón, en orden de lectura */
+  .spec.reveal > div { opacity: 0; transform: translateY(10px); }
+  .spec.reveal.is-in > div { opacity: 1; transform: none; transition: opacity 460ms var(--ease-out), transform 460ms var(--ease-out); transition-delay: calc(var(--i, 0) * 60ms); }
+
+  /* Agregar a la solicitud: el contador de «Cotizar» salta */
+  .nav__count.is-bump { animation: salta 460ms var(--ease-out); }
+  @keyframes salta { 0% { transform: scale(1); } 35% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+  /* Elegir: el chip cede un poco al tocarlo y la tarjeta del modelo marca el cambio */
+  .chip:active { transform: scale(.97); }
+  .chip { transition: background var(--d-ui), border-color var(--d-ui), color var(--d-ui), transform var(--d-ui) var(--ease-out); }
+  .cds-model { transition: box-shadow var(--d-panel) var(--ease-out); }
+}
