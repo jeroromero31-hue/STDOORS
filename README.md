@@ -133,7 +133,8 @@ src/home/vapor.js        Inicio: vaho de la cámara frigorífica (partículas) a
 src/home/scrub.js        Inicio: avance de cada sección con el scroll (sin secuestrar el desplazamiento)
 src/home/cdsSequence.js  Inicio: secuencia CDS cuadro por cuadro
 src/home/look.js         Inicio: luz y materiales de foto de producto (reflector, muro de paneles, piso pulido, luz fría)
-src/home/cine.js         Inicio: intro con la marca, títulos por líneas, scroll suave (Lenis) y cursor
+src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scroll suave (Lenis) y cursor en todo el sitio
+src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
 src/styles/home.css      estilos del Inicio (solo se cargan ahí)
 src/data/contacto.json   correo, teléfono y WhatsApp de ST
 src/data/inicio-fotos.json, cds-instalaciones.json, cds-secuencia.json   fotos y secuencia generadas por los scripts

@@ -61,3 +61,72 @@
 /* Fase 8: controles estables. «Ver por dentro» va antes que los acabados (que se llenan cuando el 3D está listo),
    así al aparecer los acabados no empujan nada; en celular los acabados tienen su propio renglón reservado. */
 @media (max-width: 600px) { .door__finish { flex-basis: 100%; min-height: var(--tap); } }
+
+/* ---------- Fase 10E · escenario a pantalla completa (computadora) ----------
+   La puerta en 3D ocupa todo el ancho y queda fija; los pasos pasan encima como tarjetas de vidrio a la izquierda.
+   La cámara encuadra en lo que dejan libre las tarjetas (stage.setInset). En celular sigue el visor arriba. */
+@media (min-width: 901px) {
+  .door { grid-template-columns: minmax(0, 1fr); }
+  .door__viewer { grid-area: 1 / 1; }
+  .door__col { grid-area: 1 / 1; position: relative; z-index: 3; width: calc(var(--pad-x) + min(430px, 33vw)); padding: 0 0 0 var(--pad-x); pointer-events: none; }
+  .door__card { pointer-events: auto; display: grid; gap: var(--s-3); padding: clamp(22px, 2vw, 32px); border-radius: 22px;
+    background: rgba(251, 252, 253, .84); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+    box-shadow: 0 28px 70px rgba(5, 47, 73, .14), inset 0 0 0 1px rgba(255, 255, 255, .7); }
+  .door.is-inside .door__card { background: rgba(5, 47, 73, .74); box-shadow: 0 28px 70px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .08); }
+  .door__hero { padding-block: var(--s-7) var(--s-7); }
+  .door__hero h1 { font-size: clamp(2.75rem, 1.2rem + 3.6vw, 5.2rem); line-height: .94; letter-spacing: -0.04em; }
+  .door__step h2 { font-size: clamp(1.75rem, 1rem + 1.6vw, 2.6rem); line-height: 1; letter-spacing: -0.025em; }
+  .hotcard { left: auto; right: var(--s-4); }
+  .viewer__hint { left: calc(var(--free, 0px) + (100% - var(--free, 0px)) / 2); }
+}
+/* el paso que se está leyendo manda: una línea cian crece a su lado y la tarjeta sube a su sitio. Los demás esperan
+   un poco más abajo, con el texto completo (sin atenuar: el contraste se mantiene en todas). */
+.door__step .door__card { position: relative; transition: transform 700ms cubic-bezier(.2, .8, .2, 1), box-shadow 500ms var(--ease-out); }
+.door__step .door__card::before { content: ''; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 2px; background: var(--c-cyan);
+  transform: scaleY(0); transform-origin: top; transition: transform 650ms cubic-bezier(.2, .8, .2, 1); }
+.door__step.is-current .door__card::before { transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .door__step:not(.is-current) .door__card { transform: translateY(18px); }
+}
+
+/* lectura en vivo (como un instrumento): apertura en grados o recorrido de la hoja */
+.readout { position: absolute; z-index: 4; right: var(--s-5); bottom: var(--s-5); display: grid; justify-items: end; gap: 2px; pointer-events: none; color: var(--c-ink);
+  opacity: 0; transition: opacity 400ms var(--ease-out); }
+.readout.is-on { opacity: 1; }
+.readout span { font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--c-ink-soft); }
+.readout b { font-size: clamp(2rem, 1.4rem + 2vw, 3.4rem); font-weight: var(--w-heavy); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.door.is-inside .readout { color: var(--c-on-navy); }
+.door.is-inside .readout span { color: var(--c-on-navy-soft); }
+@media (max-width: 900px) { .readout { right: var(--s-4); bottom: var(--s-4); } .readout b { font-size: 1.9rem; } }
+
+/* opciones del modelo (bumper) */
+.door__opt { display: grid; gap: 6px; flex-basis: 100%; }
+.door__opt-l { color: var(--c-ink-soft); }
+.door.is-inside .door__opt-l { color: var(--c-on-navy-soft); }
+.door__opt .chips { flex-wrap: wrap; }
+/* cota en milímetros sobre el 3D */
+.cota { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; opacity: 0; transition: opacity 300ms var(--ease-out); overflow: visible; }
+.cota.is-on { opacity: 1; }
+.cota line { stroke: var(--c-cyan); stroke-width: 1.5; }
+.cota__band { fill: rgba(22, 185, 203, .07); stroke: var(--c-cyan); stroke-width: 1.5; stroke-dasharray: 6 4; animation: cota-band 1.6s linear infinite; }
+@keyframes cota-band { to { stroke-dashoffset: -20; } }
+@media (prefers-reduced-motion: reduce) { .cota__band { animation: none; } }
+.cota rect { fill: var(--c-navy); }
+.cota text { fill: #fff; font: 700 13px var(--font); text-anchor: middle; font-variant-numeric: tabular-nums; }
+
+/* «Ver el frío»: barrido de escáner, escala y textos sobre fondo oscuro */
+.viewer__scan { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; animation: scan-wipe 900ms cubic-bezier(.6, 0, .25, 1) forwards; }
+.viewer__scanline { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3; pointer-events: none; background: #9fe8f2;
+  box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: scan-line 900ms cubic-bezier(.6, 0, .25, 1) forwards; }
+@keyframes scan-wipe { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
+@keyframes scan-line { from { top: 0; } to { top: 100%; } }
+.thermo { position: absolute; z-index: 4; top: var(--s-4); left: calc(var(--free, 0px) + var(--s-4)); display: grid; gap: 6px; width: min(240px, 60vw);
+  padding: 10px 12px; border-radius: 12px; background: rgba(10, 20, 64, .62); backdrop-filter: blur(8px); color: #fff; pointer-events: none;
+  opacity: 0; transform: translateY(-6px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
+.door.is-thermal .thermo { opacity: 1; transform: none; }
+.thermo b { font-size: var(--t-xs); font-weight: var(--w-medium); }
+.thermo__bar { display: block; height: 8px; border-radius: 4px; }
+.thermo__l { display: flex; justify-content: space-between; font-size: var(--t-xs); color: rgba(255, 255, 255, .78); }
+.door.is-thermal .readout { color: #fff; }
+.door.is-thermal .readout span { color: rgba(255, 255, 255, .78); }
+@media (prefers-reduced-motion: reduce) { .viewer__scan, .viewer__scanline { display: none; } }

@@ -153,21 +153,95 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
   motion.step = (d) => { if (d.open === undefined) return; const a = String(d.open).split(',').map(Number); pair([a[0], a[1] ?? a[0]]); };
 
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
+
+  // ---------- Fase 10E · bumper a la medida: 150, 500 o 1000 mm (piezas 06, 07 y 08 del catálogo) ----------
+  // El bumper del modelo es la franja de hule a media altura de cada hoja (malla «rubber», junto con el hule de la
+  // ventanilla, más sus remates «rubber-edge»). Para cambiar su alto no se escala: la mitad de arriba del perfil sube y
+  // la de abajo baja, así los cantos redondeados conservan su forma y solo crece la cara plana. Su centro se acomoda
+  // para que quepa entre la placa inferior (hasta 0.41 m) y el hule de la ventanilla (desde 1.42 m).
+  const BUMPERS = [{ id: '150', mm: 150, numero: '06', center: 0.965 }, { id: '500', mm: 500, numero: '07', center: 0.95 }, { id: '1000', mm: 1000, numero: '08', center: 0.912 }];
+  const bumperAnchor = V(0.56, 0.965, 0.07);
+  let band = null, bNow = BUMPERS[0], tw = null;
+  const cur = { mm: 150, center: 0.965 };                    // medida y centro dibujados ahora (a media transición también)
+  const bandOf = () => {
+    if (band) return band;
+    const ms = meshes.filter((m) => /^(left|right)\/rubber(-edge)?\//.test(m.name));
+    const edges = ms.filter((m) => m.name.includes('rubber-edge'));
+    if (!edges.length) return null;
+    edges[0].geometry.computeBoundingBox();
+    const { min, max } = edges[0].geometry.boundingBox;
+    band = { y0: min.y, y1: max.y, c0: (min.y + max.y) / 2, list: ms.map((m) => ({ geo: m.geometry, orig: m.geometry.attributes.position.array.slice() })) };
+    return band;
+  };
+  const deform = (mm, c) => {
+    const b = bandOf(); if (!b) return;
+    const ext = (mm - 150) / 2000, dc = c - b.c0;
+    for (const { geo, orig } of b.list) {
+      const p = geo.attributes.position.array;
+      for (let i = 1; i < p.length; i += 3) {
+        const y = orig[i];
+        p[i] = y >= b.y0 - 0.004 && y <= b.y1 + 0.004 ? y + dc + Math.sign(y - b.c0) * ext : y;
+      }
+      geo.attributes.position.needsUpdate = true;
+    }
+    bumperAnchor.y = c; cur.mm = mm; cur.center = c;
+  };
+  const finishBand = () => { const b = bandOf(); if (b) b.list.forEach(({ geo }) => { geo.computeBoundingBox(); geo.computeBoundingSphere(); }); };
+  stage.onFrame.add((dt) => {
+    if (!tw || !bandOf()) return;                            // el modelo aún no llega: la transición espera
+    if (tw.t0 === undefined) tw.t0 = performance.now();      // por reloj, no por cuadros: dura lo mismo en un teléfono lento
+    tw.t = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1, (performance.now() - tw.t0) / 850);
+    const k = tw.t < 0.5 ? 4 * tw.t ** 3 : 1 - (-2 * tw.t + 2) ** 3 / 2;
+    deform(tw.a.mm + (tw.b.mm - tw.a.mm) * k, tw.a.center + (tw.b.center - tw.a.center) * k);
+    stage.invalidate(2);
+    if (tw.t >= 1) { tw = null; finishBand(); }
+  });
+  const setBumper = (id) => {
+    const to = BUMPERS.find((b) => b.id === String(id)); if (!to || to === bNow) return;
+    tw = { a: { ...cur }, b: to, t: 0 }; bNow = to; anchors[2].numero = to.numero;
+  };
+  const anchors = [
+    { numero: '03', parent: slots.left, position: V(0.5675, 1.80, 0.03) },                       // ventanilla
+    { numero: '02', parent: slots.right, position: V(-0.08, 2.17, 0.083) },                        // bisagra
+    { numero: '06', parent: slots.left, position: bumperAnchor },                                 // bumper (06, 07 u 08 según la medida)
+    { numero: '01', parent: slots.right, position: V(0.0, 1.35, 0.04) },                         // empaque lateral
+    { id: 'vaiven-perfil-aluminio-40-mm', parent: slots.left, position: V(1.125, 1.25, 0.034) }, // perfil de la hoja
+  ];
+  // cota del bumper: de su canto de abajo a su canto de arriba, junto al borde exterior de la hoja izquierda
+  // y el contorno de la franja en la cara de cada hoja, para que se distinga aun con el acabado negro
+  const tmpA = V(0, 0, 0), tmpB = V(0, 0, 0), quads = [0, 1].map(() => [V(0, 0, 0), V(0, 0, 0), V(0, 0, 0), V(0, 0, 0)]);
+  const measure = () => {
+    const b = bandOf(); if (!b) return null;
+    const h = (b.y1 - b.y0) + (cur.mm - 150) / 1000, c = cur.center, lo = c - h / 2, hi = c + h / 2;
+    tmpA.set(0.03, lo, 0.075); tmpB.set(0.03, hi, 0.075);
+    slots.left.localToWorld(tmpA); slots.left.localToWorld(tmpB);
+    [[slots.left, 0.044, 1.06], [slots.right, -0.044, -1.06]].forEach(([slot, x0, x1], i) => {
+      const q = quads[i]; q[0].set(x0, lo, 0.07); q[1].set(x1, lo, 0.07); q[2].set(x1, hi, 0.07); q[3].set(x0, hi, 0.07);
+      q.forEach((v) => slot.localToWorld(v));
+    });
+    return { a: tmpA, b: tmpB, quads, label: `${Math.round(cur.mm / 10) * 10} mm` };
+  };
+
   return {
-    root, slots, materials, meshes, hinges, ready, pickables, motion,
+    root, slots, materials, meshes, hinges, ready, pickables, motion, measure,
+    // «Ver el frío»: cada hoja abre su mitad del hueco
+    thermal: {
+      wallZ: 0, floorY: 0,
+      openings: () => { const R = 1.24 + VAIVEN.frame.shift, top = 2.51 + VAIVEN.frame.lift;
+        return [{ x0: -R, x1: 0, top, amount: Math.abs(hinges[0].angle) / MAX }, { x0: 0, x1: R, top, amount: Math.abs(hinges[1].angle) / MAX }]; },
+    },
+    configs: [{
+      key: 'bumper', label: 'Bumper', view: 'bumper',
+      items: BUMPERS.map((b) => ({ id: b.id, label: `${b.mm} mm`, numero: b.numero, detail: `Bumper de ${b.mm} mm` })),
+      current: () => bNow.id, set: setBumper,
+    }],
     get finish() { return finish; },
     setFinish(name) { applyFinish(name); },
     setInside: backdrop.setInside,
     // la cámara se queda delante del muro
     limits: { minDistance: 0.6, maxDistance: 11, minAzimuthAngle: -1.3, maxAzimuthAngle: 1.3, minPolarAngle: Math.PI * 0.28 },
     // anclas para los puntos de pieza: número de catálogo o, si la pieza no tiene, su id interno
-    anchors: [
-      { numero: '03', parent: slots.left, position: V(0.5675, 1.80, 0.03) },                       // ventanilla
-      { numero: '02', parent: slots.right, position: V(-0.08, 2.17, 0.083) },                        // bisagra
-      { numero: '06', parent: slots.left, position: V(0.56, 0.965, 0.07) },                        // bumper
-      { numero: '01', parent: slots.right, position: V(0.0, 1.35, 0.04) },                         // empaque lateral
-      { id: 'vaiven-perfil-aluminio-40-mm', parent: slots.left, position: V(1.125, 1.25, 0.034) }, // perfil de la hoja
-    ],
+    anchors,
     views: {
       general: (st) => frameBox(st, BOX.closed, -0.30, -0.08),
       frontal: (st) => frameBox(st, BOX.closed, 0, 0),
@@ -176,8 +250,10 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       interior: (st) => frameBox(st, BOX.ajar, -0.16, -0.04),
       bisagra: orbitView(1.145, 2.17, 0.05, -0.31, -0.09, 1.95),
       empaque: orbitView(-1.152, 1.34, 0, -1.03, -0.12, 3.3),
+      frio: (st) => frameBox(st, [-2.0, 0, -0.3, 2.0, 2.6, 2.4], -0.3, 0.32),           // hueco y el piso de enfrente
       mirilla: orbitView(-0.58, 1.74, 0.03, -0.25, 0.0, 1.95),
-      bumper: orbitView(-0.58, 0.62, 0.05, -0.35, 0.08, 2.4),
+      // encuadra el bumper elegido completo (de 150 a 1000 mm), con algo de placa y de hoja alrededor
+      bumper: (st) => { const h = 0.17 + (bNow.mm - 150) / 1000; return frameBox(st, [-1.12, bNow.center - h / 2 - 0.16, 0, -0.04, bNow.center + h / 2 + 0.16, 0.08], -0.35, 0.08, 1.1); },
     },
   };
 }

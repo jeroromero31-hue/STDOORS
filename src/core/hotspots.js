@@ -9,7 +9,9 @@ export function createHotspots(stage, layer, items, onPick) {
     b.onclick = () => onPick(it, b); layer.append(b);
     return { it, b };
   });
-  stage.onFrame.add(() => {
+  // después de mover la cámara en el cuadro (stage.afterFrame): con la cámara de antes, durante un vuelo los puntos
+  // iban un cuadro atrás y un punto con foco podía darse por fuera de la pantalla y perder el foco del teclado
+  (stage.afterFrame || stage.onFrame).add(() => {
     if (layer.hidden) return;
     const w = layer.clientWidth, h = layer.clientHeight;
     for (const { it, b } of nodes) {

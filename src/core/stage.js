@@ -66,15 +66,21 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   controls.enablePan = false;
   controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE }; // un dedo desplaza la página; dos giran y acercan
   canvas.style.touchAction = 'pan-y';              // OrbitControls pone 'none'; así el dedo sigue desplazando la página
-  // La rueda desplaza la página; solo acerca el modelo con Ctrl/⌘ o con el gesto de pellizco del trackpad
-  container.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) e.stopPropagation(); }, { capture: true });
+  // La rueda desplaza la página; solo acerca el modelo con Ctrl/⌘ o con el gesto de pellizco del trackpad.
+  // (Fase 10E) En vez de detener el evento, se apaga el acercamiento para esa vuelta de rueda: así el evento sigue
+  // hasta la página y el scroll suave también funciona con el puntero sobre el 3D.
+  let zoomable = null;
+  container.addEventListener('wheel', (e) => {
+    if (zoomable === null) zoomable = controls.enableZoom;
+    controls.enableZoom = zoomable && (e.ctrlKey || e.metaKey);
+  }, { capture: true, passive: true });
 
   const key = new THREE.DirectionalLight(0xffffff, 1.35);
   key.position.set(3, 5, 4); key.castShadow = true; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
   Object.assign(key.shadow.camera, { left: -2.5, right: 2.5, top: 3, bottom: -1, near: 0.5, far: 15 });
   scene.add(key, new THREE.HemisphereLight(0xffffff, 0xbdbdbd, 0.3));
 
-  const stage = { renderer, scene, camera, controls, key, canvas, container, quality, onFrame: new Set() };
+  const stage = { renderer, scene, camera, controls, key, canvas, container, quality, onFrame: new Set(), afterFrame: new Set() };
   stage.setQuality = (q) => {
     stage.quality = q; const Q = QUALITY[q];
     renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio));
@@ -83,10 +89,18 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
     scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((mm) => { mm.needsUpdate = true; }); });
     resize(); if (stage.invalidate) stage.invalidate();
   };
+  // Encuadre corrido (Fase 10E): cuando un texto tapa la franja izquierda del visor (páginas de puerta a pantalla
+  // completa), la cámara encuadra en lo que queda libre a la derecha y la escena sigue dibujándose debajo del texto.
+  // stage.inset = fracción del ancho que tapa el texto (0 = nada).
+  stage.inset = 0;
   function resize() {
-    const w = container.clientWidth, h = container.clientHeight || 1;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    const w = container.clientWidth, h = container.clientHeight || 1, l = stage.inset || 0;
+    renderer.setSize(w, h, false);
+    if (l > 0) { const vw = w * (1 - l); camera.aspect = vw / h; camera.setViewOffset(vw, h, -w * l, 0, w, h); }
+    else { camera.aspect = w / h; camera.clearViewOffset(); }
+    camera.updateProjectionMatrix();
   }
+  stage.setInset = (l) => { if (Math.abs((stage.inset || 0) - l) < 0.002) return; stage.inset = l; resize(); if (stage.invalidate) stage.invalidate(4); };
   new ResizeObserver(resize).observe(container);
 
   // Bucle por tiempo; se pausa fuera de pantalla. Fase 8: solo se dibuja cuando algo cambió (cámara, posiciones,
@@ -139,6 +153,7 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
     stage.onFrame.forEach((f) => f(dt, t));
     controls.update();
     scene.updateMatrixWorld(); camera.updateMatrixWorld();
+    stage.afterFrame.forEach((f) => f(dt, t));                // capas en pantalla que siguen al 3D: con la cámara ya final
     const s2 = signature(), why = warm > 0 && t < warmUntil ? 'inicio' : s2 !== sig ? 'cambio' : t - lastDraw > 1000 && skipped >= 3 ? 'seguridad' : '', draw = !!why;
     if (draw) stage.whyDrawn[why] = (stage.whyDrawn[why] || 0) + 1;
     if (warm > 0) warm--;

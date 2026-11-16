@@ -4,6 +4,7 @@
 //   2. Bumper único: inox diamante. Acabados solo del registro compartido.
 //   3. El pivote de la hoja pasa al eje del barril de las bisagras (antes giraba 27.5 mm por delante de él).
 import * as THREE from 'three';
+import { frameBox } from '../core/cameraRig.js';
 import { rbox, scaleUV, swapUV } from '../core/stage.js';
 import { Hinge } from '../core/hinge.js';
 import { createBackdrop } from '../core/backdrop.js';
@@ -189,6 +190,7 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
     root, pivot, leaf, hinge, pickables: () => pickables,
+    thermal: { wallZ: 0, floorY: 0, openings: () => [{ x0: -OW / 2, x1: OW / 2, top: OH, amount: Math.min(1, Math.abs(hinge.angle) / 80) }] },
     get finish() { return finish; }, setFinish,
     setInside: backdrop.setInside,   // el muro pasa de blanco a azul marino
     // anclas para los puntos de pieza (numero = pieza del catálogo)
@@ -208,6 +210,7 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       empaque: { pos: [1.75, 1.5, 0.95], tgt: [0.15, 1.2, 0.5] },
       chapa: { pos: [LK.x + 0.26, 1.13, 0.86], tgt: [LK.x - 0.01, 1.03, ZF + 0.02] },
       bumper: { pos: [0.72, 0.62, 1.42], tgt: [0.02, 0.5, 0.17] },
+      frio: (st) => frameBox(st, [-1.0, 0, -0.2, 1.6, 2.3, 2.2], 0.32, 0.3),            // hueco, hoja abierta y el piso de enfrente
     },
   };
 }

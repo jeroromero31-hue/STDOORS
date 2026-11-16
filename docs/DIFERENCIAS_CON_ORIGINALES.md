@@ -298,3 +298,11 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 ## Inicio · Fase 10B
 
 - **Foto de la abatible:** a pedido del propietario, en lugar de `puerta_4_logo_ST.png` (cocina) el capítulo usa una toma de estudio dibujada con el modelo 3D de la abatible del sitio, en blanco sanitario y entreabierta (`scripts/render-abatible-photo.py` → `scripts/fuentes/abatible-estudio.png`).
+
+## Vaivén · Fase 10E: bumper de 150, 500 o 1000 mm
+
+- El modelo aprobado de la vaivén trae un solo bumper (la franja de hule a media altura, de unos 150 mm). El catálogo tiene tres medidas: 150, 500 y 1000 mm (piezas 06, 07 y 08). Para mostrar 500 y 1000 mm la franja se **estira** en el sitio: la mitad de arriba del perfil sube y la de abajo baja, así los cantos conservan su forma. Su centro baja un poco en las medidas grandes (0.95 m y 0.912 m) para que quepa entre la placa inferior (hasta 0.41 m) y el hule de la ventanilla (desde 1.42 m). Es una aproximación visual: el catálogo no da la altura de montaje de cada medida.
+
+## Las 4 puertas · Fase 10E: «Ver el frío»
+
+- Vista añadida, no existe en los originales. Es una ilustración del aire frío saliendo por la puerta abierta; no muestra temperaturas ni datos de desempeño.

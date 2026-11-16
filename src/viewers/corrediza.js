@@ -104,10 +104,28 @@ export function createCorrediza(stage) {
   const pickDoor = (ray) => { const x = first(ray); return x && x.object.userData.role === 'door' ? x : null; };
   const pickCover = (ray) => { const x = first(ray); return x && x.object.userData.role === 'cover' ? x : null; };
 
+  // caja de la hoja cerrada, en el mundo, para «Ver el frío»
+  let closedBox = null;
+  ready.then(() => {
+    const keep = slider.p; applyPose(nodes, 0, cover); root.updateMatrixWorld(true);
+    closedBox = new THREE.Box3(); meshes.filter((m) => m.userData.role === 'door').forEach((m) => closedBox.expandByObject(m));
+    applyPose(nodes, keep, cover);
+  });
+
   stage.scene.add(root);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
     root, nodes, slots, materials, meshes, slider, ready,
+    // «Ver el frío»: el hueco es lo que tapa la hoja cerrada; al correrla queda libre la parte que ya no cubre
+    thermal: {
+      wallZ: WALL_Z, floorY: FLOOR_Y,
+      openings: () => {
+        if (!closedBox) return [];
+        const x0 = closedBox.min.x + 0.1, x1 = closedBox.max.x - 0.1, dx = motion(slider.p).x - motion(0).x;
+        const r = Math.min(x1, x0 + dx);
+        return r > x0 + 0.01 ? [{ x0, x1: r, top: closedBox.max.y - FLOOR_Y - 0.1, amount: Math.min(1, (r - x0) / Math.max(0.3, (x1 - x0) * 0.6)) }] : [];
+      },
+    },
     get progress() { return slider.p; },
     get coverOpen() { return coverOpen; }, get cover() { return cover; },
     setCover: api.setCover, onCover(f) { coverListeners.add(f); },
@@ -151,6 +169,7 @@ export function createCorrediza(stage) {
       polea: orbit(-0.90, 2.50, 0.2, 0.42, 0.10, 1.35),         // polea izquierda y bloque de cierre
       empaque: orbit(0.935, 1.30, 0.22, -1.0, 0.08, 1.55),      // canto derecho: hoja, empaque y marco de perfil
       guia: orbit(1.0, -0.03, 0.10, -0.6, 0.10, 1.6),           // brida de la hoja sobre el riel guía del muro
+      frio: (st) => frame(st, [-1.3, FLOOR_Y, WALL_Z, 3.2, 2.6, 2.6], 0.22, 0.34),   // hueco, riel y el piso de enfrente
     },
   };
 }

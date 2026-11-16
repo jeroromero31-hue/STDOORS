@@ -69,6 +69,7 @@ export function createCDS(stage) {
     kwikLevel: fit(side(span(b1.axisX - 0.32, b1.axisX + 0.12), b1.leafY1 - 0.3, -0.1, H + 0.01, 0.1), -0.45 * sy, -0.12),
     mullion: fit([mull - 0.22, 0.95, -0.1, mull + 0.22, 1.55, 0.06], -0.5, 0.05),
     sello: fit(side(span(b1.x0 - 0.12, b1.x1), 0.6, -0.12, 1.55, 0.45), -0.38 * sy, 0.05),
+    frio: fit([-W / 2, 0, -0.1, W / 2, H, 1.9], -0.3 * sy, 0.3),          // las tres puertas y el piso de enfrente
     keyled: fit([-W / 2 + 0.05, 0.12, -DIM.CAB_DEPTH, W / 2 - 0.05, H - 0.1, 0.05], -0.22 * sy, 0.05, 1.0),
   };
 
@@ -111,6 +112,8 @@ export function createCDS(stage) {
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
     root, M, frame, doors, ctrls, products, shelves, motion,
+    // «Ver el frío»: una salida por puerta (cada vano se refleja sobre su propio centro: conserva su ancho)
+    thermal: { wallZ: -0.007, floorY: 0, openings: () => ctrls.map((c, i) => ({ x0: BAYS[i].x0, x1: BAYS[i].x1, top: BAYS[i].leafY1, amount: Math.min(1, c.angle / HOLD.HOLD_ANGLE) })) },
     setInside: backdrop.setInside,
     get led() { return led; }, setLED,
     // el control de "acabado" de la página aquí elige el modelo; por fuera son iguales

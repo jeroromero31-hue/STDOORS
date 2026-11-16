@@ -7,8 +7,6 @@
 //   · sombra de contacto en la base del muro
 import * as THREE from 'three';
 
-const PANEL = 1.15;   // ancho de panel de cámara (m)
-
 function canvasTex(w, h, draw, { srgb = true, repeat = true } = {}) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   draw(c.getContext('2d'), w, h);
@@ -31,29 +29,10 @@ export function applyLook(stage, viewer) {
   const inner = meshes.find((m) => m.geometry.type === 'BoxGeometry');
   const floor = meshes.find((m) => m.geometry.type === 'PlaneGeometry');
 
-  // ---------- muro: paneles de cámara frigorífica ----------
-  if (wall) {
-    const map = canvasTex(256, 256, (g, w, h) => {
-      g.fillStyle = '#f7f9fa'; g.fillRect(0, 0, w, h);
-      g.fillStyle = '#c9d1d6'; g.fillRect(0, 0, 3, h);           // junta
-      g.fillStyle = '#ffffff'; g.fillRect(3, 0, 2, h);           // canto de luz junto a la junta
-      g.fillStyle = 'rgba(0,0,0,0.018)'; for (let x = 18; x < w; x += 18) g.fillRect(x, 0, 1, h);   // micro-ondulado del panel
-    });
-    map.repeat.set(1 / PANEL, 1 / PANEL);
-    const bump = canvasTex(256, 16, (g, w, h) => { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); g.fillStyle = '#000'; g.fillRect(0, 0, 4, h); }, { srgb: false });
-    bump.repeat.set(1 / PANEL, 1);
-    wall.material = new THREE.MeshStandardMaterial({ color: 0xffffff, map, bumpMap: phone ? null : bump, bumpScale: 0.6, roughness: 0.78, envMapIntensity: phone ? 0.22 : 0.07 });
-  }
-  // ---------- piso: concreto pulido ----------
-  if (floor) {
-    const rough = canvasTex(256, 256, (g, w, h) => {
-      const img = g.createImageData(w, h);
-      for (let i = 0; i < img.data.length; i += 4) { const v = 120 + Math.random() * 70; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
-      g.putImageData(img, 0, 0);
-    }, { srgb: false });
-    rough.repeat.set(6, 6);
-    floor.material = new THREE.MeshStandardMaterial({ color: 0xc9d0d4, roughness: 0.4, roughnessMap: rough, envMapIntensity: 0.18 });
-  }
+  // muro y piso: los paneles, el piso pulido y la sombra de contacto ya los pone el escenario común (backdrop.js);
+  // aquí solo baja la luz de ambiente que reciben, para que se note el círculo del reflector
+  if (wall) wall.material.envMapIntensity = phone ? 0.22 : 0.07;
+  if (floor) { floor.material.envMapIntensity = phone ? 0.4 : 0.18; floor.material.roughness = 0.4; floor.material.color.set(0xc9d0d4); }
   // ---------- interior: azul marino que recibe la luz fría ----------
   if (inner) inner.material = new THREE.MeshStandardMaterial({ color: 0x0a3a58, emissive: 0x052f49, emissiveIntensity: 0.85, roughness: 0.95, side: THREE.BackSide, envMapIntensity: 0 });
 
@@ -86,20 +65,12 @@ export function applyLook(stage, viewer) {
   const spill = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.4), new THREE.MeshBasicMaterial({ map: spillTex, color: 0xbfe6ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
   spill.rotation.x = -Math.PI / 2; spill.position.set(0, 0.003, 1.65); spill.renderOrder = 5; back.add(spill);   // con el muro y el piso
 
-  // ---------- sombra de contacto en la base del muro ----------
-  const aoTex = canvasTex(8, 128, (g, w, h) => {
-    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(10,30,45,0.32)'); gr.addColorStop(1, 'rgba(10,30,45,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, w, h);
-  }, { repeat: false });
-  const ao = new THREE.Mesh(new THREE.PlaneGeometry(14, 0.5), new THREE.MeshBasicMaterial({ map: aoTex, transparent: true, depthWrite: false }));
-  ao.rotation.x = -Math.PI / 2; ao.position.set(0, 0.002, 0.25); ao.renderOrder = 4; back.add(ao);
-
   // ---------- sombra de contacto alrededor del marco (oclusión ambiental "horneada") ----------
   // donde el marco toca el muro la luz del ambiente llega menos: un halo suave y oscuro alrededor de su contorno
   const box = new THREE.Box3(), tmp = new THREE.Box3();
   scene.updateMatrixWorld(true);
   scene.traverse((o) => {
-    if (!o.isMesh || !o.visible || o === spill || o === ao) return;
+    if (!o.isMesh || !o.visible || o === spill) return;
     for (let a = o; a; a = a.parent) if (a.name === 'MuroYPiso' || a.name === 'Vaho') return;
     if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
     tmp.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld); box.union(tmp);

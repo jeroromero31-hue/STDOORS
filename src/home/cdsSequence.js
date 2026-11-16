@@ -9,7 +9,7 @@ import { track, seg } from './scrub.js';
 export function mountSequence(section, media) {
   const n = data.cuadros, wideQ = matchMedia('(min-width: 900px)');
   const pinQ = matchMedia('(min-width: 900px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)');
-  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d', { alpha: false });
   media.append(canvas);
   let fmt = null, frames = [], want = 0, shown = -1, started = false;
 
@@ -24,19 +24,29 @@ export function mountSequence(section, media) {
     const f = wideQ.matches ? 'ancho' : 'alto';
     if (f === fmt) return; fmt = f; frames = new Array(n).fill(null); shown = -1;
     const queue = order(); let active = 0;
+    // Cada cuadro se decodifica fuera del hilo principal (createImageBitmap) ANTES de usarlo: antes se decodificaba al
+    // dibujarlo por primera vez, en pleno scroll, y eso trababa la sección.
+    const decode = async (src) => {
+      if (window.createImageBitmap) {
+        const blob = await (await fetch(src)).blob();
+        return createImageBitmap(blob);
+      }
+      const img = new Image(); img.src = src; await img.decode(); return img;
+    };
     const next = () => {
-      while (active < 4 && queue.length) {
-        const i = queue.shift(), img = new Image(); active++;
-        img.decoding = 'async';
-        img.onload = () => { active--; if (fmt === f) { frames[i] = img; draw(); } next(); };
-        img.onerror = () => { active--; next(); };
-        img.src = url(`img/inicio/cds/${f}-${String(i).padStart(2, '0')}.webp`);
+      while (active < 3 && queue.length) {
+        const i = queue.shift(); active++;
+        decode(url(`img/inicio/cds/${f}-${String(i).padStart(2, '0')}.webp`))
+          .then((bmp) => { if (fmt === f) { frames[i] = bmp; draw(); } })
+          .catch(() => {})
+          .finally(() => { active--; next(); });
       }
     };
     next();
   };
   const size = () => {
-    const r = media.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+    // a lo más 1.5×: los cuadros miden 1440 px; más resolución solo cuesta tiempo de dibujo
+    const r = media.getBoundingClientRect(), dpr = Math.min(1.5, devicePixelRatio || 1);
     canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); shown = -1; draw();
   };
   // dibuja el cuadro pedido o, si aún no llega, el más cercano que ya esté
@@ -45,8 +55,8 @@ export function mountSequence(section, media) {
     let i = want, d = 0;
     while (!frames[i]) { d++; if (frames[want - d]) { i = want - d; break; } if (frames[want + d]) { i = want + d; break; } if (d > n) return; }
     if (i === shown) return; shown = i;
-    const img = frames[i], cw = canvas.width, ch = canvas.height, s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    const img = frames[i], iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, cw = canvas.width, ch = canvas.height, s = Math.max(cw / iw, ch / ih);
+    const w = iw * s, h = ih * s;
     // en horizontal el conjunto está a la derecha del cuadro: se recorta por la izquierda
     const x = wideQ.matches ? cw - w : (cw - w) / 2;
     ctx.drawImage(img, x, (ch - h) / 2, w, h);

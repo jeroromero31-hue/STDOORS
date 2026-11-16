@@ -108,3 +108,61 @@ En teléfonos la escena se mantiene ligera (sin reflector, sin relieve, sin luz 
 ## Rendimiento
 
 El título se sigue pintando desde el primer momento (bajo la intro), así que la página cuenta como cargada igual que antes: **LCP 0.8 s, CLS 0.001** en celular simulado lento.
+
+---
+
+# Fase 10E · Cada puerta, más a fondo
+
+**Pedido:** desarrollar más cada puerta; la CDS se trababa en el Inicio; en las puertas con bumper, poder cambiar su medida y verla; secciones más inmersivas ("inventa algo"); más animación en todo.
+
+## La CDS ya no traba el Inicio (`src/home/cdsSequence.js`)
+
+Los 72 cuadros de la secuencia se decodificaban en el hilo principal al llegar a la sección. Ahora se decodifican fuera de él (`createImageBitmap`), de 3 en 3, y el lienzo se dibuja a 1.5× como máximo y sin transparencia.
+
+## Páginas de puerta a pantalla completa (`src/ui/doorPage.js`, `src/styles/door.css`)
+
+- En computadora el 3D ocupa todo el ancho y el texto flota encima en una tarjeta de vidrio a la izquierda. La cámara se corre (`stage.setInset`) para que la puerta quede centrada en el espacio libre, no debajo de la tarjeta.
+- El paso que se está leyendo manda: su título entra por líneas y los demás quedan atenuados.
+- Lectura en vivo en la esquina: "Apertura de hoja 63°" mientras se mueve la puerta.
+- Títulos por líneas, cursor con etiqueta y scroll suave en todo el sitio (antes solo en el Inicio). Listas de piezas que entran en cascada.
+
+## Bumper a la medida (vaivén)
+
+Botones **150 · 500 · 1000 mm** junto a los acabados y en el paso del bumper. Al elegir:
+
+- la franja de hule del modelo cambia de alto en el 3D (crece la cara plana; los cantos redondeados conservan su forma) y se acomoda entre la placa inferior y la ventanilla;
+- la cámara encuadra el bumper completo, con una cota en milímetros y el contorno de la franja en las dos hojas;
+- el punto de pieza pasa al número de catálogo de esa medida (06, 07 u 08);
+- la medida queda en la URL (`?bumper=500`) y en la cotización ("bumper de 500 mm").
+
+La abatible tiene un solo bumper en catálogo (inox diamante), por eso no lleva opciones.
+
+## Lo inventado: «Ver el frío» (las 4 puertas)
+
+Un botón junto a "Ver por dentro" y un paso propio al final del recorrido de cada puerta: la escena se vuelve una vista de cámara térmica. Detrás del muro está el frío; al abrir, el aire frío sale por el hueco, cae y corre por el piso con una corriente animada; al cerrar se disipa en un par de segundos.
+
+- En la CDS cada puerta tiene su propia salida: solo la abierta deja salir frío.
+- En la corrediza sale solo por la parte del hueco que la hoja ya no cubre.
+- El vidrio se ve opaco, como en una cámara térmica real.
+- Es **ilustrativa**: la escala dice "Frío" y "Ambiente", sin grados ni cifras inventadas.
+- Al encenderla con el botón, si la puerta está cerrada se abre sola para mostrar la salida. En el paso del recorrido se enciende al llegar y se apaga al salir.
+- Con "reducir movimiento": sin barrido de escáner y sin corriente animada.
+
+Código: `src/core/thermal.js` (un material para toda la escena, con instancias), y en cada visor `thermal: { wallZ, floorY, openings() }`.
+
+## Correcciones que salieron en las pruebas
+
+- Los pasos que no se están leyendo ya no se atenúan (el texto atenuado no pasaba el contraste mínimo): esperan un poco más abajo y el paso actual se marca con una línea cian que crece a su lado.
+- Los puntos de pieza y la cota se calculan con la cámara ya movida en cada cuadro (antes iban un cuadro atrás). Con eso, al cerrar la nota de una pieza el foco del teclado vuelve siempre al punto.
+
+## Pruebas
+
+| Prueba | Resultado |
+|---|---|
+| Inicio (escritorio, celular, reducir movimiento, sin WebGL) | 29/29 |
+| Encuadre de la entrada en 10 tamaños | todos OK |
+| Accesibilidad (axe) en las 9 páginas, escritorio y celular | 0 fallas |
+| Abatible · corrediza · vaivén · CDS (recorridos completos, ajustados al 3D a pantalla completa y al paso «Ver el frío») | ver `docs/ENTREGA.md` |
+| Puntos de pieza en las 4 puertas, con y sin movimiento | 36/36 |
+| iPhone Duo (3 formas) y teléfonos | OK |
+| Bumper 150/500/1000 y «Ver el frío» en las 4 puertas, escritorio y celular | sin errores en consola |

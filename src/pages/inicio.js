@@ -5,13 +5,12 @@ import '../styles/home.css';
 import { mountSite, url, contacto } from '../ui/site.js';
 import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
-import { intro, splitLines, revealOnView, playLines, smoothScroll, cursor } from '../home/cine.js';
+import { intro, splitLines, revealOnView, playLines } from '../ui/cine.js';
 import vaivenBin from '../models/vaiven.bin?url';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 
 mountSite('inicio');
-smoothScroll(); cursor();
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const F = Object.fromEntries(fotos.fotos.map((f) => [f.id, f]));

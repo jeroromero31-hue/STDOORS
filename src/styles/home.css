@@ -278,14 +278,6 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 .intro.is-open { animation: none; }
 @keyframes intro-fuera { to { visibility: hidden; } }
 
-/* ---------- títulos por líneas ---------- */
-.ln { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
-/* .is-pre esconde las líneas (sin transición) y .is-in las sube. El título de la entrada se esconde justo cuando
-   abre la intro, que lo tapa: así se pinta desde el principio y la página cuenta como cargada en cuanto llega. */
-.ln__in { display: block; }
-.is-pre .ln__in { transform: translate3d(0, 108%, 0); }
-.is-pre.is-in .ln__in { transform: none; transition: transform 1000ms cubic-bezier(.2, .8, .2, 1) calc(var(--i, 0) * 90ms); }
-
 /* ---------- grano y viñeta sobre la escena 3D ---------- */
 .hx__fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1400ms var(--ease-out);
   background: radial-gradient(120% 90% at 62% 45%, transparent 58%, rgba(8, 32, 48, .10) 100%); }
@@ -294,12 +286,3 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 @media (pointer: coarse) { .hx__fx { background: radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
 .hx__gl.is-ready + .hx__fx { opacity: 1; }
 
-/* ---------- cursor ---------- */
-.cur { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; width: 0; height: 0; }
-.cur__ring { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(22, 185, 203, .9); opacity: 0;
-  transition: transform 320ms cubic-bezier(.2, .8, .2, 1), opacity 200ms, background 200ms, border-color 200ms; }
-.cur.is-on .cur__ring { opacity: 1; }
-.cur.is-link .cur__ring { transform: scale(1.7); background: rgba(22, 185, 203, .12); }
-.cur.has-label .cur__ring { transform: scale(2.4); background: var(--c-cyan); border-color: var(--c-cyan); }
-.cur__label { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-size: 12px; font-weight: var(--w-bold); color: var(--c-navy); white-space: nowrap; opacity: 0; transition: opacity 160ms; }
-.cur.has-label .cur__label { opacity: 1; }

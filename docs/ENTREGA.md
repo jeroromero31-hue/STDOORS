@@ -54,6 +54,7 @@ Signos: ✅ comprobado aquí · ⚠️ comprobado en emulación; falta un dispos
 | Carga diferida; no cargar 76 fotos al abrir | ✅ | El catálogo no muestra piezas hasta elegir puerta o buscar, y las fotos cargan en diferido en tres tamaños. |
 | Ratón y arrastre, tacto, teclado, zoom, cerrar y reabrir, botón "atrás" y estado tras cambiar acabado | ⚠️ | Probado en emulación: arrastre de hojas, toques, teclado y foco visible, zoom de foto, hojas y diálogos. Al volver con "atrás" se conservan la ficha y la lista. En esta fase se agregó que el acabado y el modelo elegidos queden en la URL, así que al volver se conservan. |
 | Inicio inmersivo (Fase 10): la vaivén en 3D abre con el scroll y la cámara cruza al interior; capítulos de las tres puertas; secuencia CDS | ⚠️ | Recorrido completo 19/19 en escritorio y celular; encuadre de la entrada en 10 tamaños (incluido el iPhone Duo en sus 3 formas); axe 0 fallas; sin WebGL y con "reducir movimiento" probados. LCP 0.7 s y CLS 0.001 en celular simulado lento. Falta ver la fluidez en una GPU real. Detalle en `docs/FASE_10_RESUMEN.md`. |
+| Páginas de puerta (Fase 10E): 3D a pantalla completa con tarjetas, bumper de la vaivén en 150/500/1000 mm con cota, «Ver el frío» (vista térmica) en las 4 puertas | ⚠️ | Probado en escritorio y celular sin errores. Falta verlo en una GPU real. Detalle en `docs/FASE_10_RESUMEN.md`. |
 | Chrome y Safari reales | ⚠️ | Solo Chromium sin pantalla y con GL por software. **Safari no se ha probado** (sección 2). |
 
 ### Entrega de fuente

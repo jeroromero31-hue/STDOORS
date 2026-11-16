@@ -1,4 +1,4 @@
-// Fase 10D · Animación de cine para el Inicio (Lusion / Active Theory / Apple):
+// Fase 10D/10E · Animación de cine para todo el sitio (Lusion / Active Theory / Apple):
 //   · intro: pantalla azul marino con la marca; al estar lista la puerta 3D se abre como una vaivén
 //   · títulos que entran por líneas (cada línea sube desde una ranura)
 //   · scroll suave con inercia en computadora (Lenis); en pantallas táctiles, el scroll nativo
@@ -6,7 +6,7 @@
 // Todo se apaga con «reducir movimiento».
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
-import { reducedMotion } from './scrub.js';
+import { reducedMotion } from '../home/scrub.js';
 
 const fine = () => matchMedia('(pointer: fine)').matches;
 const quiet = () => reducedMotion() || new URLSearchParams(location.search).get('suave') === '0';
@@ -59,6 +59,7 @@ export function revealOnView(el) {
 
 // ---------- scroll suave ----------
 export function smoothScroll() {
+  if (window.__lenis) return window.__lenis;
   if (quiet() || !fine()) return null;
   const lenis = new Lenis({ autoRaf: true, lerp: 0.085, wheelMultiplier: 0.95, anchors: true });
   window.__lenis = lenis;
@@ -67,6 +68,7 @@ export function smoothScroll() {
 
 // ---------- cursor ----------
 export function cursor() {
+  if (document.querySelector('.cur')) return document.querySelector('.cur');
   if (quiet() || !fine()) return null;
   const c = document.createElement('div'); c.className = 'cur'; c.setAttribute('aria-hidden', 'true');
   c.innerHTML = '<span class="cur__ring"></span><span class="cur__label"></span>';

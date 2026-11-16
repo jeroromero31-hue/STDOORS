@@ -288,3 +288,26 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 .footer img[alt="ST Doors"] { height: 30px; width: auto; align-self: flex-start; }   /* el logo conserva su proporción */
 .search:focus-within { box-shadow: 0 2px 0 0 var(--c-cyan); }                         /* foco visible en la búsqueda */
 .search input:focus-visible { outline: 3px solid var(--c-cyan); outline-offset: 4px; }
+
+/* ---------- Fase 10E: animación en todo el sitio (src/ui/cine.js, src/ui/motion.js) ---------- */
+/* ---------- títulos por líneas ---------- */
+.ln { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+/* .is-pre esconde las líneas (sin transición) y .is-in las sube. El título de la entrada se esconde justo cuando
+   abre la intro, que lo tapa: así se pinta desde el principio y la página cuenta como cargada en cuanto llega. */
+.ln__in { display: block; }
+.is-pre .ln__in { transform: translate3d(0, 108%, 0); }
+.is-pre.is-in .ln__in { transform: none; transition: transform 1000ms cubic-bezier(.2, .8, .2, 1) calc(var(--i, 0) * 90ms); }
+
+/* ---------- cursor ---------- */
+.cur { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; width: 0; height: 0; }
+.cur__ring { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(22, 185, 203, .9); opacity: 0;
+  transition: transform 320ms cubic-bezier(.2, .8, .2, 1), opacity 200ms, background 200ms, border-color 200ms; }
+.cur.is-on .cur__ring { opacity: 1; }
+.cur.is-link .cur__ring { transform: scale(1.7); background: rgba(22, 185, 203, .12); }
+.cur.has-label .cur__ring { transform: scale(2.4); background: var(--c-cyan); border-color: var(--c-cyan); }
+.cur__label { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-size: 12px; font-weight: var(--w-bold); color: var(--c-navy); white-space: nowrap; opacity: 0; transition: opacity 160ms; }
+.cur.has-label .cur__label { opacity: 1; }
+
+.cascade > * { opacity: 0; transform: translateY(22px); }
+.cascade.is-in > * { opacity: 1; transform: none; transition: opacity 600ms var(--ease-out), transform 800ms cubic-bezier(.2, .8, .2, 1); transition-delay: calc(var(--i, 0) * 55ms); }
+@media (prefers-reduced-motion: reduce) { .cascade > * { opacity: 1; transform: none; } .is-pre .ln__in { transform: none; } }

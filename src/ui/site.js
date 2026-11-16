@@ -8,7 +8,8 @@ import '../styles/base.css';
 import '../styles/components.css';
 
 import contacto from '../data/contacto.json';
-import { revealSpecs, bumpCount } from './motion.js';
+import { revealSpecs, revealCascade, bumpCount } from './motion.js';
+import { smoothScroll, cursor, revealOnView } from './cine.js';
 
 const BASE = import.meta.env.BASE_URL;
 export { contacto };
@@ -105,5 +106,16 @@ export function mountSite(page) {
   document.body.append(footer);
   emit();
   requestAnimationFrame(() => revealSpecs());          // tras el primer cuadro, cuando la página ya tiene su alto
+  // Fase 10E: scroll suave y cursor en computadora; títulos de sección que entran por líneas y tarjetas en cascada.
+  // (El Inicio y los pasos de las puertas animan sus propios títulos.)
+  smoothScroll(); cursor();
+  requestAnimationFrame(() => {
+    revealCascade();
+    if (page === 'inicio') return;
+    document.querySelectorAll('main h2').forEach((h) => {
+      if (h.closest('.door__step, .door__hero, [data-no-lines]') || h.getBoundingClientRect().top < innerHeight) return;
+      revealOnView(h);
+    });
+  });
   addEventListener('storage', (e) => { if (e.key === KEY) emit(); });
 }

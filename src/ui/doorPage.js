@@ -10,6 +10,8 @@ import { createCameraRig } from '../core/cameraRig.js';
 import { hingeMotion } from '../core/hinge.js';
 import { createHotspots } from '../core/hotspots.js';
 import catalog from '../data/components.json';
+import { splitLines, playLines } from './cine.js';
+import { createThermal, THERMAL_STOPS } from '../core/thermal.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -18,6 +20,13 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   mountSite(section);
   const door = $('.door'), viewerEl = $('#viewer');
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
+
+  // ---------- Fase 10E: cada paso va en una tarjeta (en computadora flotan sobre el escenario 3D) ----------
+  const wide = matchMedia('(min-width: 901px)');
+  $$('.door__hero, .door__step').forEach((sec) => { const c = document.createElement('div'); c.className = 'door__card'; c.append(...sec.childNodes); sec.append(c); });
+  const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const titles = $$('.door__step h2').map((h) => { splitLines(h); if (!reduceMo) h.classList.add('is-pre'); return h; });
+  const h1 = $('.door__hero h1'); if (h1 && !reduceMo) { splitLines(h1); requestAnimationFrame(() => playLines(h1)); }
 
   // ---------- 3D ----------
   const still = (why) => `<img src="${url(poster)}" alt="${nombre}"><p class="t-small t-soft">${why} Aquí tienes una imagen de la puerta.</p>`;
@@ -55,6 +64,25 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     stage.controls.addEventListener('change', () => { if (userCam) reframe.hidden = false; });
     rig.onGo(() => { reframe.hidden = true; });
     reframe.onclick = () => rig.go(rig.current || 'general', 0.6);
+
+    // encuadre en lo que dejan libre las tarjetas (computadora)
+    const holder = $('.door__viewer');
+    const fitInset = () => {
+      if (!wide.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
+      const v = viewerEl.getBoundingClientRect(), right = Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
+      const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
+    };
+    fitInset(); new ResizeObserver(fitInset).observe(viewerEl);
+    // lectura en vivo: apertura de la hoja en grados (o recorrido, en la corrediza)
+    const ro = document.createElement('p'); ro.className = 'readout'; ro.setAttribute('aria-hidden', 'true');
+    ro.innerHTML = '<span></span><b></b>'; holder.append(ro);
+    const [roL, roV] = [ro.querySelector('span'), ro.querySelector('b')]; let roLast = '';
+    stage.onFrame.add(() => {
+      const r = viewer.readout ? viewer.readout() : (motion.hinges && motion.hinges.length ? { label: 'Apertura de hoja', value: `${Math.round(Math.max(...motion.hinges.map((h) => Math.abs(h.angle))))}°`, on: motion.hinges.some((h) => Math.abs(h.angle) > 0.5) } : null);
+      if (!r) return;
+      const key = r.label + r.value + r.on; if (key === roLast) return; roLast = key;
+      roL.textContent = r.label; roV.textContent = r.value; ro.classList.toggle('is-on', !!r.on);
+    });
 
     motion.attachDrag({ onGrab: () => hint.classList.add('is-off') });
     stage.controls.addEventListener('start', () => hint.classList.add('is-off'));
@@ -100,7 +128,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const layer = $('#hotspots'), card = $('#hotcard');
     // cada ancla señala una pieza del catálogo: por número o, si no lo tiene, por su id interno
     // (o, si trae texto propio, una función del producto: se muestra como nota, sin foto)
-    const items = viewer.anchors.map((a) => { if (a.text) return a; const p = parts.find((x) => (a.id ? x.id === a.id : x.numero === a.numero)); return p && { ...a, piece: p, label: p.nombre }; }).filter(Boolean);
+    const items = viewer.anchors.map((a) => { if (a.text) return a; const p = parts.find((x) => (a.id ? x.id === a.id : x.numero === a.numero)); return p && { ...a, src: a, piece: p, label: p.nombre }; }).filter(Boolean);
     // Acercamiento: al elegir un punto, la cámara se acerca a esa pieza sin cambiar el ángulo desde el que se mira
     // (no atraviesa la puerta) y a la distancia mínima que permite el visor. «Ver toda la puerta» regresa (Fase 7B).
     const insideView = () => (viewer.views.interior ? 'interior' : 'abierta');
@@ -178,9 +206,91 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
         : `<div><b>${it.label}</b><p class="t-small">${it.text}</p>${back}</div>`;
       card.querySelector('.hotcard__back').onclick = () => {
         hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', 'false')); card.hidden = true; rig.go(insideView(), 0.8); btn.focus();
+        // si algo se llevó el foco mientras la nota se cerraba, vuelve al punto (para el teclado y los lectores de pantalla)
+        requestAnimationFrame(() => { if ((document.activeElement === document.body || !document.activeElement) && btn.style.display !== 'none') btn.focus(); });
       };
       macro(it);
     });
+    // ---------- Fase 10E · opciones del modelo (bumper de la vaivén: 150, 500 o 1000 mm) ----------
+    // Botones junto a los acabados y, repetidos, en el paso que explica esa pieza. Al elegir, la pieza cambia en el 3D
+    // con una cota en milímetros, el punto de pieza pasa al número de catálogo de esa medida y queda en la URL.
+    state.cfg = {};
+    const refreshPieces = () => hs.nodes.forEach(({ it, b }) => {
+      if (!it.src || it.src.numero === it.numero) return;
+      const p = parts.find((x) => x.numero === it.src.numero); if (!p) return;
+      it.numero = it.src.numero; it.piece = p; it.label = p.nombre; b.setAttribute('aria-label', p.nombre);
+    });
+    const holderEl = $('.door__viewer'), svgNS = 'http://www.w3.org/2000/svg';
+    let cota = null, cotaUntil = 0;
+    if (viewer.measure) {
+      cota = document.createElementNS(svgNS, 'svg'); cota.setAttribute('class', 'cota'); cota.setAttribute('aria-hidden', 'true');
+      cota.innerHTML = '<polygon class="cota__band"/><polygon class="cota__band"/><line class="cota__l"/><line class="cota__t"/><line class="cota__b"/><g class="cota__tag"><rect rx="4"/><text/></g>';
+      holderEl.append(cota);
+      const [ln, t1, t2] = cota.querySelectorAll('line'), bands = cota.querySelectorAll('polygon'), tag = cota.querySelector('.cota__tag'), txt = tag.querySelector('text'), rect = tag.querySelector('rect');
+      const P = (v) => { const q = v.clone().project(stage.camera); return [(q.x + 1) / 2 * holderEl.clientWidth, (1 - q.y) / 2 * holderEl.clientHeight]; };
+      stage.afterFrame.add(() => {                                               // con la cámara de este cuadro, ya movida
+        const on = !door.classList.contains('is-thermal') && (performance.now() < cotaUntil || (rig.current && (viewer.configs || []).some((c) => c.view === rig.current)));
+        cota.classList.toggle('is-on', !!on); if (!on) return;
+        const m = viewer.measure(); if (!m) return;
+        const [ax, ay] = P(m.a), [bx, by] = P(m.b), x = Math.min(ax, bx) - 28;
+        const set = (el, a) => Object.entries(a).forEach(([k, v]) => el.setAttribute(k, v.toFixed ? v.toFixed(1) : v));
+        set(ln, { x1: x, y1: ay, x2: x, y2: by }); set(t1, { x1: x - 7, y1: ay, x2: Math.min(ax, bx) - 6, y2: ay }); set(t2, { x1: x - 7, y1: by, x2: Math.min(ax, bx) - 6, y2: by });
+        if (txt.textContent !== m.label) txt.textContent = m.label;
+        const w = m.label.length * 8.2 + 16, tx = x - w - 8 < 6 ? x + 8 : x - w - 8;          // en móvil la etiqueta pasa al otro lado
+        set(rect, { x: tx, y: (ay + by) / 2 - 14, width: w, height: 28 }); set(txt, { x: tx + w / 2, y: (ay + by) / 2 + 5 });
+        (m.quads || []).forEach((q, i) => bands[i] && bands[i].setAttribute('points', q.map((v) => P(v).map((n) => n.toFixed(1)).join(',')).join(' ')));
+      });
+    }
+    (viewer.configs || []).forEach((cfg) => {
+      const chips = `<div class="door__opt" data-k="${cfg.key}"><span class="t-small door__opt-l">${cfg.label}</span><div class="chips" role="group" aria-label="${cfg.label}">${cfg.items.map((it) => `<button class="chip" data-k="${cfg.key}" data-v="${it.id}" aria-pressed="false">${it.label}</button>`).join('')}</div></div>`;
+      $('.door__ctl').insertAdjacentHTML('beforeend', chips);
+      const stepCard = $$('[data-view]').find((b) => b.dataset.view === cfg.view && b.classList.contains('door__step'));
+      if (stepCard) stepCard.querySelector('.door__card').insertAdjacentHTML('beforeend', chips);
+      const pick = (id, user) => {
+        cfg.set(id); state.cfg[cfg.key] = cfg.items.find((x) => x.id === id); keep(cfg.key, id);
+        $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === id));
+        refreshPieces();
+        if (user) { live.textContent = state.cfg[cfg.key].detail; cotaUntil = performance.now() + 4500; if (cfg.view && !state.inside) setTimeout(() => rig.go(cfg.view, 1.1), 60); }   // reencuadra a la nueva medida
+      };
+      $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => { b.onclick = () => pick(b.dataset.v, true); });
+      const q0 = new URLSearchParams(location.search).get(cfg.key);
+      pick(cfg.items.some((x) => x.id === q0) ? q0 : cfg.current(), false);
+    });
+
+    // ---------- Fase 10E · «Ver el frío»: vista térmica ilustrativa ----------
+    // Un botón junto a «Ver por dentro» y un paso propio en el recorrido (data-termica): al llegar a él la escena se
+    // vuelve térmica sola y al salir regresa; si la persona la encendió con el botón, se queda hasta que la apague.
+    let thermal = null, coldAuto = false, coldBtn = null;
+    const setCold = (on, auto = false) => {
+      if (!thermal || on === thermal.on) { coldAuto = on && auto && coldAuto; return; }
+      const c = stage.renderer.domElement, holder = $('.door__viewer');
+      if (!reduceMo && c.width) {                                   // barrido de escáner: la imagen anterior se retira de arriba abajo
+        stage.renderer.render(stage.scene, stage.camera);
+        const ov = document.createElement('canvas'); ov.className = 'viewer__scan'; ov.width = c.width; ov.height = c.height; ov.setAttribute('aria-hidden', 'true');
+        ov.getContext('2d').drawImage(c, 0, 0); c.after(ov);
+        const ln = document.createElement('i'); ln.className = 'viewer__scanline'; ln.setAttribute('aria-hidden', 'true'); holder.append(ln);
+        setTimeout(() => { ov.remove(); ln.remove(); }, 1000);
+      }
+      thermal.set(on); coldAuto = on && auto;
+      door.classList.toggle('is-thermal', on);
+      coldBtn.setAttribute('aria-pressed', on); coldBtn.textContent = on ? 'Vista normal' : 'Ver el frío';
+      live.textContent = on ? 'Vista térmica: el azul es frío. Abre la puerta y mira cómo sale el aire frío.' : 'Vista normal';
+    };
+    if (viewer.thermal) {
+      thermal = createThermal(stage, viewer.thermal);
+      insideBtn.insertAdjacentHTML('afterend', '<button class="btn btn--line" id="coldBtn" aria-pressed="false" data-cur="Térmica">Ver el frío</button>');
+      coldBtn = $('#coldBtn');
+      coldBtn.onclick = () => {
+        const on = !thermal.on; setCold(on, false); hint.classList.add('is-off');
+        if (on && !state.inside) {
+          if (viewer.views && viewer.views.frio) rig.go('frio', 1.2);                     // el hueco y el piso de enfrente, donde cae el frío
+          if (!state.open) setTimeout(() => { if (thermal.on && !state.open) openBtn.click(); }, 700);   // para ver salir el frío
+        }
+      };
+      const scale = `linear-gradient(90deg, ${THERMAL_STOPS.join(', ')})`;
+      $('.door__viewer').insertAdjacentHTML('beforeend', `<div class="thermo" aria-hidden="true"><b>Vista térmica ilustrativa</b><span class="thermo__bar" style="background:${scale}"></span><span class="thermo__l"><span>Frío</span><span>Ambiente</span></span></div>`);
+    } else $$('[data-termica]').forEach((el) => el.remove());
+
     insideBtn.onclick = () => {
       state.inside = !state.inside; door.classList.toggle('is-inside', state.inside); viewer.setInside(state.inside);
       layer.hidden = !state.inside; card.hidden = true; hs.nodes.forEach((n) => n.b.setAttribute('aria-pressed', 'false'));
@@ -203,7 +313,10 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const evaluate = () => {
       const now = scrollY < 8 ? blocks[0] : blocks.filter((b) => touching.has(b)).pop();   // si la línea toca dos bloques vecinos, el de más abajo
       if (!now || now === currentBlock) return; currentBlock = now;
+      blocks.forEach((b) => b.classList.toggle('is-current', b === now));
+      const t = now.querySelector('h2'); if (t && !reduceMo) playLines(t);
       if (now !== blocks[0]) hint.classList.add('is-off');        // el aviso de arrastre solo acompaña a la vista inicial
+      if (thermal) { if (now.dataset.termica) { if (!thermal.on) setCold(true, true); } else if (coldAuto) setCold(false); }
       if (state.inside) return;                                   // en modo interior manda el usuario
       rig.go(now.dataset.view); motion.step(now.dataset);
     };
@@ -216,7 +329,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const watch = () => {
       if (io) io.disconnect();
       touching.clear();
-      const H = innerHeight, v = sticky.getBoundingClientRect(), stacked = col.getBoundingClientRect().left < v.right - 1;
+      const H = innerHeight, v = sticky.getBoundingClientRect(), stacked = !wide.matches;   // visor arriba y texto abajo (celular)
       const below = (parseFloat(getComputedStyle(sticky).top) || 0) + v.height;      // borde inferior del visor fijo
       // sin pasar del primer bloque: al cargar la página manda la vista general
       const line = Math.round(stacked ? below + Math.min((H - below) * 0.75, blocks[0].offsetHeight * 0.85) : H * 0.5);
@@ -243,7 +356,9 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   add.onclick = () => {
     const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';
     const key = state.finish || (state.option && state.option.id);
-    solicitud.add({ id: `puerta-${familia}${key ? '-' + key : ''}`, nombre: `${nombre}${f ? ', ' + f : ''}`, tipo: 'Puerta' });
+    const cfg = Object.entries(state.cfg || {});            // opciones del modelo (bumper)
+    const cfgId = cfg.map(([k, v]) => `-${k}${v.id}`).join(''), cfgName = cfg.map(([, v]) => `, ${v.detail.toLowerCase()}`).join('');
+    solicitud.add({ id: `puerta-${familia}${key ? '-' + key : ''}${cfgId}`, nombre: `${nombre}${f ? ', ' + f : ''}${cfgName}`, tipo: 'Puerta' });
     add.textContent = 'Agregada a tu solicitud'; toast('Agregada a tu solicitud');
   };
 
