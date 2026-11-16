@@ -65,3 +65,15 @@ La prueba del Inicio anterior (Fase 6B) queda retirada: comprobaba un diseño qu
 | **Cifras grandes** (ZRK) | 3 formas de abrir · 76 piezas · 90° · 5 años de garantía CDS (según su ficha). Cuentan hasta su valor al llegar. |
 | **Capítulos de cine** | En escritorio, la foto de cada puerta entra grande al centro de la pantalla, ahí abre su puerta y después se hace a un lado para dejar entrar el texto. |
 | **Empujar la puerta** (Bruno Simon / Active Theory) | Con la vaivén cerrada, pasar el ratón rápido sobre una hoja (o tocarla en el celular) la mece hacia adentro y regresa sola, como una vaivén. |
+
+## Verificación (10B)
+
+| Prueba | Resultado |
+|---|---|
+| Recorrido del Inicio, escritorio y celular (incluye frase, cifras, capítulos de cine y empujar la puerta) | 25 de 25 |
+| CDS con bisagras a la izquierda: eje y jaladera de las 3 puertas, apertura a 90° hacia afuera, arrastre con el ratón | 4 de 4 |
+| Página de CDS (retención, autocierre, productos, pasos; el arrastre ahora jala hacia el lado nuevo) | 20 de 20 |
+| Encuadre de la entrada en 10 tamaños, incluido el iPhone Duo | 10 de 10 |
+| Accesibilidad (axe): la frase "apagada" se ve a 3.5:1, legible | 0 fallas |
+| Puertas, 3D, movimiento, catálogo, cotizar, 7 tamaños, iPhone Duo, 20 páginas | 23/23, 19/19, 36/36, 11/11, 22/22, 13/13, 10/10, 7/7, Duo OK, 20/20 |
+| Celular simulado lento | LCP 0.7 s, CLS 0.002; el 3D aparece a los **8.7 s** (antes 10.8) y dibuja el doble de rápido |
