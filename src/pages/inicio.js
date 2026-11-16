@@ -5,6 +5,7 @@ import '../styles/home.css';
 import { mountSite, url, contacto } from '../ui/site.js';
 import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
+import vaivenBin from '../models/vaiven.bin?url';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 
@@ -33,6 +34,8 @@ const load = {
   done() { loadEl.classList.add('is-done'); },
 };
 if (glOk) {
+  // el modelo (1.2 MB) empieza a bajar ya, junto con el JavaScript del 3D, no cuando este termina de llegar
+  const response = fetch(vaivenBin);
   if (!reducedMotion()) hx.classList.add('hx--live');           // la sección se alarga: el scroll abre la puerta
   // el texto se reparte con el avance: el título se va, el velo azul marino llega al cruzar
   if (!reducedMotion()) track(hx, (p) => {
@@ -40,26 +43,60 @@ if (glOk) {
     hx.style.setProperty('--title', title.toFixed(3)); hx.classList.toggle('is-past', title < 0.02);
     hx.style.setProperty('--cue', (1 - seg(p, 0, 0.03)).toFixed(3));
     hx.style.setProperty('--veil', easeInOut(seg(p, 0.78, 0.92)).toFixed(3));
-  }, { mode: 'pin', smooth: 6 });
+  }, { mode: 'pin', smooth: 12 });
   import('../home/hero.js').then(({ mountHero }) => mountHero({
-    section: hx, gl, hud: $('#hxHud'), load,
+    section: hx, gl, hud: $('#hxHud'), load, response,
     readout: { el: $('#hxRead'), value: $('#hxRead b') },
     onFail: poster,
   })).catch((e) => { console.error(e); poster(); });
 } else poster();
 
+// ---------- frase: las palabras se encienden en orden de lectura ----------
+{
+  const say = $('#say'), text = $('#sayText'), pin = $('.say__pin', say);
+  const words = text.textContent.trim().split(/\s+/);
+  text.innerHTML = words.map((w) => `<span class="w">${w}</span> `).join('');
+  const ws = $$('.w', text), n = ws.length;
+  const pinned = () => getComputedStyle(pin).position === 'sticky';
+  track(say, (p) => {
+    const L = (pinned() ? seg(p, 0.06, 0.66) : seg(p, 0.15, 0.95)) * n;
+    ws.forEach((w, i) => w.style.setProperty('--on', Math.min(1, Math.max(0, L - i)).toFixed(2)));
+    say.style.setProperty('--lead', (pinned() ? seg(p, 0.62, 0.78) : 1).toFixed(2));
+  }, { mode: () => (pinned() ? 'pin' : 'enter'), smooth: 12 });
+}
+
+// ---------- cifras: cuentan hasta su valor al entrar ----------
+$('#statPiezas').dataset.count = catalog.piezas.length;
+$$('[data-count]').forEach((el) => {
+  const to = +el.dataset.count;
+  el.insertAdjacentHTML('beforebegin', `<span class="vh">${to}</span>`); el.setAttribute('aria-hidden', 'true');
+  track(el.closest('div'), (p) => { el.textContent = Math.round(to * easeOut(seg(p, 0.1, 0.55))); }, { mode: 'enter', smooth: 10 });
+});
+
 // ---------- capítulos: la foto se descubre abriéndose como su puerta ----------
 $$('[data-foto]').forEach((el) => el.insertAdjacentHTML('afterbegin', pic(F[el.dataset.foto], el.dataset.sizes)));
 $$('.ch').forEach((ch) => {
-  const pin = $('.ch__pin', ch);
-  let pinned = getComputedStyle(pin).position === 'sticky';
-  addEventListener('resize', () => { pinned = getComputedStyle(pin).position === 'sticky'; });
+  const pin = $('.ch__pin', ch), fig = $('.ch__door', ch);
+  // En escritorio la foto empieza grande, al centro de la pantalla; ahí abre su puerta y después se hace a un lado
+  // para dejar entrar el texto. Se mide su lugar final (sin transformar) y desde ahí se calcula el recorrido.
+  let pinned = false, m0 = { dx: 0, dy: 0, s: 1 };
+  const measure = () => {
+    pinned = getComputedStyle(pin).position === 'sticky';
+    if (!pinned) { ['--dx', '--dy', '--sc'].forEach((k) => ch.style.removeProperty(k)); return; }
+    const W = pin.clientWidth, H = pin.clientHeight, nav = 69, w = fig.offsetWidth, h = fig.offsetHeight;
+    m0 = { dx: W / 2 - (fig.offsetLeft + w / 2), dy: nav + (H - nav) / 2 - (fig.offsetTop + h / 2), s: Math.max(1, Math.min((H - nav - 56) / h, (W * 0.84) / w)) };
+  };
+  measure(); new ResizeObserver(measure).observe(pin);
   track(ch, (p) => {
-    // fija (escritorio): abre en la primera mitad y el texto entra después. En flujo (celular): abre al entrar.
-    const o = pinned ? easeInOut(seg(p, 0.06, 0.5)) : easeInOut(seg(p, 0.2, 0.8));
-    const t = pinned ? easeOut(seg(p, 0.26, 0.52)) : 1;
+    const o = pinned ? easeInOut(seg(p, 0.04, 0.34)) : easeInOut(seg(p, 0.2, 0.8));
+    const mv = pinned ? easeInOut(seg(p, 0.36, 0.6)) : 1;
+    const t = pinned ? easeOut(seg(p, 0.46, 0.66)) : 1;
     ch.style.setProperty('--o', o.toFixed(4)); ch.style.setProperty('--t', t.toFixed(4));
-  }, { mode: () => (pinned ? 'pin' : 'enter'), smooth: 7 });
+    if (pinned) {
+      ch.style.setProperty('--dx', `${(m0.dx * (1 - mv)).toFixed(1)}px`); ch.style.setProperty('--dy', `${(m0.dy * (1 - mv)).toFixed(1)}px`);
+      ch.style.setProperty('--sc', (1 + (m0.s - 1) * (1 - mv)).toFixed(4));
+    }
+  }, { mode: () => (pinned ? 'pin' : 'enter'), smooth: 12 });
 });
 
 // ---------- el sistema: piezas reales con su número de catálogo ----------

@@ -39,7 +39,8 @@ const W = 1.2495 + VAIVEN.frame.shift + 0.01, H = 2.5205 + VAIVEN.frame.lift + 0
 const BOX = { closed: [-W, 0, -0.10, W, H, 0.10], ajar: [-W, 0, -0.10, W, H, 0.62], open: [-W, 0, -0.10, W, H, 1.16] };
 
 // opts.onProgress(0…1): avance de la descarga del modelo (la usa la entrada del Inicio)
-export function createVaiven(stage, reg, { onProgress } = {}) {
+// opts.response: una descarga del modelo ya iniciada (el Inicio la empieza junto con el JavaScript, no después)
+export function createVaiven(stage, reg, { onProgress, response } = {}) {
   const { root, slots } = createRig();
   // el marco queda dentro del vano del muro; detrás, el interior azul marino
   const backdrop = createBackdrop(stage, { opening: { left: -(1.24 + VAIVEN.frame.shift), right: 1.24 + VAIVEN.frame.shift, top: 2.51 + VAIVEN.frame.lift }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
@@ -89,7 +90,7 @@ export function createVaiven(stage, reg, { onProgress } = {}) {
   stage.onFrame.add((dt) => hinges.forEach((h) => h.update(dt)));
 
   // ---------- geometría ----------
-  const ready = fetch(binUrl).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return readBody(r, manifest.formato.bytes, onProgress); }).then((buf) => {
+  const ready = (response || fetch(binUrl)).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return readBody(r, manifest.formato.bytes, onProgress); }).then((buf) => {
     if (buf.byteLength !== manifest.formato.bytes) throw new Error('El modelo llegó incompleto');
     for (const [i, grupo, material, nv, ni, po, no, io] of manifest.mallas) {
       if (OMIT.has(`${grupo}/${material}`)) continue;

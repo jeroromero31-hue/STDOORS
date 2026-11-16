@@ -287,3 +287,14 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **No hay Inicio original en el paquete.** Los Inicio históricos (V2, V3, V4) no se copiaron; el diseño sigue el brief §7 y el sistema del sitio.
 - **Foto de la abatible:** `puerta_4_logo_ST.png` trae la foto en el 42 % izquierdo y blanco en el resto. Se publicó solo la parte con foto.
 - **Foto excluida:** `INDUSTRIAL_INSTALACION_FOTOGRAFIA_REAL.png`, por la marca del montacargas, hasta confirmar.
+
+## CDS Legacy · Fase 10B: bisagras a la izquierda
+
+- **Cambio pedido por el propietario:** las puertas CDS van con **apertura izquierda**. El modelo aprobado (`CDS_LEGACY_MODELO_ACTUAL.html`) tenía las bisagras a la derecha y la jaladera a la izquierda; la foto de referencia `REFERENCIAS_APROBADAS_Y_CAPTURAS/CDS_SET_3_HOJAS_REFERENCIA.png` muestra lo contrario (jaladera a la derecha), igual que lo que pidió el propietario.
+- **Cómo se hizo, sin tocar la geometría de la hoja:** el núcleo (`src/viewers/cds/legacy.js`) sigue construyendo cada hoja con el eje a la derecha. `src/viewers/cds.js` la cuelga de un grupo reflejado sobre el centro de su vano (`scale.x = −1`), así la hoja, la jaladera, los vidrios y los empaques quedan del lado contrario y la puerta sigue abriendo hacia afuera. Cada vano lleva ahora `hand: −1` y `hingeX` (dónde queda el eje real).
+- **Lo que se ajustó para la mano izquierda:** el herraje del marco (bisagras superior e inferior y sus pernos) se refleja sobre el centro del vano; el arrastre de la hoja mide el ángulo desde el eje real y del lado de la hoja; los encuadres del lado de la bisagra (retención, autocierre, Kwik Level, sello) y las vistas generales se reflejan y la cámara pasa al otro lado; los puntos Kwik Torque y Kwik Level se movieron al eje nuevo.
+- **No cambia:** medidas, vidrios por modelo, productos y parrillas, retención a 90°, autocierre, iluminación.
+
+## Inicio · Fase 10B
+
+- **Foto de la abatible:** a pedido del propietario, en lugar de `puerta_4_logo_ST.png` (cocina) el capítulo usa una toma de estudio dibujada con el modelo 3D de la abatible del sitio, en blanco sanitario y entreabierta (`scripts/render-abatible-photo.py` → `scripts/fuentes/abatible-estudio.png`).

@@ -27,16 +27,21 @@
 
   <!-- Adentro: lo que sigue es el interior de la cámara -->
   <div class="inside surface-navy">
-    <section class="intro wrap" aria-labelledby="introTitle">
-      <h2 id="introTitle">Tres maneras de abrir una cámara frigorífica.</h2>
-      <p class="intro__lead">Cada puerta se puede abrir, girar y ver por dentro en 3D, pieza por pieza.</p>
+    <!-- Una frase que se ilumina palabra por palabra con el scroll -->
+    <section class="say" id="say" aria-labelledby="sayText">
+      <div class="say__pin">
+        <div class="wrap">
+          <h2 class="say__text" id="sayText">Una puerta de cámara frigorífica tiene un solo trabajo: que el frío no se escape. Hay tres maneras de lograrlo.</h2>
+          <p class="say__lead">Cada una se puede abrir, girar y ver por dentro en 3D, pieza por pieza.</p>
+        </div>
+      </div>
     </section>
 
     <!-- Una puerta por capítulo. La foto se descubre abriéndose como esa puerta: gira, corre o se separa al centro. -->
     <section class="ch" data-door="abatible" aria-labelledby="chAbatible">
       <div class="ch__pin">
         <div class="wrap ch__in">
-          <figure class="ch__door" data-foto="abatible" data-sizes="(max-width: 899px) 92vw, 34vw">
+          <figure class="ch__door" data-foto="abatible" data-sizes="(max-width: 899px) 92vw, 30vw">
             <div class="ch__leaf" aria-hidden="true"></div>
           </figure>
           <div class="ch__t">
@@ -93,6 +98,18 @@
             <p class="row"><a class="btn" href="/industriales/vaiven/">Abrir la vaivén en 3D</a></p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Cifras: solo datos del catálogo y de la ficha CDS -->
+    <section class="stats" aria-label="ST Doors en cifras">
+      <div class="wrap">
+        <dl class="stats__list">
+          <div><dt>formas de abrir una cámara: abatible, corrediza y vaivén</dt><dd><span data-count="3">3</span></dd></div>
+          <div><dt>piezas de repuesto con fotografía y número de catálogo</dt><dd><span data-count="76" id="statPiezas">76</span></dd></div>
+          <div><dt>abierta se queda la puerta CDS, sin brazo, para surtir con las dos manos</dt><dd><span data-count="90">90</span>°</dd></div>
+          <div><dt>de garantía en las puertas CDS Legacy, según su ficha</dt><dd><span data-count="5">5</span> años</dd></div>
+        </dl>
       </div>
     </section>
 

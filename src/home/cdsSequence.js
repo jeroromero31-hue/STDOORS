@@ -58,5 +58,5 @@ export function mountSequence(section, media) {
     // fija: abre durante el tramo central; en flujo (celular): mientras la imagen cruza la pantalla
     const k = pinQ.matches ? seg(p, 0.05, 0.85) : seg(p, 0.1, 1);
     want = Math.min(n - 1, Math.max(0, Math.round(k * (n - 1)))); draw();
-  }, { mode: () => (pinQ.matches ? 'pin' : 'enter'), smooth: 8 });
+  }, { mode: () => (pinQ.matches ? 'pin' : 'enter'), smooth: 14 });
 }

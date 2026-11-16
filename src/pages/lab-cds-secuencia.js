@@ -9,25 +9,39 @@ import { frameBox } from '../core/cameraRig.js';
 const params = new URLSearchParams(location.search), layout = params.get('formato') || 'ancho';
 const stage = createStage(document.getElementById('viewer'), { quality: 'alta', fov: 30 });
 const cds = createCDS(stage);
-cds.setInside(true); cds.setLED(true);
+// ?poster=1: la imagen fija de la página de CDS (sin 3D): muro blanco y la vista general de la página
+const poster = params.get('poster') === '1';
+if (!poster) cds.setInside(true);
+cds.setLED(true);
 stage.controls.enabled = false;
 const W = DIM.TOTAL_W, H = DIM.TOTAL_H;
 const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const seg = (p, a, b) => Math.min(1, Math.max(0, (p - a) / (b - a)));
 
 // k: 0…1. La cámara gira de 3/4 a casi de frente mientras la puerta central abre hasta quedarse a 90°.
+const yaw = params.get('yaw') ? params.get('yaw').split(',').map(Number) : null;
 window.frame = (k) => {
-  const open = 90 * ease(seg(k, 0.18, 0.62));
+  // la puerta central (bisagras a la izquierda) abre hasta quedarse a 90°
+  const open = 90 * ease(seg(k, 0.18, 0.64));
   const c = cds.ctrls[1]; c.auto = null; c.setState(open >= 89.9 ? DoorState.HOLD_OPEN_90 : DoorState.DRAGGING); c.angle = c.target = open; c.vel = 0; c.update(0.016);
   // en horizontal el conjunto queda a la derecha (a la izquierda va el texto); en vertical, centrado
   // (el texto ocupa hasta el 42 % del ancho: el conjunto debe quedar a la derecha de eso en todos los cuadros)
   const wide = layout === 'ancho';
   const left = wide ? -W / 2 - W * 1.3 : -W / 2;
   const box = [left, 0, -DIM.CAB_DEPTH, W / 2 + 0.02, H, 0.78];
-  const v = wide ? frameBox(stage, box, -0.52 + 0.16 * ease(k), 0.08 - 0.04 * k, 1.04 - 0.05 * ease(k))
-    : frameBox(stage, box, -0.72 + 0.4 * ease(k), 0.08 - 0.04 * k, 1.1 - 0.08 * ease(k));
+  // horizontal: desde la izquierda (desde la derecha el conjunto se veía chico); vertical: desde la derecha, se ve la cara
+  // interior de la puerta abierta
+  const [y0, y1] = yaw || (wide ? [-0.55, -0.4] : [0.62, 0.3]);
+  const v = wide ? frameBox(stage, box, y0 + (y1 - y0) * ease(k), 0.08 - 0.04 * k, 1.04 - 0.05 * ease(k))
+    : frameBox(stage, box, y0 + (y1 - y0) * ease(k), 0.08 - 0.04 * k, 1.1 - 0.08 * ease(k));
   stage.camera.position.fromArray(v.pos); stage.controls.target.fromArray(v.tgt); stage.camera.lookAt(stage.controls.target);
   stage.invalidate(6);
   return new Promise((r) => setTimeout(r, 250));
 };
 window.__cds = cds;
+window.posterShot = () => {
+  const v = cds.views.general(stage);
+  stage.camera.position.fromArray(v.pos); stage.controls.target.fromArray(v.tgt); stage.camera.lookAt(stage.controls.target);
+  stage.invalidate(10);
+  return new Promise((r) => setTimeout(r, 1500));
+};

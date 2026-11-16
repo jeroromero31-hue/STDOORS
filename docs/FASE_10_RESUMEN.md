@@ -47,3 +47,21 @@ La prueba del Inicio anterior (Fase 6B) queda retirada: comprobaba un diseño qu
 
 - Probar en teléfonos reales: la fluidez del vaho y del cruce depende de la GPU, y aquí solo hay render por software.
 - Las 4 fotos del Inicio son las mejoradas por el propietario: confirmar que se pueden publicar como imagen de producto.
+
+---
+
+# Fase 10B · Segunda vuelta
+
+**Pedido:** otra foto de la abatible; CDS con apertura izquierda; potenciar todo guiándose por las referencias; "iba lento".
+
+## Cambios
+
+| Qué | Cómo |
+|---|---|
+| **CDS con bisagras a la izquierda** (en todo el sitio) | Igual que la foto de referencia del juego de 3 hojas. La hoja se refleja sobre el centro de su vano; herraje del marco, arrastre, encuadres y puntos de pieza ajustados (detalle en `DIFERENCIAS_CON_ORIGINALES.md`). La secuencia CDS del Inicio y la imagen fija de la página de CDS se volvieron a dibujar. |
+| **Nueva imagen de la abatible** | Toma de estudio hecha con su modelo 3D: blanco sanitario, entreabierta, con el interior azul marino detrás. |
+| **Más rápido** | Tramos de scroll más cortos (entrada 250svh en vez de 310, capítulos 175 en vez de 230, CDS 190 en vez de 240); el movimiento sigue al scroll casi sin retraso (inercia de 6–8 a 12–14); el modelo de la vaivén empieza a bajar junto con el JavaScript, no después; la entrada dibuja a lo más en calidad «media» (1.5×, sombras de 1024), casi el doble de rápido que «alta». |
+| **Frase que se ilumina** (Apple) | Después de cruzar la puerta, una frase grande se enciende palabra por palabra con el scroll. |
+| **Cifras grandes** (ZRK) | 3 formas de abrir · 76 piezas · 90° · 5 años de garantía CDS (según su ficha). Cuentan hasta su valor al llegar. |
+| **Capítulos de cine** | En escritorio, la foto de cada puerta entra grande al centro de la pantalla, ahí abre su puerta y después se hace a un lado para dejar entrar el texto. |
+| **Empujar la puerta** (Bruno Simon / Active Theory) | Con la vaivén cerrada, pasar el ratón rápido sobre una hoja (o tocarla en el celular) la mece hacia adentro y regresa sola, como una vaivén. |

@@ -27,8 +27,15 @@ export function createCDS(stage) {
   const backdrop = createBackdrop(stage, { wallZ: -0.007, opening: { left: -W / 2, right: W / 2, top: H }, halfWidth: 9, height: 4, floorDepth: 12, interiorDepth: DIM.CAB_DEPTH + 0.2 });
   root.add(backdrop.group);
 
-  // puertas: cada hoja con su manija cuelga de su pivote
-  const doors = BAYS.map((b) => { const d = buildDoor(b, M); root.add(d.pivot); return d; });
+  // puertas: cada hoja con su manija cuelga de su pivote. El núcleo construye la hoja con el eje a la derecha; aquí
+  // se refleja sobre el centro de su vano para dejar las bisagras a la izquierda y la jaladera a la derecha, como el
+  // juego real (b.hand = −1, ver BAYS en cds/legacy.js). El reflejo conserva el sentido de apertura hacia afuera.
+  const doors = BAYS.map((b) => {
+    const d = buildDoor(b, M);
+    if (b.hand < 0) { const m = new THREE.Group(); m.name = `Mano izquierda ${b.index + 1}`; m.scale.x = -1; m.position.x = 2 * b.cx; m.add(d.pivot); root.add(m); }
+    else root.add(d.pivot);
+    return d;
+  });
   const ctrls = doors.map((d) => new DoorController(d));
 
   // parrillas y productos
@@ -44,20 +51,25 @@ export function createCDS(stage) {
 
   // Encuadres: cada uno es una caja que debe quedar completa en el visor, vista desde un ángulo. Así se adaptan a la
   // proporción del visor (escritorio, tableta o celular) en vez de usar la distancia fija del original.
-  const b1 = BAYS[1], mull = (BAYS[0].x1 + BAYS[1].x0) / 2, lw = b1.leafW;
+  // Los encuadres del lado de la bisagra se escribieron para el eje a la derecha: con la mano izquierda se reflejan
+  // sobre el centro del vano (mx) y la cámara pasa al otro lado (yaw con signo contrario, sy).
+  const b1 = BAYS[1], mull = (BAYS[0].x1 + BAYS[1].x0) / 2, lw = b1.leafW, hand = b1.hand || 1;
+  const mx = (x) => (hand < 0 ? 2 * b1.cx - x : x), sy = hand;
+  const span = (a, b) => [Math.min(mx(a), mx(b)), Math.max(mx(a), mx(b))];
   const fit = (box, yaw, pitch, m) => (st) => frameBox(st, box, yaw, pitch, m);
+  const side = ([x0, x1], y0, z0, y1, z1) => [x0, y0, z0, x1, y1, z1];
   const views = {
-    general: fit(BOX.closed, -0.45, 0.04),
+    general: fit(BOX.closed, -0.45 * sy, 0.04),
     frontal: fit(BOX.closed, 0, 0),
-    abierta: fit(BOX.open, -0.42, 0.06),
-    interior: fit(BOX.open, -0.18, 0.02),
-    retencion: fit([b1.x0 - 0.25, 0, -0.1, b1.axisX + 0.12, H, lw + 0.05], -0.62, 0.08),
-    autocierre: fit([b1.x0, 0, -0.1, b1.axisX + 0.12, 1.0, 0.7], -0.5, 0.18),
-    parrillas: fit([b1.x0 - 0.05, 0.45, -0.62, b1.x1 + 0.05, 1.95, 0.1], -0.22, 0.04, 1.02),
-    kwikLevel: fit([b1.axisX - 0.32, b1.leafY1 - 0.3, -0.1, b1.axisX + 0.12, H + 0.01, 0.1], -0.45, -0.12),
+    abierta: fit(BOX.open, -0.42 * sy, 0.06),
+    interior: fit(BOX.open, -0.18 * sy, 0.02),
+    retencion: fit(side(span(b1.x0 - 0.25, b1.axisX + 0.12), 0, -0.1, H, lw + 0.05), -0.62 * sy, 0.08),
+    autocierre: fit(side(span(b1.x0, b1.axisX + 0.12), 0, -0.1, 1.0, 0.7), -0.5 * sy, 0.18),
+    parrillas: fit([b1.x0 - 0.05, 0.45, -0.62, b1.x1 + 0.05, 1.95, 0.1], -0.22 * sy, 0.04, 1.02),
+    kwikLevel: fit(side(span(b1.axisX - 0.32, b1.axisX + 0.12), b1.leafY1 - 0.3, -0.1, H + 0.01, 0.1), -0.45 * sy, -0.12),
     mullion: fit([mull - 0.22, 0.95, -0.1, mull + 0.22, 1.55, 0.06], -0.5, 0.05),
-    sello: fit([b1.x0 - 0.12, 0.6, -0.12, b1.x1, 1.55, 0.45], -0.38, 0.05),
-    keyled: fit([-W / 2 + 0.05, 0.12, -DIM.CAB_DEPTH, W / 2 - 0.05, H - 0.1, 0.05], -0.22, 0.05, 1.0),
+    sello: fit(side(span(b1.x0 - 0.12, b1.x1), 0.6, -0.12, 1.55, 0.45), -0.38 * sy, 0.05),
+    keyled: fit([-W / 2 + 0.05, 0.12, -DIM.CAB_DEPTH, W / 2 - 0.05, H - 0.1, 0.05], -0.22 * sy, 0.05, 1.0),
   };
 
   // KeyLED: tiras en los perfiles verticales, del lado interior
@@ -111,8 +123,8 @@ export function createCDS(stage) {
     // "ver por dentro": funciones del PDF señaladas sobre la puerta central
     anchors: [
       { label: 'Puerta a 90°', text: 'Al abrir la puerta por completo se queda abierta a 90°, sin brazo. Si se suelta antes, regresa sola.', parent: doors[1].pivot, position: V(b1.leafX0 - b1.axisX + 0.08, 1.5, 0.03) },
-      { label: 'Kwik Torque', text: 'Ajusta la velocidad de cierre de la puerta con 3 o 4 clics.', parent: root, position: V(b1.axisX - 0.008, b1.leafY0 - 0.034, 0.05) },
-      { label: 'Kwik Level', text: 'Alineación de la puerta en la parte alta: facilita nivelar una puerta con otra.', parent: root, position: V(b1.axisX - 0.006, b1.leafY1 + 0.0225, 0.05) },
+      { label: 'Kwik Torque', text: 'Ajusta la velocidad de cierre de la puerta con 3 o 4 clics.', parent: root, position: V(mx(b1.axisX - 0.008), b1.leafY0 - 0.034, 0.05) },
+      { label: 'Kwik Level', text: 'Alineación de la puerta en la parte alta: facilita nivelar una puerta con otra.', parent: root, position: V(mx(b1.axisX - 0.006), b1.leafY1 + 0.0225, 0.05) },
       { label: 'Mullion Design', text: 'Columna tipo "T" entre puertas: un marco resistente, pensado para durar.', parent: root, position: V(mull, 1.2, 0.005) },
       { label: 'Triple sello', text: 'El empaque de triple sello envuelve el marco por dentro y trabaja con un imán integrado para sellar la puerta.', parent: doors[1].pivot, position: V(b1.leafX0 - b1.axisX + 0.012, 0.7, -0.022) },
       { label: 'KeyLED', text: 'Iluminación sin balastro, con conexión eléctrica en un solo extremo y protección de vinilo.', parent: root, position: V(mull, 1.8, -DIM.FRAME_DEPTH - 0.01) },

@@ -231,7 +231,13 @@ var ul = .072,
    leafY0: Ir - .012,
    leafY1: Ir + fl + .012,
    axisX: s - Ne.AXIS_INSET,
-   axisZ: Ne.LEAF_Z0 + Ne.LEAF_T / 2
+   axisZ: Ne.LEAF_Z0 + Ne.LEAF_T / 2,
+   // [sitio] Mano de la puerta: −1 = bisagras a la izquierda y jaladera a la derecha, como el juego real
+   // (04_PRODUCTOS_FOTOGRAFIAS/REFERENCIAS_APROBADAS_Y_CAPTURAS/CDS_SET_3_HOJAS_REFERENCIA.png). La hoja se construye
+   // igual que en el original (eje a la derecha, en axisX) y src/viewers/cds.js la refleja sobre el centro del vano;
+   // hingeX es dónde queda el eje real.
+   hand: -1,
+   hingeX: (t + e) - (s - Ne.AXIS_INSET)
   }
  }),
  le = {
@@ -562,13 +568,15 @@ function xh(i) {
  }
  for (let V of Ft) ce(t, new Ot(V.x1 - V.x0, .004, h), i.blackAluEdge, V.cx, s + .002, d), ce(t, new Ot(V.x1 - V.x0, .004, h), i.blackAluEdge, V.cx, s + r - .002, d);
  for (let V of Ft) {
-  let F = V.leafY1,
-   K = ce(t, Xi(.056, .04, .05, .004), i.hardware, V.axisX - .006, F + .0225, .025, "TopHinge");
-  ce(t, new Me(.0055, .0055, .008, 18), i.chrome, V.axisX, F + .001, V.axisZ);
-  for (let st of [-.018, .01]) ce(t, new Me(.0035, .0035, .002, 12).rotateX(Math.PI / 2), i.chrome, V.axisX - .006 + st, F + .026, .0505);
+  // [sitio] con la mano izquierda el herraje se refleja sobre el centro del vano (hx)
+  let hx = V.hand < 0 ? (st => 2 * V.cx - st) : (st => st),
+   F = V.leafY1,
+   K = ce(t, Xi(.056, .04, .05, .004), i.hardware, hx(V.axisX - .006), F + .0225, .025, "TopHinge");
+  ce(t, new Me(.0055, .0055, .008, 18), i.chrome, hx(V.axisX), F + .001, V.axisZ);
+  for (let st of [-.018, .01]) ce(t, new Me(.0035, .0035, .002, 12).rotateX(Math.PI / 2), i.chrome, hx(V.axisX - .006 + st), F + .026, .0505);
   u.topHinges.push(K);
-  let G = ce(t, Xi(.06, .064, .05, .004), i.hardware, V.axisX - .008, V.leafY0 - .034, .025, "BottomHinge");
-  ce(t, new Me(.0055, .0055, .008, 18), i.chrome, V.axisX, V.leafY0 - .001, V.axisZ), ce(t, new Me(.0045, .0045, .002, 16).rotateX(Math.PI / 2), i.chrome, V.axisX - .008, V.leafY0 - .034, .0505), u.bottomHinges.push(G)
+  let G = ce(t, Xi(.06, .064, .05, .004), i.hardware, hx(V.axisX - .008), V.leafY0 - .034, .025, "BottomHinge");
+  ce(t, new Me(.0055, .0055, .008, 18), i.chrome, hx(V.axisX), V.leafY0 - .001, V.axisZ), ce(t, new Me(.0045, .0045, .002, 16).rotateX(Math.PI / 2), i.chrome, hx(V.axisX - .008), V.leafY0 - .034, .0505), u.bottomHinges.push(G)
  }
  let f = e - 2 * .03,
   g = r + .02,
@@ -1693,10 +1701,10 @@ var Br = class {
   let n = t.door.bay,
    s = this.ray.ray.origin,
    r = this.ray.ray.direction,
-   o = s.x - n.axisX,
+   o = (s.x - (n.hingeX ?? n.axisX)) * (n.hand || 1),   // [sitio] eje real; con la mano izquierda, x reflejada
    a = s.z - n.axisZ,
    l = r.x * r.x + r.z * r.z,
-   h = 2 * (o * r.x + a * r.z),
+   h = 2 * (o * r.x * (n.hand || 1) + a * r.z),
    c = o * o + a * a - e * e,
    u, d = h * h - 4 * l * c;
   if (l < 1e-8) return null;
@@ -1705,7 +1713,7 @@ var Br = class {
    u = (-h - x) / (2 * l), u < 0 && (u = (-h + x) / (2 * l))
   } else u = -h / (2 * l);
   if (u < 0) return null;
-  let f = o + r.x * u,
+  let f = o + r.x * (n.hand || 1) * u,
    g = a + r.z * u;
   // [sitio] Si el rayo ya no corta el círculo del punto tomado (el puntero salió de la silueta de la hoja), el
   // original se quedaba en el ángulo tangente y, desde el frente, la puerta no llegaba a la retención. Ahora sigue
@@ -1737,7 +1745,7 @@ var Br = class {
     return
    }
    let r = s.door.bay,
-    o = Math.max(.12, Math.hypot(e.point.x - r.axisX, e.point.z - r.axisZ)),
+    o = Math.max(.12, Math.hypot(e.point.x - (r.hingeX ?? r.axisX), e.point.z - r.axisZ)),
     a = this._angleFromRay(s, o);
    this._capture(t), this.active = {
     type: "door",

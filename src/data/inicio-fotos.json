@@ -11,6 +11,10 @@
      "webp": "vaiven-frente-640.webp",
      "avif": "vaiven-frente-640.avif"
     },
+    "1080": {
+     "webp": "vaiven-frente-1080.webp",
+     "avif": "vaiven-frente-1080.avif"
+    },
     "1280": {
      "webp": "vaiven-frente-1280.webp",
      "avif": "vaiven-frente-1280.avif"
@@ -30,6 +34,10 @@
     "640": {
      "webp": "vaiven-abierta-640.webp",
      "avif": "vaiven-abierta-640.avif"
+    },
+    "1080": {
+     "webp": "vaiven-abierta-1080.webp",
+     "avif": "vaiven-abierta-1080.avif"
     },
     "1280": {
      "webp": "vaiven-abierta-1280.webp",
@@ -51,6 +59,10 @@
      "webp": "corrediza-640.webp",
      "avif": "corrediza-640.avif"
     },
+    "1080": {
+     "webp": "corrediza-1080.webp",
+     "avif": "corrediza-1080.avif"
+    },
     "1280": {
      "webp": "corrediza-1280.webp",
      "avif": "corrediza-1280.avif"
@@ -63,17 +75,25 @@
   },
   {
    "id": "abatible",
-   "alt": "Puerta abatible ST blanca con chapa de palanca, en la cámara de una cocina industrial",
-   "ancho": 810,
-   "alto": 1080,
+   "alt": "Puerta abatible ST blanca con bumper de inox diamante y chapa de palanca, entreabierta; detrás, el interior de la cámara",
+   "ancho": 1620,
+   "alto": 2160,
    "imagen": {
     "640": {
      "webp": "abatible-640.webp",
      "avif": "abatible-640.avif"
     },
-    "810": {
-     "webp": "abatible-810.webp",
-     "avif": "abatible-810.avif"
+    "1080": {
+     "webp": "abatible-1080.webp",
+     "avif": "abatible-1080.avif"
+    },
+    "1280": {
+     "webp": "abatible-1280.webp",
+     "avif": "abatible-1280.avif"
+    },
+    "1620": {
+     "webp": "abatible-1620.webp",
+     "avif": "abatible-1620.avif"
     }
    }
   }

@@ -3,7 +3,7 @@
 // hasta el interior azul marino, donde sigue la página. "Blanco es afuera, azul marino es adentro".
 // Usa el modelo aprobado tal cual (src/viewers/vaiven.js): aquí solo se mueven la cámara y el ángulo de las hojas.
 import * as THREE from 'three';
-import { createStage } from '../core/stage.js';
+import { createStage, guessQuality } from '../core/stage.js';
 import { createFinishRegistry } from '../materials/FinishRegistry.js';
 import { createVaiven } from '../viewers/vaiven.js';
 import { createVapor } from './vapor.js';
@@ -18,8 +18,11 @@ const SIZE = 2.72;                       // ancho y alto del marco con holgura (
 const TAGS = [{ numero: '03', side: -1 }, { numero: '02', side: 1 }, { numero: '06', side: -1 }];
 const nombre = (n) => (catalog.piezas.find((p) => p.numero === n && p.familias.includes('vaiven')) || {}).nombre || '';
 
-export function mountHero({ section, gl, hud, readout, load, onFail }) {
-  const stage = createStage(gl, { fov: 30 });
+export function mountHero({ section, gl, hud, readout, load, onFail, response }) {
+  // La cámara se mueve en cada cuadro mientras se baja: a lo más calidad «media» (1.5× y sombras de 1024), que se ve
+  // igual de nítida a pantalla completa y dibuja casi el doble de rápido que «alta».
+  const q = guessQuality(), forced = new URLSearchParams(location.search).get('calidad');
+  const stage = createStage(gl, { fov: 30, quality: q === 'alta' && !forced ? 'media' : q });
   if (!stage) { onFail('sin-webgl'); return null; }
   const { camera, controls, canvas } = stage;
   controls.enabled = false;                                // aquí la cámara la mueve el scroll, no el puntero
@@ -27,7 +30,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail }) {
 
   const reg = createFinishRegistry(stage.renderer); reg.setQuality(stage.quality);
   stage.onQuality.add((q) => reg.setQuality(q));
-  const viewer = createVaiven(stage, reg, { onProgress: (k) => load.set(k) });
+  const viewer = createVaiven(stage, reg, { onProgress: (k) => load.set(k), response });
   viewer.setFinish('stainless');
   const [hl, hr] = viewer.hinges;
   // menos partículas en equipos modestos: el vaho es lo que más pinta por cuadro
@@ -95,6 +98,38 @@ export function mountHero({ section, gl, hud, readout, load, onFail }) {
   const ptr = { x: 0, y: 0, sx: 0, sy: 0 };
   if (matchMedia('(pointer: fine)').matches && !reducedMotion()) addEventListener('pointermove', (e) => { ptr.x = e.clientX / innerWidth * 2 - 1; ptr.y = e.clientY / innerHeight * 2 - 1; stage.invalidate(30); }, { passive: true });
 
+  // Empujar la puerta: con la puerta cerrada, pasar el puntero rápido sobre una hoja (o tocarla) la empuja un poco hacia
+  // adentro y regresa sola, como una vaivén. Un resorte por hoja; se suma al ángulo que pone el scroll.
+  const swing = [{ a: 0, v: 0 }, { a: 0, v: 0 }], ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  let last = null, pending = null;
+  const leafAt = (cx, cy) => {
+    const r = gl.getBoundingClientRect(); ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(viewer.pickables(), false)[0];
+    const h = hit && hit.object.userData.hinge; return h === hl ? 0 : h === hr ? 1 : -1;
+  };
+  const push = (i, speed) => { if (i < 0 || p > 0.06) return; swing[i].v -= Math.min(240, speed); stage.invalidate(60); };
+  if (!reducedMotion()) {
+    addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || p > 0.06) { last = null; return; }
+      const t = performance.now();
+      if (last && !pending) {
+        const sp = Math.hypot(e.clientX - last.x, e.clientY - last.y) / Math.max(8, t - last.t) * 1000;   // px/s
+        if (sp > 500) { pending = [e.clientX, e.clientY, sp]; requestAnimationFrame(() => { const [x, y, v] = pending; pending = null; push(leafAt(x, y), v * 0.05); }); }
+      }
+      last = { x: e.clientX, y: e.clientY, t };
+    }, { passive: true });
+    addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') push(leafAt(e.clientX, e.clientY), 90); }, { passive: true });
+  }
+  const spring = (dt) => {
+    for (const w of swing) {
+      const acc = -36 * w.a - 6.5 * w.v;                    // regresa en ~1 s con un rebote suave
+      w.v += acc * dt; w.a += w.v * dt; w.a = Math.max(-14, Math.min(4, w.a));
+      if (Math.abs(w.a) < 0.02 && Math.abs(w.v) < 0.05) { w.a = 0; w.v = 0; }
+    }
+    if (swing.some((w) => w.a || w.v)) stage.invalidate(2);
+  };
+
   let p = 0, intro = reducedMotion() ? 1 : 0, ready = false;
   const set = (o, k) => { o.style.opacity = k; o.style.visibility = k > 0.001 ? 'visible' : 'hidden'; };
   stage.onFrame.add((dt) => {
@@ -102,7 +137,8 @@ export function mountHero({ section, gl, hud, readout, load, onFail }) {
     if (intro < 1) { intro = Math.min(1, intro + dt / 1.8); stage.invalidate(2); }
     // hojas: abren hacia adentro (ángulo negativo); la derecha arranca un poco después, como en la página de la vaivén
     const aL = -MAX * easeInOut(seg(p, 0.1, 0.46)), aR = -MAX * easeInOut(seg(p, 0.15, 0.5));
-    hl.jump(aL); hr.jump(aR);
+    spring(dt);
+    hl.jump(aL + swing[0].a); hr.jump(aR + swing[1].a);
     if (vapor) vapor.set(0.25 * seg(p, 0.08, 0.2) + 0.75 * seg(p, 0.2, 0.55));
 
     // cámara
@@ -143,7 +179,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail }) {
 
   // el avance del scroll mueve todo; cuando la sección está quieta, la escena deja de dibujarse (stage.js)
   // Con «movimiento reducido» la puerta se queda cerrada y quieta, con sus etiquetas.
-  if (!reducedMotion()) track(section, (k) => { p = k; stage.invalidate(2); }, { mode: 'pin', smooth: 6 });
+  if (!reducedMotion()) track(section, (k) => { p = k; stage.invalidate(2); }, { mode: 'pin', smooth: 12 });
   window.__hero = { stage, viewer, get p() { return p; } };      // para las pruebas
   return { stage, viewer };
 }

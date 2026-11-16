@@ -36,7 +36,7 @@ npm run preview    # sirve dist/ en http://localhost:4173 para revisarlo
 
 ## Páginas internas
 
-`lab/materiales.html` (calibración de materiales), `lab/sistema.html` (sistema de diseño) y `lab/cds-secuencia.html` (dibuja la secuencia CDS del Inicio) se ven con `npm run dev`, pero **no se publican**. Para incluirlas en un build: `VITE_LAB=1 npm run build`.
+`lab/materiales.html` (calibración de materiales), `lab/sistema.html` (sistema de diseño), `lab/cds-secuencia.html` (secuencia CDS del Inicio) y `lab/abatible-foto.html` (foto de estudio de la abatible) se ven con `npm run dev`, pero **no se publican**. Para incluirlas en un build: `VITE_LAB=1 npm run build`.
 
 ## Fotos de instalaciones y del Inicio
 
@@ -59,6 +59,16 @@ python3 scripts/render-cds-sequence.py --nuevo                # → public/img/i
 ```
 
 Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.
+Con el mismo servidor, `lab/cds-secuencia.html?poster=1` da la imagen fija de la página de CDS (sin 3D).
+
+### Foto de estudio de la abatible
+
+La foto de la abatible del Inicio se dibuja con su modelo 3D (blanco sanitario, entreabierta):
+
+```bash
+python3 scripts/render-abatible-photo.py                      # → scripts/fuentes/abatible-estudio.png
+ST_PAQUETE=/ruta/al/paquete node scripts/build-home-photos.mjs   # la convierte junto con las demás fotos del Inicio
+```
 
 ## Regenerar imágenes y datos del catálogo
 
