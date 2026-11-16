@@ -5,11 +5,13 @@ import '../styles/home.css';
 import { mountSite, url, contacto } from '../ui/site.js';
 import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
+import { intro, splitLines, revealOnView, playLines, smoothScroll, cursor } from '../home/cine.js';
 import vaivenBin from '../models/vaiven.bin?url';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 
 mountSite('inicio');
+smoothScroll(); cursor();
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const F = Object.fromEntries(fotos.fotos.map((f) => [f.id, f]));
@@ -21,17 +23,29 @@ function pic(f, sizes, { eager = false, alt = f.alt } = {}) {
   return `<picture><source type="image/avif" srcset="${set('avif')}" sizes="${sizes}"><img src="${url('img/inicio/' + mid.webp)}" srcset="${set('webp')}" sizes="${sizes}" width="${f.ancho}" height="${f.alto}" alt="${alt}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></picture>`;
 }
 
-// ---------- entrada 3D ----------
+// ---------- intro y entrada del título ----------
 const hx = $('#hx'), gl = $('#hxGl'), loadEl = $('#hxLoad');
+const firstVisit = !document.documentElement.classList.contains('sin-intro');
+if (firstVisit) splitLines($('#hxTitle'));     // en visitas siguientes el título se ve de inmediato, sin animarlo
+const curtain = intro(firstVisit ? $('#intro') : null, { onOpen: () => { if (firstVisit) playLines($('#hxTitle')); hx.classList.add('is-shown'); } });
+// grano fino de película sobre la escena (se genera aquí: no se descarga nada)
+try {
+  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), img = g.createImageData(160, 160);
+  for (let i = 0; i < img.data.length; i += 4) { const v = 96 + Math.random() * 64; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+  g.putImageData(img, 0, 0); hx.style.setProperty('--grain', `url(${c.toDataURL()})`);
+} catch { /* sin grano */ }
+
+// ---------- entrada 3D ----------
 const glOk = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
 const poster = () => {
   // sin 3D: la foto de la vaivén ocupa el lugar de la escena y la entrada es una pantalla normal
+  curtain.ready();
   hx.classList.remove('hx--live'); hx.classList.add('hx--still'); loadEl.hidden = true;
   gl.innerHTML = pic(F['vaiven-frente'], '100vw', { eager: true });
 };
 const load = {
-  set(k) { loadEl.style.setProperty('--k', k.toFixed(3)); loadEl.querySelector('b').textContent = `${Math.round(k * 100)} %`; },
-  done() { loadEl.classList.add('is-done'); },
+  set(k) { loadEl.style.setProperty('--k', k.toFixed(3)); loadEl.querySelector('b').textContent = `${Math.round(k * 100)} %`; curtain.progress(k); },
+  done() { loadEl.classList.add('is-done'); curtain.ready(); },
 };
 if (glOk) {
   // el modelo (1.2 MB) empieza a bajar ya, junto con el JavaScript del 3D, no cuando este termina de llegar
@@ -76,7 +90,8 @@ $$('[data-count]').forEach((el) => {
 // ---------- capítulos: la foto se descubre abriéndose como su puerta ----------
 $$('[data-foto]').forEach((el) => el.insertAdjacentHTML('afterbegin', pic(F[el.dataset.foto], el.dataset.sizes)));
 $$('.ch').forEach((ch) => {
-  const pin = $('.ch__pin', ch), fig = $('.ch__door', ch);
+  const pin = $('.ch__pin', ch), fig = $('.ch__door', ch), h2 = splitLines($('h2', ch));
+  if (!reducedMotion()) h2.classList.add('is-pre');
   // En escritorio la foto empieza grande, al centro de la pantalla; ahí abre su puerta y después se hace a un lado
   // para dejar entrar el texto. Se mide su lugar final (sin transformar) y desde ahí se calcula el recorrido.
   let pinned = false, m0 = { dx: 0, dy: 0, s: 1 };
@@ -92,6 +107,7 @@ $$('.ch').forEach((ch) => {
     const mv = pinned ? easeInOut(seg(p, 0.36, 0.6)) : 1;
     const t = pinned ? easeOut(seg(p, 0.46, 0.66)) : 1;
     ch.style.setProperty('--o', o.toFixed(4)); ch.style.setProperty('--t', t.toFixed(4));
+    h2.classList.toggle('is-in', t > 0.2);
     if (pinned) {
       ch.style.setProperty('--dx', `${(m0.dx * (1 - mv)).toFixed(1)}px`); ch.style.setProperty('--dy', `${(m0.dy * (1 - mv)).toFixed(1)}px`);
       ch.style.setProperty('--sc', (1 + (m0.s - 1) * (1 - mv)).toFixed(4));
@@ -115,6 +131,23 @@ rows.forEach((r) => { const i = +r.dataset.i; r.addEventListener('pointerenter',
 
 // ---------- CDS ----------
 import('../home/cdsSequence.js').then(({ mountSequence }) => mountSequence($('#cdsSeq'), $('#cdsMedia'))).catch((e) => console.error(e));
+
+// ---------- títulos que entran por líneas al verse ----------
+['.sys__head h2', '#cdsTitle'].forEach((sel) => revealOnView($(sel)));
+
+// ---------- salida: la puerta se abre desde adentro ----------
+{
+  const out = $('#out'), pin = $('.out__pin', out), title = splitLines($('#outTitle'));
+  if (!reducedMotion()) title.classList.add('is-pre');
+  const pinned = () => getComputedStyle(pin).position === 'sticky';
+  if (!pinned()) revealOnView(title);
+  track(out, (p) => {
+    if (!pinned()) return;
+    const o = easeInOut(seg(p, 0.04, 0.55));
+    out.style.setProperty('--o', o.toFixed(4)); out.classList.toggle('is-done', o > 0.995);
+    title.classList.toggle('is-in', o > 0.35);
+  }, { mode: () => (pinned() ? 'pin' : 'enter'), smooth: 12 });
+}
 
 // ---------- salida ----------
 $('#homeMail').href = `mailto:${contacto.correo}?subject=${encodeURIComponent('Consulta desde el sitio')}`;

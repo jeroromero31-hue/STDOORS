@@ -7,6 +7,7 @@ import { createStage, guessQuality } from '../core/stage.js';
 import { createFinishRegistry } from '../materials/FinishRegistry.js';
 import { createVaiven } from '../viewers/vaiven.js';
 import { createVapor } from './vapor.js';
+import { applyLook } from './look.js';
 import { track, seg, easeInOut, easeOut, reducedMotion, clamp01 } from './scrub.js';
 import catalog from '../data/components.json';
 
@@ -101,6 +102,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
   // Empujar la puerta: con la puerta cerrada, pasar el puntero rápido sobre una hoja (o tocarla) la empuja un poco hacia
   // adentro y regresa sola, como una vaivén. Un resorte por hoja; se suma al ángulo que pone el scroll.
   const swing = [{ a: 0, v: 0 }, { a: 0, v: 0 }], ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  let over = false;                                         // el puntero está sobre una hoja (el cursor dice «Empuja»)
   let last = null, pending = null;
   const leafAt = (cx, cy) => {
     const r = gl.getBoundingClientRect(); ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
@@ -120,6 +122,16 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
       last = { x: e.clientX, y: e.clientY, t };
     }, { passive: true });
     addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') push(leafAt(e.clientX, e.clientY), 90); }, { passive: true });
+    // el cursor dice «Empuja» sobre las hojas mientras la puerta está cerrada
+    let q = null;
+    addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || q) return;
+      q = [e.clientX, e.clientY];
+      requestAnimationFrame(() => {
+        const on = p < 0.06 && ready && leafAt(q[0], q[1]) >= 0; q = null;
+        if (on !== over) { over = on; dispatchEvent(new CustomEvent('cur:label', { detail: on ? 'Empuja' : '' })); }
+      });
+    }, { passive: true });
   }
   const spring = (dt) => {
     for (const w of swing) {
@@ -138,8 +150,10 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
     // hojas: abren hacia adentro (ángulo negativo); la derecha arranca un poco después, como en la página de la vaivén
     const aL = -MAX * easeInOut(seg(p, 0.1, 0.46)), aR = -MAX * easeInOut(seg(p, 0.15, 0.5));
     spring(dt);
+    if (over && p >= 0.06) { over = false; dispatchEvent(new CustomEvent('cur:label', { detail: '' })); }
     hl.jump(aL + swing[0].a); hr.jump(aR + swing[1].a);
     if (vapor) vapor.set(0.25 * seg(p, 0.08, 0.2) + 0.75 * seg(p, 0.2, 0.55));
+    if (lighting) lighting.set(easeInOut(seg(p, 0.1, 0.45)));
 
     // cámara
     const P = poses(camera.aspect);
@@ -172,7 +186,9 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
     set(readout.el, seg(p, 0.08, 0.14) * (1 - seg(p, 0.4, 0.46)));   // se va antes de entrar al azul marino
   });
 
+  let lighting = null;
   viewer.ready.then(() => {
+    lighting = applyLook(stage, viewer);
     ready = true; load.done(); stage.invalidate(60);
     gl.classList.add('is-ready');
   }, (err) => { console.error(err); stage.renderer.setAnimationLoop(null); onFail('modelo'); });

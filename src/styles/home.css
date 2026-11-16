@@ -27,6 +27,10 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 .hx h1 { font-size: clamp(2.75rem, 0.9rem + 6.2vw, 7.4rem); line-height: .94; letter-spacing: -0.038em; max-width: 8.4ch; }
 .hx__lead { margin: 0; font-size: var(--t-lg); color: var(--c-ink-soft); max-width: 31ch; }
 .hx__cta { gap: var(--s-3); }
+/* primera visita: lo demás del texto llega después del título */
+html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(.is-shown) .hx__cta { opacity: 0; transform: translateY(14px); }
+.hx__lead, .hx__cta { transition: opacity 700ms var(--ease-out) 420ms, transform 900ms cubic-bezier(.2, .8, .2, 1) 420ms; }
+.hx__cta { transition-delay: 560ms; }
 .hx.is-past .hx__copy { visibility: hidden; }   /* ya no se ve: tampoco se puede enfocar ni tocar */
 
 .hx__hud { position: absolute; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; }
@@ -236,9 +240,66 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
   .cds-seq__pin { position: sticky; top: 0; }
 }
 
-/* ---------- afuera: cotizar ---------- */
-.out { background: var(--c-wall); padding-block: clamp(96px, 14vw, 200px); }
+/* ---------- afuera: cotizar. La puerta se abre desde adentro y se vuelve al blanco ---------- */
+.out { position: relative; background: var(--c-wall); }
+.out__pin { position: relative; overflow: hidden; padding-block: clamp(96px, 14vw, 200px); perspective: 1800px; }
 .out__in { display: grid; gap: var(--s-5); justify-items: start; }
 .out h2 { font-size: clamp(2.5rem, 1rem + 5.6vw, 6.2rem); line-height: .95; letter-spacing: -0.04em; max-width: 12ch; }
 .out__lead { margin: 0; font-size: var(--t-lg); color: var(--c-ink-soft); max-width: 44ch; }
 .out .row { gap: var(--s-3); margin-top: var(--s-3); }
+.out__leaf { display: none; }
+@media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
+  .out { height: 165svh; }
+  .out__pin { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; padding-block: var(--nav-h) 0; }
+  .out__leaf { display: block; position: absolute; top: 0; bottom: 0; width: 50.2%; z-index: 2; backface-visibility: hidden; background: linear-gradient(180deg, #0C4569, #073654);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08), inset 0 0 0 clamp(12px, 1.6vw, 22px) #0A3D5C, inset 0 0 0 calc(clamp(12px, 1.6vw, 22px) + 1px) rgba(255, 255, 255, .1); }
+  .out__leaf::before { content: ""; position: absolute; left: 38%; top: 18%; width: 24%; height: 34%; border-radius: 999px; background: #0A3D5C; box-shadow: inset 0 0 0 3px #2A6D93; }
+  .out__leaf--l { left: 0; transform-origin: 0 50%; transform: rotateY(calc(var(--o, 0) * 102deg)); }
+  .out__leaf--r { right: 0; transform-origin: 100% 50%; transform: rotateY(calc(var(--o, 0) * -102deg)); }
+  .out.is-done .out__leaf { visibility: hidden; }
+}
+
+/* ---------- intro ---------- */
+.intro { position: fixed; inset: 0; z-index: 100; perspective: 2000px; pointer-events: none; }
+.sin-intro .intro { display: none; }
+.intro__leaf { position: absolute; top: 0; bottom: 0; width: 50.2%; background: var(--c-navy); backface-visibility: hidden; transition: transform 1150ms cubic-bezier(.7, 0, .25, 1); }
+.intro__leaf:first-child { left: 0; transform-origin: 0 50%; }
+.intro__leaf:nth-child(2) { right: 0; transform-origin: 100% 50%; }
+.intro__c { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 22px; transition: opacity 280ms var(--ease-out); }
+.intro__c img { width: 150px; height: auto; animation: intro-logo 700ms var(--ease-out) both; }
+.intro__bar { display: block; width: 120px; height: 2px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.intro__bar i { display: block; height: 100%; background: var(--c-cyan); transform: scaleX(.04); transform-origin: left; transition: transform 300ms linear; }
+.intro.is-open .intro__c { opacity: 0; }
+.intro.is-open .intro__leaf:first-child { transform: rotateY(100deg); transition-delay: 160ms; }
+.intro.is-open .intro__leaf:nth-child(2) { transform: rotateY(-100deg); transition-delay: 220ms; }
+@keyframes intro-logo { from { opacity: 0; transform: translateY(10px); } }
+/* si el JavaScript no llega, la intro se quita sola */
+.intro { animation: intro-fuera 1ms linear 4s forwards; }
+.intro.is-open { animation: none; }
+@keyframes intro-fuera { to { visibility: hidden; } }
+
+/* ---------- títulos por líneas ---------- */
+.ln { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+/* .is-pre esconde las líneas (sin transición) y .is-in las sube. El título de la entrada se esconde justo cuando
+   abre la intro, que lo tapa: así se pinta desde el principio y la página cuenta como cargada en cuanto llega. */
+.ln__in { display: block; }
+.is-pre .ln__in { transform: translate3d(0, 108%, 0); }
+.is-pre.is-in .ln__in { transform: none; transition: transform 1000ms cubic-bezier(.2, .8, .2, 1) calc(var(--i, 0) * 90ms); }
+
+/* ---------- grano y viñeta sobre la escena 3D ---------- */
+.hx__fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1400ms var(--ease-out);
+  background: radial-gradient(120% 90% at 62% 45%, transparent 58%, rgba(8, 32, 48, .10) 100%); }
+.hx__fx::after { content: ""; position: absolute; inset: 0; background-image: var(--grain); background-size: 160px; opacity: .05; }
+/* en teléfonos el círculo de luz alrededor de la puerta lo da esta viñeta (la escena no lleva reflector) */
+@media (pointer: coarse) { .hx__fx { background: radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
+.hx__gl.is-ready + .hx__fx { opacity: 1; }
+
+/* ---------- cursor ---------- */
+.cur { position: fixed; left: 0; top: 0; z-index: 90; pointer-events: none; width: 0; height: 0; }
+.cur__ring { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(22, 185, 203, .9); opacity: 0;
+  transition: transform 320ms cubic-bezier(.2, .8, .2, 1), opacity 200ms, background 200ms, border-color 200ms; }
+.cur.is-on .cur__ring { opacity: 1; }
+.cur.is-link .cur__ring { transform: scale(1.7); background: rgba(22, 185, 203, .12); }
+.cur.has-label .cur__ring { transform: scale(2.4); background: var(--c-cyan); border-color: var(--c-cyan); }
+.cur__label { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); font-size: 12px; font-weight: var(--w-bold); color: var(--c-navy); white-space: nowrap; opacity: 0; transition: opacity 160ms; }
+.cur.has-label .cur__label { opacity: 1; }

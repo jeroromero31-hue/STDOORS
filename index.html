@@ -5,13 +5,21 @@
 <title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
 <meta name="description" content="Puertas abatibles, corredizas y vaivén para cámaras frigoríficas, y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
 <link rel="icon" href="/favicon.png">
+<script>try { if (sessionStorage.getItem('st.intro') || matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('sin-intro'); } catch (e) { document.documentElement.classList.add('sin-intro'); }</script>
 </head>
 <body data-page="inicio">
+<!-- Intro: la marca sobre azul marino; al estar lista la puerta 3D se abre como una vaivén (src/home/cine.js).
+     Si el JavaScript no llega, se quita sola a los 4 s (CSS). Una vez por sesión. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="intro__leaf"></div><div class="intro__leaf"></div>
+  <div class="intro__c"><img src="/img/marca/st-logo-blanco.png" alt="" width="150" height="72"><span class="intro__bar"><i></i></span></div>
+</div>
 <main id="main">
   <!-- Afuera: la puerta vaivén en 3D. Al bajar, abre y la cámara cruza hacia el interior (src/home/hero.js). -->
   <section class="hx" id="hx" aria-labelledby="hxTitle">
     <div class="hx__pin">
       <div class="hx__gl" id="hxGl" aria-hidden="true"></div>
+      <div class="hx__fx" aria-hidden="true"></div>
       <div class="hx__hud" id="hxHud" aria-hidden="true"></div>
       <div class="hx__veil" aria-hidden="true"></div>
       <div class="wrap hx__copy">
@@ -53,7 +61,7 @@
               <div><dt>Herrajes</dt><dd>Bisagra reversible y kit de cerrojo de 68, 92 y 121 mm</dd></div>
               <div><dt>Empaque</dt><dd>Perimetral e inferior, de refrigeración o de congelación</dd></div>
             </dl>
-            <p class="row"><a class="btn" href="/industriales/abatible/">Abrir la abatible en 3D</a></p>
+            <p class="row"><a class="btn" href="/industriales/abatible/" data-cur="Abrir">Abrir la abatible en 3D</a></p>
           </div>
         </div>
       </div>
@@ -74,7 +82,7 @@
               <div><dt>Rodadura</dt><dd>Dos poleas plásticas</dd></div>
               <div><dt>Guía inferior</dt><dd>Riel guía de aluminio</dd></div>
             </dl>
-            <p class="row"><a class="btn" href="/industriales/corrediza/">Abrir la corrediza en 3D</a></p>
+            <p class="row"><a class="btn" href="/industriales/corrediza/" data-cur="Abrir">Abrir la corrediza en 3D</a></p>
           </div>
         </div>
       </div>
@@ -95,7 +103,7 @@
               <div><dt>Bumper</dt><dd>150, 500 o 1000 mm</dd></div>
               <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
             </dl>
-            <p class="row"><a class="btn" href="/industriales/vaiven/">Abrir la vaivén en 3D</a></p>
+            <p class="row"><a class="btn" href="/industriales/vaiven/" data-cur="Abrir">Abrir la vaivén en 3D</a></p>
           </div>
         </div>
       </div>
@@ -119,7 +127,7 @@
         <div class="sys__head">
           <h2 id="sysTitle">Cada pieza tiene su número.</h2>
           <p class="sys__lead" id="sysLead">Piezas de repuesto con fotografía y número de catálogo.</p>
-          <a class="btn btn--line" href="/componentes/">Ver todas las piezas</a>
+          <a class="btn btn--line" href="/componentes/" data-cur="Ver">Ver todas las piezas</a>
         </div>
         <figure class="sys__fig" id="sysFig" aria-hidden="true"></figure>
         <ol class="sys__list" id="sysList"></ol>
@@ -139,18 +147,22 @@
             <li><a href="/cds/?modelo=plus#modelos"><b>Plus</b><span>Dos vidrios con resistencia</span></a></li>
             <li><a href="/cds/?modelo=lt#modelos"><b>LT</b><span>Tres vidrios con resistencia</span></a></li>
           </ul>
-          <p class="row"><a class="btn" href="/cds/">Abrir CDS en 3D</a></p>
+          <p class="row"><a class="btn" href="/cds/" data-cur="Abrir">Abrir CDS en 3D</a></p>
         </div>
       </div>
     </section>
   </div>
 
   <!-- Afuera otra vez: cotizar -->
-  <section class="out" aria-labelledby="outTitle">
-    <div class="wrap out__in">
-      <h2 id="outTitle">¿Ya sabes qué necesitas?</h2>
-      <p class="out__lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
-      <p class="row"><a class="btn" href="/cotizar/">Ir a cotizar</a><a class="btn btn--line" id="homeMail" href="#">Escribir un correo</a></p>
+  <!-- Salida: la puerta se abre desde adentro y se vuelve al blanco de afuera -->
+  <section class="out" id="out" aria-labelledby="outTitle">
+    <div class="out__pin">
+      <div class="wrap out__in">
+        <h2 id="outTitle">¿Ya sabes qué necesitas?</h2>
+        <p class="out__lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
+        <p class="row"><a class="btn" href="/cotizar/" data-cur="Cotizar">Ir a cotizar</a><a class="btn btn--line" id="homeMail" href="#" data-cur="Escribir">Escribir un correo</a></p>
+      </div>
+      <div class="out__leaf out__leaf--l" aria-hidden="true"></div><div class="out__leaf out__leaf--r" aria-hidden="true"></div>
     </div>
   </section>
 </main>

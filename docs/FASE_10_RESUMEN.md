@@ -77,3 +77,34 @@ La prueba del Inicio anterior (Fase 6B) queda retirada: comprobaba un diseño qu
 | Accesibilidad (axe): la frase "apagada" se ve a 3.5:1, legible | 0 fallas |
 | Puertas, 3D, movimiento, catálogo, cotizar, 7 tamaños, iPhone Duo, 20 páginas | 23/23, 19/19, 36/36, 11/11, 22/22, 13/13, 10/10, 7/7, Duo OK, 20/20 |
 | Celular simulado lento | LCP 0.7 s, CLS 0.002; el 3D aparece a los **8.7 s** (antes 10.8) y dibuja el doble de rápido |
+
+---
+
+# Fase 10D · Inicio cinematográfico
+
+**Pedido:** "elévala a un nivel más alto". Elegido por el propietario: **el Inicio**, y lo que más falta: **realismo del 3D** y **animaciones**.
+
+## Realismo del 3D (`src/home/look.js`)
+
+| Antes | Ahora |
+|---|---|
+| Estudio parejo: todo igual de iluminado | Un reflector suave desde arriba a la izquierda deja un círculo de luz alrededor de la puerta y la orilla más oscura, con sombras suaves del marco sobre el muro |
+| Muro liso | Paneles de cámara frigorífica con sus juntas verticales cada 1.15 m y un relieve fino |
+| Piso mate | Concreto pulido que refleja la luz |
+| La puerta "flota" sobre el muro | Sombra de contacto alrededor del marco y en la base del muro |
+| Interior azul plano | Al abrir, el interior se ilumina con luz fría y esa luz cae sobre el piso por el vano |
+| | Grano fino de película y viñeta sobre la escena |
+
+En teléfonos la escena se mantiene ligera (sin reflector, sin relieve, sin luz del interior): el círculo de luz lo da una viñeta y el resto se conserva.
+
+## Animaciones (`src/home/cine.js`)
+
+- **Intro con la marca:** pantalla azul marino con el logo ST y una barra de carga; cuando la puerta 3D está lista (o a los 2.6 s) se abre como una vaivén. Una vez por sesión; nunca con «reducir movimiento».
+- **Títulos por líneas:** cada línea sube desde una ranura (entrada, capítulos, piezas, CDS y salida).
+- **Scroll suave** con inercia en computadora (Lenis 1.3.27); en pantallas táctiles, el scroll del teléfono.
+- **Cursor:** un anillo que crece sobre lo que se puede tocar y dice qué hace ("Abrir", "Ver", "Cotizar"); sobre la vaivén cerrada dice "Empuja".
+- **Salida:** dos hojas azul marino se abren desde adentro y se vuelve al blanco de "¿Ya sabes qué necesitas?", el mismo gesto de la entrada al revés.
+
+## Rendimiento
+
+El título se sigue pintando desde el primer momento (bajo la intro), así que la página cuenta como cargada igual que antes: **LCP 0.8 s, CLS 0.001** en celular simulado lento.

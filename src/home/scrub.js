@@ -30,7 +30,9 @@ function loop(t) {
   for (const it of items) {
     if (!it.near) continue;
     const target = raw(it);
-    const k = it.smooth > 0 ? 1 - Math.exp(-dt * it.smooth) : 1;
+    // con scroll suave (Lenis) el desplazamiento ya llega con inercia: aquí casi no se suaviza, para no sumar retraso
+    const sm = it.smooth > 0 && window.__lenis ? Math.max(it.smooth, 24) : it.smooth;
+    const k = sm > 0 ? 1 - Math.exp(-dt * sm) : 1;
     let v = it.value + (target - it.value) * k;
     if (Math.abs(target - v) < 0.0005) v = target; else moving = true;
     if (v !== it.value || it.first) { it.value = v; it.first = false; it.fn(v, target, dt); }
