@@ -1,16 +1,20 @@
 {
- "origen": "scripts/render-cds-sequence.py",
+ "origen": "scripts/build-cds-video.py",
  "cuadros": 36,
+ "fps": 36,
+ "segundos": 3.0,
  "formatos": {
   "ancho": {
    "ancho": 1440,
    "alto": 900,
-   "bytes": 1415042
+   "bytes": 381743,
+   "bytes_webm": 457792
   },
   "alto": {
    "ancho": 720,
    "alto": 900,
-   "bytes": 912708
+   "bytes": 314883,
+   "bytes_webm": 341381
   }
  }
 }

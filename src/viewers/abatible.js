@@ -182,6 +182,7 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   };
   const hingeYs = [0.30, 1.74];
   const hingeParts = [];
+  const hingeMat = R.plasticBlack;                          // Fase 10H: negra, como el cerrojo (indicación de ST)
   const seamMat = new THREE.MeshStandardMaterial({ color: 0x55595d, roughness: 0.7 });
   // despiece en el plano de la vista «bisagra»: d = a la derecha en pantalla, u = arriba, c = hacia la cámara
   const SR = new THREE.Vector3(0.79, 0, 0.61), SC = new THREE.Vector3(-0.6, 0.2, 0.78);
@@ -193,18 +194,18 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     // placas: la del marco sobre su cara, la de la hoja sobre la cara frontal (pegada al canto)
     // suplemento: del color del marco, para que se lea como parte del marco y la bisagra conserve su tamaño de pieza
     frameMeshes.push(add(fixed, rbox(HP.w + 0.006, HP.h + 0.006, ZF + LIP - FD, 0.006), R.hygienicWhite, -0.527, 0, (FD + ZF + LIP) / 2));
-    part(add(fixed, plate(), R.plasticGray, -0.527, 0, ZF + LIP), ...ex(-0.05, 0, 0));
-    part(add(moving, plate(), R.plasticGray, -W / 2 + 0.0255, 0, ZF + LIP), ...ex(0.075, 0, 0));
+    part(add(fixed, plate(), hingeMat, -0.527, 0, ZF + LIP), ...ex(-0.05, 0, 0));
+    part(add(moving, plate(), hingeMat, -W / 2 + 0.0255, 0, ZF + LIP), ...ex(0.075, 0, 0));
     // cuerpo en "C": brazo superior grueso, brazo inferior delgado y la columna entre ambos
-    part(add(fixed, arm(0.032), R.plasticGray, 0, 0.066, 0), ...ex(0, 0.055, 0.03));
-    part(add(fixed, arm(0.016), R.plasticGray, 0, -0.050, 0), ...ex(0, -0.06, 0.03));
-    part(add(fixed, rbox(0.016, 0.084, PZ + RA - ZP - 0.003, 0.003), R.plasticGray, XL + 0.008, -0.008, (ZP + PZ + RA - 0.003) / 2), ...ex(-0.028, 0, 0.03));
+    part(add(fixed, arm(0.032), hingeMat, 0, 0.066, 0), ...ex(0, 0.055, 0.03));
+    part(add(fixed, arm(0.016), hingeMat, 0, -0.050, 0), ...ex(0, -0.06, 0.03));
+    part(add(fixed, rbox(0.016, 0.084, PZ + RA - ZP - 0.003, 0.003), hingeMat, XL + 0.008, -0.008, (ZP + PZ + RA - 0.003) / 2), ...ex(-0.028, 0, 0.03));
     // perno de acero: se ve entre el brazo superior y el barril
     part(add(fixed, new THREE.CylinderGeometry(0.0042, 0.0042, 0.106, 20), R.steelHardware, PX, -0.008, PZ), ...ex(0.035, 0.15, 0.05));
     // barril (con la hoja) y collarín (fijo), concéntricos con el eje
-    const barrel = add(moving, new THREE.CylinderGeometry(BR, BR, 0.061, 40), R.plasticGray, PX, -0.0025, PZ); barrel.name = 'BarrilBisagra';
+    const barrel = add(moving, new THREE.CylinderGeometry(BR, BR, 0.061, 40), hingeMat, PX, -0.0025, PZ); barrel.name = 'BarrilBisagra';
     part(barrel, ...ex(0.035, 0.01, 0.06));
-    part(add(fixed, new THREE.CylinderGeometry(BR - 0.0012, BR - 0.0012, 0.0165, 40), R.plasticGray, PX, -0.0415, PZ), ...ex(0.035, -0.035, 0.06));
+    part(add(fixed, new THREE.CylinderGeometry(BR - 0.0012, BR - 0.0012, 0.0165, 40), hingeMat, PX, -0.0415, PZ), ...ex(0.035, -0.035, 0.06));
     // filo oscuro entre barril y collarín (como en la foto): viaja con el collarín en el despiece
     part(add(fixed, new THREE.CylinderGeometry(BR - 0.0006, BR - 0.0006, 0.0008, 40), seamMat, PX, -0.0332, PZ, { shadow: false }), ...ex(0.035, -0.035, 0.06));
   });

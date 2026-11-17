@@ -3,7 +3,7 @@
 Uso (con el servidor de desarrollo corriendo:  npx vite --port 5199):
     python3 scripts/render-cds-sequence.py [--n 36] [--base http://localhost:5199] [--nuevo]
 Sin --nuevo continúa donde se quedó (cada cuadro tarda varios segundos con render por software).
-Escribe public/img/inicio/cds/{ancho,alto}-NN.webp y src/data/cds-secuencia.json.
+Escribe scripts/fuentes/cds-secuencia/{ancho,alto}-NN.webp; luego scripts/build-cds-video.py arma los videos.
 Requiere: pip install playwright pillow  y  playwright install chromium.
 """
 import argparse, asyncio, io, json, os
@@ -11,7 +11,7 @@ from PIL import Image
 from playwright.async_api import async_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, 'public/img/inicio/cds')
+OUT = os.path.join(ROOT, 'scripts/fuentes/cds-secuencia')   # fuente del video (scripts/build-cds-video.py); no se publica
 FORMATS = {'ancho': (1440, 900, 74), 'alto': (720, 900, 72)}   # ancho × alto en píxeles y calidad WebP
 
 

@@ -12,7 +12,7 @@ const PUERTAS = [
 const n = (id) => data.piezas.filter((p) => p.familias.includes(id)).length;
 document.getElementById('indList').innerHTML = PUERTAS.map((d) => `
   <li class="ind-door">
-    <a class="ind-door__img" href="${url(`industriales/${d.id}/`)}" tabindex="-1" aria-hidden="true"><img src="${url(`img/puertas/${d.id}.webp`)}" alt="" width="960" height="810" decoding="async"></a>
+    <a class="ind-door__img" href="${url(`industriales/${d.id}/`)}" tabindex="-1" aria-hidden="true"><img src="${url(`img/puertas/${d.id}.webp`)}" alt="" width="1200" height="900" decoding="async"></a>
     <div class="ind-door__t stack" style="--stack:12px">
       <h2 class="t-h3">${d.nombre}</h2>
       <p>${d.como}</p>

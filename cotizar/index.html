@@ -10,7 +10,7 @@
 <main id="main" class="wrap q-page">
   <header class="q-head stack">
     <h1>Tu solicitud</h1>
-    <p class="t-lead">Revisa lo que agregaste, ajusta cantidades y dinos cómo contactarte. Te respondemos con la cotización.</p>
+    <p class="t-lead">Las puertas industriales se fabrican a la medida de tu vano: escribe la medida de cada una y míralas a escala. Las CDS van por juego. Luego dinos cómo contactarte y te respondemos con la cotización.</p>
   </header>
 
   <div class="q-grid">
@@ -28,8 +28,17 @@
       </div>
       <ul class="q-items" id="qItems"></ul>
       <div class="q-empty stack" id="qEmpty" hidden>
-        <p>Tu solicitud está vacía. Agrega una puerta o una pieza, o escríbenos directamente con el formulario.</p>
-        <p class="row"><a class="btn btn--line btn--sm" href="/industriales/">Puertas industriales</a><a class="btn btn--line btn--sm" href="/cds/">Puertas CDS</a><a class="btn btn--line btn--sm" href="/componentes/">Componentes</a></p>
+        <p>Tu solicitud está vacía. Agrega aquí abajo una puerta a la medida, busca piezas en <a class="link" href="/componentes/">Componentes</a> o escríbenos directamente con el formulario.</p>
+      </div>
+      <!-- Fase 10H · las puertas industriales se fabrican a la medida del vano; las CDS van por juego -->
+      <div class="q-add" id="qAdd">
+        <p class="q-add__t" id="qAddT">Agregar una puerta a la medida</p>
+        <div class="q-add__b" role="group" aria-labelledby="qAddT">
+          <button type="button" data-add="abatible"><img src="/img/puertas/abatible.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Abatible</span></button>
+          <button type="button" data-add="corrediza"><img src="/img/puertas/corrediza.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Corrediza</span></button>
+          <button type="button" data-add="vaiven"><img src="/img/puertas/vaiven.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Vaivén</span></button>
+          <button type="button" data-add="cds"><img src="/img/puertas/cds.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Juego CDS</span></button>
+        </div>
       </div>
     </section>
 
@@ -44,7 +53,7 @@
           <label class="field">Correo<input name="correo" type="email" autocomplete="email" aria-describedby="e-correo"><span class="field__error" id="e-correo" hidden></span></label>
         </div>
         <p class="field__hint t-small">Déjanos al menos un teléfono o un correo.</p>
-        <label class="field"><span>Detalles <span class="field__hint">(opcional)</span></span><textarea name="mensaje" rows="4" placeholder="Medidas del vano, refrigeración o congelación, fecha en que lo necesitas…"></textarea></label>
+        <label class="field"><span>Detalles <span class="field__hint">(opcional)</span></span><textarea name="mensaje" rows="4" placeholder="Fecha en que lo necesitas, si es instalación nueva o reemplazo, acceso al lugar…"></textarea></label>
         <div class="q-send stack" style="--stack:12px">
           <p class="t-small t-soft" id="qHow"></p>
           <div class="row">

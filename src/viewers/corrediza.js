@@ -4,6 +4,7 @@
 //   · Acabado: el único del modelo; color, metal y rugosidad salen de la tabla de materiales del original. Sin selector.
 // Lo que cambia está en docs/DIFERENCIAS_CON_ORIGINALES.md: motor de dibujo, luz y fondo comunes del sitio.
 import * as THREE from 'three';
+import { rbox } from '../core/stage.js';
 import manifest from '../models/corrediza.json';
 import binUrl from '../models/corrediza.bin?url';
 import logoUrl from '../models/logo-hoja.png';
@@ -104,9 +105,43 @@ export function createCorrediza(stage) {
   const pickDoor = (ray) => { const x = first(ray); return x && x.object.userData.role === 'door' ? x : null; };
   const pickCover = (ray) => { const x = first(ray); return x && x.object.userData.role === 'cover' ? x : null; };
 
+  // ---------- Fase 10H · herrajes como los pide ST ----------
+  // 1. En vez de la palanca externa larga (pieza 64), la manija externa fija chica (pieza 39): dos bloques negros con
+  //    un tubo de acero entre ellos, en el frente de la hoja junto a su canto. Así la puerta se ve como se pide casi siempre.
+  // 2. La guía de abajo: el brazo negro sale del canto de la hoja por debajo del riel y el perno sube al riel
+  //    (antes el soporte colgaba hacia abajo).
+  const swapHardware = () => {
+    const byName = (re) => meshes.filter((m) => re.test(m.name));
+    const lever = byName(/^door\/(molded|polymer-side|polymer-inner|satin-pin|shadow)\//);
+    const guide = byName(/^door\/(mth-graphite\/7[67]|mth-polymer-mid\/78|mth-screw\/(79|81|82)|mth-satin-shaft\/80)$/);
+    const black = (guide.find((m) => /graphite/.test(m.name)) || {}).material || new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.55 });
+    const steel = (lever.find((m) => /satin-pin/.test(m.name)) || {}).material || new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 1, roughness: 0.3 });
+    const screw = (guide.find((m) => /screw/.test(m.name)) || {}).material || steel;
+    [...lever, ...guide].forEach((m) => { m.visible = false; m.userData.role = 'hidden'; });
+    const part = (geo, mat, x, y, z, name) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.name = name; m.castShadow = true; m.receiveShadow = true; m.userData.role = 'door'; slots.door.add(m); meshes.push(m); return m; };
+    // manija: bloques de 9 cm con dos tornillos, tubo de 30 cm a 5 cm de la cara
+    const XF = -0.86, ZF = 0.452, YC = 0.6, GAP = 0.30;
+    [1, -1].forEach((s) => {
+      const y = YC + s * (GAP / 2 + 0.035);
+      part(rbox(0.05, 0.09, 0.022, 0.008), black, XF, y, ZF + 0.011, 'ManijaBloque');
+      part(rbox(0.036, 0.04, 0.05, 0.008), black, XF, y - s * 0.02, ZF + 0.045, 'ManijaBrazo');
+      [0.022, -0.022].forEach((dy) => part(new THREE.CylinderGeometry(0.0055, 0.0055, 0.003, 14).rotateX(Math.PI / 2), screw, XF, y + dy + s * 0.008, ZF + 0.0235, 'ManijaTornillo'));
+    });
+    part(new THREE.CylinderGeometry(0.0115, 0.0115, GAP + 0.03, 24), steel, XF, YC, ZF + 0.058, 'ManijaTubo');
+    // guía: placa en el canto de la hoja, brazo por debajo del riel, perno con tuerca hacia arriba
+    const XE = 0.95;
+    part(rbox(0.016, 0.12, 0.11, 0.01), black, XE, -0.17, 0.27, 'GuiaPlaca');
+    [0.03, -0.03].forEach((dz) => part(new THREE.CylinderGeometry(0.006, 0.006, 0.004, 14).rotateZ(Math.PI / 2), screw, XE + 0.009, -0.17, 0.27 + dz, 'GuiaTornillo'));
+    part(rbox(0.05, 0.045, 0.33, 0.016), black, XE + 0.03, -0.14, 0.075, 'GuiaBrazo');
+    part(new THREE.CylinderGeometry(0.0065, 0.0065, 0.05, 16), steel, XE + 0.03, -0.095, -0.06, 'GuiaPerno');
+    part(new THREE.CylinderGeometry(0.012, 0.012, 0.009, 6), screw, XE + 0.03, -0.112, -0.06, 'GuiaTuerca');
+    return lever.length + guide.length;
+  };
+
   // caja de la hoja cerrada, en el mundo, para «Ver el frío»
   let closedBox = null;
   ready.then(() => {
+    swapHardware();
     const keep = slider.p; applyPose(nodes, 0, cover); root.updateMatrixWorld(true);
     closedBox = new THREE.Box3(); meshes.filter((m) => m.userData.role === 'door').forEach((m) => closedBox.expandByObject(m));
     applyPose(nodes, keep, cover);
@@ -158,7 +193,7 @@ export function createCorrediza(stage) {
       { numero: '47', parent: slots.static, position: V(-0.94, 2.60, 0.235) },
       { numero: '48', parent: slots.static, position: V(1.02, 2.60, 0.235) },
       { numero: '38', parent: slots.door, position: V(-0.985, 1.95, 0.31) },
-      { numero: '39', parent: slots.door, position: V(-0.93, 1.03, 0.45) },
+      { numero: '39', parent: slots.door, position: V(-0.86, 0.6, 0.52) },
       { numero: '58', parent: slots.static, position: V(2.25, -0.035, -0.03) },
     ],
     views: {

@@ -309,7 +309,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
         }
       };
       const scale = `linear-gradient(90deg, ${THERMAL_STOPS.join(', ')})`;
-      $('.door__viewer').insertAdjacentHTML('beforeend', `<div class="thermo" aria-hidden="true"><b>Vista térmica ilustrativa</b><span class="thermo__bar" style="background:${scale}"></span><span class="thermo__l"><span>Frío</span><span>Ambiente</span></span>${viewer.thermal.note ? '<span class="thermo__note"></span>' : ''}</div>`);
+      // escala delgada pegada al borde de abajo: no tapa la puerta
+      $('.door__viewer').insertAdjacentHTML('beforeend', `<div class="thermo" aria-hidden="true"><span class="thermo__l"><span>Frío</span>${viewer.thermal.note ? '<span class="thermo__note"></span>' : '<b>Vista térmica ilustrativa</b>'}<span>Ambiente</span></span><span class="thermo__bar" style="background:${scale}"></span></div>`);
     } else $$('[data-termica]').forEach((el) => el.remove());
 
     // ---------- Fase 10F · despiece de la bisagra (abatible): las piezas se separan al llegar al paso y se arman al salir ----------
@@ -394,7 +395,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const cfg = Object.entries(state.cfg || {});            // opciones del modelo (bumper)
     const cfgId = cfg.map(([k, v]) => `-${k}${v.id}`).join(''), cfgName = cfg.map(([, v]) => `, ${v.detail.toLowerCase()}`).join('');
     solicitud.add({ id: `puerta-${familia}${key ? '-' + key : ''}${cfgId}`, nombre: `${nombre}${f ? ', ' + f : ''}${cfgName}`, tipo: 'Puerta' });
-    add.textContent = 'Agregada a tu solicitud'; toast('Agregada a tu solicitud');
+    add.textContent = 'Agregada a tu solicitud';
+    toast(familia === 'cds' ? 'Agregada. En Cotizar eliges cuántas puertas lleva el juego' : 'Agregada. En Cotizar escribes la medida de tu vano');
   };
 
   // subnavegación activa

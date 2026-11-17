@@ -115,18 +115,49 @@ $$('.ch').forEach((ch) => {
 });
 
 // ---------- el sistema: piezas reales con su número de catálogo ----------
-const PIEZAS = [['30', 'abatible'], ['27', 'abatible'], ['37', 'corrediza'], ['57', 'corrediza'], ['64', 'corrediza'], ['02', 'vaiven'], ['03', 'vaiven'], ['11', 'abatible']];
+// Fase 10H · la foto fija se volvió una mesa de piezas: flotan, se agarran y se lanzan; tocar una marca su renglón,
+// y pasar por un renglón levanta su pieza. En celular la mesa va arriba de la lista.
+const PIEZAS = [['30', 'abatible'], ['27', 'abatible'], ['21', 'abatible'], ['37', 'corrediza'], ['39', 'corrediza'], ['47', 'corrediza'], ['02', 'vaiven'], ['03', 'vaiven']];
 const PUERTA = { abatible: 'Abatible', corrediza: 'Corrediza', vaiven: 'Vaivén' };
 const piezas = PIEZAS.map(([n, fam]) => ({ fam, p: catalog.piezas.find((x) => x.numero === n && x.familias.includes(fam)) })).filter((x) => x.p);
 $('#sysLead').textContent = `${catalog.piezas.length} piezas de repuesto con fotografía y número de catálogo. Cada una se señala sobre su puerta en 3D.`;
 const fig = $('#sysFig'), list = $('#sysList');
-fig.innerHTML = piezas.map(({ p }, i) => `<div class="sys__img${i ? '' : ' is-on'}">${partPicture(p, { sizes: '(max-width: 899px) 0px, 40vw' })}</div>`).join('');
 list.innerHTML = piezas.map(({ p, fam }, i) => `<li><a class="sys__row${i ? '' : ' is-on'}" href="${url('componentes/')}?id=${p.id}" data-i="${i}">
     <span class="sys__thumb" aria-hidden="true">${partPicture(p, { sizes: '72px' })}</span>
     <b class="sys__n">${p.numero}</b><span class="sys__name">${p.nombre}</span><span class="sys__fam">${PUERTA[fam]}${p.familias.length > 1 ? ' y ' + PUERTA[p.familias.find((f) => f !== fam)].toLowerCase() : ''}</span></a></li>`).join('');
-const imgs = $$('.sys__img', fig), rows = $$('.sys__row', list);
-const show = (i) => { imgs.forEach((x, k) => x.classList.toggle('is-on', k === i)); rows.forEach((x, k) => x.classList.toggle('is-on', k === i)); };
+const rows = $$('.sys__row', list);
+const keyOf = ({ p, fam }) => `${fam}-${p.numero}`;
+// mesa: dos filas sueltas de cuatro, cada pieza un poco girada
+const MESA = piezas.map((x, i) => ({ key: keyOf(x), x: 0.16 + (i % 4) * 0.23 + (i > 3 ? 0.05 : 0), y: i < 4 ? 0.3 : 0.7, s: 0.26, r: [-12, 8, -4, 14, -8, 10, -14, 6][i], z: [1, 0.9, 0.8, 1, 1.05, 0.85, 1, 0.9][i] }));
+fig.innerHTML = '<p class="sys__hint">Arrastra y lanza las piezas. Toca una para ver cuál es.</p>';
+let mesa = null;
+import('../ui/floaters.js').then(({ mountFloaters }) => {
+  mesa = mountFloaters(fig, MESA, { size: (w) => w, edge: 0.15, onPick: (it) => show(MESA.findIndex((m) => m.key === it.key), false) });
+}).catch((e) => console.error(e));
+const show = (i, lift = true) => { rows.forEach((x, k) => x.classList.toggle('is-on', k === i)); if (mesa && lift) mesa.focus(MESA[i] ? MESA[i].key : null); };
 rows.forEach((r) => { const i = +r.dataset.i; r.addEventListener('pointerenter', () => show(i)); r.addEventListener('focus', () => show(i)); });
+list.addEventListener('pointerleave', () => mesa && mesa.focus(null));
+
+// ---------- piezas sueltas por la página: flotan en las orillas y también se pueden agarrar ----------
+import('../ui/floaters.js').then(({ mountFloaters }) => {
+  const layer = (host, cls = '') => { const d = document.createElement('div'); d.className = `flo-layer ${cls}`; host.prepend(d); return d; };
+  const narrow = () => innerWidth < 700;
+  const sz = (w) => (narrow() ? Math.max(300, w) : Math.min(1100, w) * 0.62);
+  const say = $('.say__pin');
+  if (say) mountFloaters(layer(say), [
+    { key: 'corrediza-39', x: 0.1, y: 0.16, s: 0.25, r: -14, z: 1 }, { key: 'corrediza-37', x: 0.9, y: 0.2, s: 0.22, r: 12, z: 0.8 },
+    { key: 'vaiven-02', x: 0.12, y: 0.86, s: 0.28, r: 8, z: 0.9 }, { key: 'abatible-27', x: 0.88, y: 0.84, s: 0.25, r: -8, z: 1.1 },
+  ], { size: sz, dark: true, parallax: 40, edge: 0.3 });
+  const stats = $('.stats');
+  if (stats) mountFloaters(layer(stats), [
+    { key: 'abatible-35', x: 0.95, y: 0.22, s: 0.25, r: 30, z: 0.9 }, { key: 'abatible-23', x: 0.04, y: 0.8, s: 0.2, r: -10, z: 1 },
+  ], { size: sz, dark: true, parallax: 60, edge: 0.35 });
+  const out = $('.out__pin');
+  if (out) mountFloaters(layer(out), [
+    { key: 'corrediza-40', x: 0.08, y: 0.2, s: 0.19, r: -10, z: 0.9 }, { key: 'vaiven-05', x: 0.92, y: 0.24, s: 0.19, r: 12, z: 1 },
+    { key: 'corrediza-41', x: 0.9, y: 0.82, s: 0.21, r: -6, z: 1.05 },
+  ], { size: sz, parallax: 50, edge: 0.3 });
+}).catch((e) => console.error(e));
 
 // ---------- CDS ----------
 import('../home/cdsSequence.js').then(({ mountSequence }) => mountSequence($('#cdsSeq'), $('#cdsMedia'))).catch((e) => console.error(e));

@@ -230,3 +230,43 @@ Son imágenes de nuestros mismos modelos, dibujadas desde la misma cámara en no
 
 - **Componentes:** botón "Ver en rayos X". Cada foto pasa a un plano azul con una línea de escaneo (una tras otra) y, si el nombre trae medida (5.80 m, 68 mm, 4.50 m…), aparece con su línea de cota. Las tarjetas de puerta muestran el render en rayos X de esa puerta. La elección se recuerda al cambiar de página.
 - **Cotizar:** "Plano de tu solicitud" con puertas, piezas y unidades que cuentan al cambiar, y cada producto con su miniatura en rayos X (la puerta o la pieza). En celular, cantidad y "Quitar" van bajo el nombre.
+
+---
+
+# Fase 10H · Anotaciones de Luis, piezas que se juegan y cotizar a la medida
+
+**Pedido:** quitar los rayos X de Componentes y hacer algo diferente; cotizar pensando en que las industriales son a la medida y las CDS por juego; vaivén con lámina abajo y bumper arriba (no doble bumper); bisagra de la vaivén metida en U como la MTH; bisagra de la abatible negra como el cerrojo; manija chica en la corrediza en vez de la palancota; guía de abajo de la corrediza hacia arriba; piezas flotando por la página que se puedan jugar; que la CDS del Inicio no se trabe; que la escala de «Ver el frío» no tape la puerta; todo más integrado y pensado para el celular.
+
+## Herrajes según ST
+
+- **Vaivén:** lámina metálica abajo siempre, bumper negro arriba. Bisagra con placas en U ("metidas"), como la MTH.
+- **Abatible:** bisagra negra, como el cerrojo.
+- **Corrediza:** manija externa fija chica (pieza 39) en lugar de la palanca de 68 mm; la guía de abajo con el brazo bajo el riel y el perno hacia arriba.
+
+## Piezas que se juegan
+
+Recortes reales de 16 piezas del catálogo (`scripts/build-flotantes.py`, fondo transparente, ~10 KB cada uno). Se agarran con el dedo o el ratón, se lanzan, chocan entre sí y se quedan donde las dejas. Tocar una sin arrastrar muestra su número y nombre con un enlace a su ficha.
+
+- **Inicio:** flotan en las orillas de la frase de entrada, de las cifras y de la salida a cotizar, con un poco de profundidad al hacer scroll. La foto fija de "Cada pieza tiene su número" ahora es una **mesa de piezas**: pasar por un renglón levanta su pieza; tocar una pieza marca su renglón. En celular la mesa va arriba de la lista.
+- **Componentes:** se quitaron los rayos X. Arriba hay una mesa con 8 piezas; tocar una abre su ficha.
+- El bucle solo corre con la zona en pantalla y se detiene si nada se mueve; en celular el arrastre es directo y el resto de la página se desplaza normal.
+
+## Cotizar a la medida
+
+- Cada puerta industrial de la solicitud es una ficha: **medida del vano** (ancho × alto en cm; "1.20" se toma como metros), "aún no la tengo: que la tomen en la visita", uso (refrigeración o congelación), hacia dónde abre (bisagras o corrida a la izquierda o derecha) y, en la vaivén, una o dos hojas.
+- Al lado, un **plano a escala** que se redibuja mientras escribes, con cotas y una persona de 1.70 m para darse idea del tamaño.
+- **CDS por juego:** cuántas puertas lleva el juego, ancho de cada puerta (23", 26" o 30"), alto (67", 73" o 79") y modelo; el plano dibuja el juego completo. La cantidad cuenta juegos.
+- **Agregar una puerta a la medida** directamente desde Cotizar (abatible, corrediza, vaivén o juego CDS) y "Agregar otra con otra medida" en cada ficha.
+- El texto que se envía lleva todo: "1 × Puerta abatible — vano de 120 × 210 cm (2.52 m²), refrigeración, bisagras a la izquierda".
+
+## Fluidez y detalles
+
+- **CDS en el Inicio:** ya no es una secuencia de imágenes decodificada al vuelo: es un video corto (3 s, ~0.3 MB, H.264 con respaldo VP9; `scripts/build-cds-video.py`) que arranca solo al llegar a la pantalla, se queda en la puerta abierta y se repite si regresas desde arriba. El ángulo de la puerta cuenta en vivo (0° → 90°) y hay un botón para verla abrir otra vez. Con "reducir movimiento" se ve la puerta abierta y el botón.
+- **«Ver el frío»:** la escala ahora es una tira delgada pegada al borde de abajo del visor (Frío → Ambiente); ya no tapa la puerta. Igual en la entrada del Inicio.
+- Al agregar una puerta desde su página, el aviso dice que la medida se pone en Cotizar.
+
+## Pruebas (10H)
+
+Inicio 31/31 (mesa de piezas: arrastrar y tocar; video CDS que termina en 90°) · encuadre de la entrada en todos los tamaños · CDS con jaladera 4/4 · abatible · corrediza 20/20 (sin palanca, con manija 39 y guía nueva; las 118 mallas del modelo base siguen) · vaivén 23/23 (lámina siempre metálica) · CDS 20/20 · componentes 22/22 · cotizar e industriales 14/14 (puerta a la medida: 1.2 → 120 cm, plano y texto) · sitio 11/11 · puntos de pieza 36/36 · iPhone Duo y 9 páginas · teléfonos 10/10 · accesibilidad (axe) 0 fallas en las 9 páginas, y también en Cotizar con fichas a la medida llenas.
+
+Corrección que salió en las pruebas: al pasar de «ancho» a «alto» en Cotizar, la lista se redibujaba y se perdía lo escrito; ahora los cambios de la misma página no redibujan la lista.

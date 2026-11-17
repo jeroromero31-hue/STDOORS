@@ -324,3 +324,12 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Perfil de aluminio "H", 6.50 m:** ST indica que lo llevan todas las puertas; en el catálogo aparece en abatible, corrediza y vaivén (el PDF solo lo lista en vaivén). No tiene punto en los modelos 3D porque no se sabe en qué parte de la abatible y la corrediza va.
 - **Abatible:** en el marco van manguitos roscados (pieza 21) donde el modelo base tenía tapones blancos (pieza 25). La 25 sigue en el catálogo.
 - **Vaivén:** el bumper deja de ser la franja de hule del modelo original (se guarda dentro de la hoja) y pasa a ser la placa del catálogo con su curva en el canto de en medio. La vaivén se presenta como **semi aislante** (indicación de ST); su vista térmica es una ilustración de eso.
+
+## Fase 10H: anotaciones de Luis (ST)
+
+- **Vaivén, lámina de abajo:** la placa inferior (lámina contra golpes) es siempre metálica, con cualquier acabado de la hoja; arriba de ella va el bumper negro, como en la foto de ST. Antes, con la hoja inoxidable, la placa se veía negra (parecía un segundo bumper).
+- **Vaivén, bisagra:** las placas de la bisagra tienen el canto "metido" en forma de U, como la bisagra MTH de la foto; antes eran en forma de D. Se dibujan aparte y las placas originales del modelo quedan ocultas.
+- **Abatible, bisagra:** negra, como el cerrojo (antes gris claro).
+- **Corrediza, manija:** en vez de la palanca externa grande (pieza 64) se muestra la manija externa fija chica (pieza 39: dos bloques negros con un tubo de acero), que es la que más se pide. La palanca sigue en el catálogo de Componentes. El punto de pieza de la 39 está sobre la manija.
+- **Corrediza, guía de abajo:** el brazo negro sale de una placa en el canto, pasa por debajo del riel y el perno sube hacia el riel (en el modelo base el soporte colgaba hacia abajo).
+- **Las fotos del escáner del Inicio** se volvieron a dibujar con estos cambios.

@@ -26,7 +26,7 @@ const AJAR = 28;                                                 // "ver por den
 const TUNE = { 'frame-light': { gain: 0.68, rough: 2.4 }, kickplate: { gain: 1.12 }, rubber: { gain: 2.6 }, gasket: { gain: 1.5 }, screw: { gain: 0.85 } };
 // El original retoca un poco el frente del marco con cada acabado de hoja. Aquí queda igual en los tres:
 // el retoque del inoxidable (más metal, más pulido) volvía a dejarlo casi blanco contra el muro.
-const FIXED = new Set(['frame-light']);
+const FIXED = new Set(['frame-light', 'kickplate']);
 
 // Mallas del original que no se dibujan (Fase 3C-2, docs/DIFERENCIAS_CON_ORIGINALES.md):
 // static/gasket son tres tiras negras pegadas al marco SOLO por el frente. Tapaban el perfil de aluminio de cada hoja
@@ -48,9 +48,9 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
 
   // ---------- materiales ----------
   // La cara de la hoja usa el registro compartido. Todo lo demás sale de la tabla del original, con su misma clase
-  // de superficie. La placa inferior es acero cepillado, salvo con la hoja inoxidable: ahí el original la pone negra mate.
+  // de superficie. La placa inferior (lámina de pateo) es acero cepillado en todos los acabados (indicación de ST, Fase 10H).
   const presets = manifest.acabados_originales.presets, materials = {};
-  const surface = (name, finish) => (name === 'kickplate' ? (finish === 'stainless' ? 'elastomero' : 'cepillado') : manifest.materiales[name].superficie);
+  const surface = (name) => (name === 'kickplate' ? 'cepillado' : manifest.materiales[name].superficie);   // Fase 10H: la placa de pateo es lámina en todos los acabados (ST)
   const def = (name, d, finish) => { const t = TUNE[name] || {}; return { color: d.color, metal: d.metal, rough: Math.min(1, d.rough * (t.rough ?? 1)), superficie: surface(name, finish), gain: t.gain }; };
   let finish = Object.keys(PRESET).find((k) => PRESET[k] === manifest.acabados_originales.inicial) || 'blackMetal';
   for (const [name, d] of Object.entries(manifest.materiales)) {
@@ -215,7 +215,40 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
     });
     return true;
   };
+  // Fase 10H · bisagra como la de MTH: la placa de la hoja tiene el canto libre metido en curva (forma de U), no en D.
+  // Las capas de la placa del modelo se ocultan y en su lugar va una placa nueva por cara (mismo alto, ancho y grueso),
+  // con las esquinas redondeadas; los tornillos y el nudillo del modelo se quedan.
+  let hingeShaped = false;
+  const shapeHinges = () => {
+    const ms = meshes.filter((m) => /^(left|right)\/hinge(-highlight|-dark|-shadow)?\//.test(m.name)); if (!ms.length) return false;
+    ['left', 'right'].forEach((side) => {
+      const main = ms.find((m) => m.name.startsWith(`${side}/hinge/`)); if (!main) return;
+      const g = main.geometry, p = g.attributes.position.array; g.computeBoundingBox();
+      const bb = g.boundingBox, sx = bb.max.x > -bb.min.x ? 1 : -1;
+      const groups = [[Infinity, -Infinity], [Infinity, -Infinity]];
+      for (let k = 1; k < p.length; k += 3) { const gi = p[k] > 1.3 ? 1 : 0; groups[gi][0] = Math.min(groups[gi][0], p[k]); groups[gi][1] = Math.max(groups[gi][1], p[k]); }
+      const x0 = Math.abs(sx > 0 ? bb.min.x : bb.max.x), x1 = Math.abs(sx > 0 ? bb.max.x : bb.min.x), zf = Math.abs(bb.max.z);
+      groups.forEach(([y0, y1]) => {
+        if (!isFinite(y0)) return;
+        const yc = (y0 + y1) / 2, r = 0.012, sh = new THREE.Shape();
+        sh.moveTo(x0, y0); sh.lineTo(x1 - r, y0); sh.quadraticCurveTo(x1, y0, x1, y0 + r);
+        sh.lineTo(x1, y0 + 0.028); sh.quadraticCurveTo(x1 - 0.036, yc, x1, y1 - 0.028);                // el canto entra en curva
+        sh.lineTo(x1, y1 - r); sh.quadraticCurveTo(x1, y1, x1 - r, y1); sh.lineTo(x0, y1); sh.closePath();
+        const t = 0.044, geo = new THREE.ExtrudeGeometry(sh, { depth: t - 0.004, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2, curveSegments: 18 });
+        [1, -1].forEach((fz) => {
+          const plate = new THREE.Mesh(geo, materials.hinge); plate.name = 'BisagraMTH';
+          plate.scale.set(sx, 1, fz); plate.position.z = fz * (zf - t + 0.002);
+          if (plate.material) plate.material.side = THREE.DoubleSide;
+          plate.castShadow = true; plate.receiveShadow = true; slots[side].add(plate); extraPick.push(plate); plate.userData.hinge = hinges[side === 'left' ? 0 : 1];
+        });
+      });
+    });
+    ms.forEach((m) => { m.visible = false; });
+    return true;
+  };
+
   stage.onFrame.add(() => {
+    if (!hingeShaped && meshes.length) { hingeShaped = shapeHinges(); if (hingeShaped) stage.invalidate(2); }
     if (!bandHidden && meshes.length) { bandHidden = hideBand(); if (bandHidden) stage.invalidate(2); }
     if (!tw) return;
     if (tw.t0 === undefined) tw.t0 = performance.now();      // por reloj, no por cuadros: dura lo mismo en un teléfono lento

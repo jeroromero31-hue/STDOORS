@@ -55,7 +55,9 @@ Los 36 cuadros que avanzan con el scroll en la sección CDS del Inicio se dibuja
 
 ```bash
 npx vite --port 5199 &                                        # servidor de desarrollo (sirve lab/cds-secuencia.html)
-python3 scripts/render-cds-sequence.py --nuevo                # → public/img/inicio/cds/ y src/data/cds-secuencia.json
+python3 scripts/render-cds-sequence.py --nuevo                # → scripts/fuentes/cds-secuencia/ (36 cuadros, fuente del video)
+python3 scripts/build-cds-video.py                          # → public/video/cds-*.mp4/.webm, carteles y src/data/cds-secuencia.json (ffmpeg)
+python3 scripts/build-flotantes.py                          # → public/img/flotantes/ (recortes de piezas) y src/data/flotantes.json
 python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
 ```
 
@@ -140,6 +142,9 @@ src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de 
 src/ui/cdsPage.js        CDS: comparador con corte del vidrio, prueba de humedad y luces KeyLED
 src/ui/vaivenPage.js     Vaivén: «Simular paso» (las hojas abren y regresan solas)
 src/home/scanner.js      Inicio: escáner de rayos X de las cuatro puertas (imágenes de scripts/render-escaner.py)
+src/home/cdsSequence.js  Inicio: video de la CDS que abre al llegar a la pantalla, con el ángulo en vivo
+src/ui/floaters.js       piezas flotantes que se agarran y se lanzan (Inicio y Componentes)
+src/ui/medida.js         Cotizar a la medida: medida del vano, juego CDS y plano a escala
 src/styles/home.css      estilos del Inicio (solo se cargan ahí)
 src/data/contacto.json   correo, teléfono y WhatsApp de ST
 src/data/inicio-fotos.json, cds-instalaciones.json, cds-secuencia.json   fotos y secuencia generadas por los scripts

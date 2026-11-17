@@ -2,6 +2,7 @@
 // No hay servidor configurado, así que la página no finge un envío: abre el programa con el texto listo o lo copia.
 import { solicitud, contacto, toast, url } from './site.js';
 import catalog from '../data/components.json';
+import { FAM_NAME, famOf, defaults, toCm, describe, plano, CDS_W, CDS_H, CDS_MOD } from './medida.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -15,12 +16,8 @@ export function mountQuote() {
     ? 'Elige cómo enviarla. Se abre tu correo o WhatsApp con todo escrito; la envías tú desde ahí.'
     : `Se abre tu programa de correo con todo escrito, dirigido a ${contacto.correo}; la envías tú desde ahí. También puedes copiar el texto.`;
 
-  // ---------- Fase 10G · plano de la solicitud y miniaturas en rayos X ----------
-  // Puertas: el render en rayos X de esa puerta (el del escáner del Inicio). Piezas: su foto del catálogo en rayos X.
-  const FAMS = ['abatible', 'corrediza', 'vaiven', 'cds'];
+  // miniatura de una pieza: su foto del catálogo
   function thumb(x) {
-    const fam = FAMS.find((f) => x.id.startsWith(`puerta-${f}`));
-    if (fam) return `<span class="q-thumb q-thumb--door" aria-hidden="true"><img src="${url(`img/inicio/escaner/${fam}-alto-rayos.webp`)}" alt="" loading="lazy" decoding="async"></span>`;
     const p = catalog.piezas.find((c) => c.id === x.id);
     if (p) return `<span class="q-thumb" aria-hidden="true"><img src="${url('img/componentes/' + p.imagen['480'].webp)}" alt="" loading="lazy" decoding="async"></span>`;
     return '<span class="q-thumb q-thumb--none" aria-hidden="true"></span>';
@@ -42,35 +39,117 @@ export function mountQuote() {
   }
 
   // ---------- productos ----------
+  // Fase 10H · cada puerta es una ficha a la medida con su plano; las piezas, un renglón con cantidad
+  const qty = (x, label) => `<div class="q-qty" role="group" aria-label="${label} de ${x.nombre}">
+          <button type="button" data-d="-1" aria-label="Uno menos">−</button>
+          <input type="number" inputmode="numeric" min="1" max="${MAX}" value="${x.cantidad || 1}" aria-label="${label}">
+          <button type="button" data-d="1" aria-label="Uno más">+</button>
+        </div>`;
+  const chips = (k, label, opts, cur) => `<div class="q-f"><span class="q-f__l" id="l-${k}-${uid}">${label}</span><div class="chips" role="group" aria-labelledby="l-${k}-${uid}">${opts.map(([v, t]) => `<button type="button" class="chip chip--sm" data-k="${k}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${t}</button>`).join('')}</div></div>`;
+  let uid = 0, mine = false;
+  const own = (fn) => { mine = true; try { fn(); } finally { mine = false; } };
+  function doorCard(x) {
+    const fam = famOf(x.id), c = { ...defaults(fam, x), ...(x.cfg || {}) }; uid++;
+    const body = fam === 'cds' ? `
+        <div class="q-f"><span class="q-f__l" id="l-n-${uid}">Puertas en el juego</span>
+          <div class="q-qty" role="group" aria-labelledby="l-n-${uid}"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out="puertas">${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
+        ${chips('ancho', 'Ancho de cada puerta', CDS_W.map((w) => [w, `${w}"`]), c.ancho)}
+        ${chips('alto', 'Alto', CDS_H.map((h) => [h, `${h}"`]), c.alto)}
+        ${chips('modelo', 'Modelo', Object.entries(CDS_MOD), c.modelo)}` : `
+        <fieldset class="q-f q-dim">
+          <legend class="q-f__l">Medida del vano</legend>
+          <div class="q-dim__in">
+            <label><span class="sr-only">Ancho del vano, en centímetros</span><input data-k="ancho" inputmode="decimal" autocomplete="off" placeholder="Ancho" value="${c.ancho}"${c.sinMedida ? ' disabled' : ''}></label>
+            <span aria-hidden="true">×</span>
+            <label><span class="sr-only">Alto del vano, en centímetros</span><input data-k="alto" inputmode="decimal" autocomplete="off" placeholder="Alto" value="${c.alto}"${c.sinMedida ? ' disabled' : ''}></label>
+            <span class="q-dim__u">cm</span>
+          </div>
+          <p class="q-dim__h t-small t-soft" data-area>${c.ancho && c.alto && !c.sinMedida ? `${(c.ancho * c.alto / 10000).toFixed(2)} m² de vano` : 'En centímetros, o en metros: 1.20 × 2.10'}</p>
+          <label class="q-check"><input type="checkbox" data-k="sinMedida"${c.sinMedida ? ' checked' : ''}> Aún no la tengo: que la tomen en la visita</label>
+        </fieldset>
+        ${fam === 'vaiven' ? chips('hojas', 'Hojas', [[1, 'Una'], [2, 'Dos']], c.hojas) : chips('uso', 'Uso', [['refrigeracion', 'Refrigeración'], ['congelacion', 'Congelación']], c.uso)}
+        ${fam === 'abatible' ? chips('mano', 'Bisagras a la', [['izquierda', 'Izquierda'], ['derecha', 'Derecha']], c.mano) : ''}
+        ${fam === 'corrediza' ? chips('mano', 'Abre corriendo hacia la', [['izquierda', 'Izquierda'], ['derecha', 'Derecha']], c.mano) : ''}`;
+    return `<li class="q-door" data-id="${x.id}" data-fam="${fam}">
+        <div class="q-door__plan">${plano(fam, c)}</div>
+        <div class="q-door__b">
+          <div class="q-door__t"><b>${x.nombre}</b><span class="t-small t-soft">${fam === 'cds' ? 'Por juego, en medidas estándar' : 'Se fabrica a la medida de tu vano'}</span></div>
+          ${body}
+          <div class="q-door__foot">
+            <div class="q-f"><span class="q-f__l">${fam === 'cds' ? 'Juegos' : 'Puertas iguales'}</span>${qty(x, fam === 'cds' ? 'Juegos' : 'Cantidad')}</div>
+            <div class="row"><button type="button" class="q-item__x" data-dup>Agregar otra con otra medida</button><button type="button" class="q-item__x" data-del>Quitar</button></div>
+          </div>
+        </div>
+      </li>`;
+  }
+  const pieceRow = (x) => `<li class="q-item" data-id="${x.id}">
+        ${thumb(x)}
+        <div class="q-item__t"><b>${x.nombre}</b><span class="t-small t-soft">${x.tipo}</span></div>
+        ${qty(x, 'Cantidad')}
+        <button type="button" class="q-item__x" data-del aria-label="Quitar ${x.nombre}">Quitar</button>
+      </li>`;
+
   function renderList() {
     const items = solicitud.all();
     $('#qEmpty').hidden = !!items.length; $('#qClearAll').hidden = !items.length;
     plan(items);
-    list.innerHTML = items.map((x) => `<li class="q-item" data-id="${x.id}">
-        ${thumb(x)}
-        <div class="q-item__t"><b>${x.nombre}</b><span class="t-small t-soft">${x.tipo}</span></div>
-        <div class="q-qty" role="group" aria-label="Cantidad de ${x.nombre}">
-          <button type="button" data-d="-1" aria-label="Uno menos">−</button>
-          <input type="number" inputmode="numeric" min="1" max="${MAX}" value="${x.cantidad || 1}" aria-label="Cantidad">
-          <button type="button" data-d="1" aria-label="Uno más">+</button>
-        </div>
-        <button type="button" class="q-item__x" aria-label="Quitar ${x.nombre}">Quitar</button>
-      </li>`).join('');
-    $$('.q-item', list).forEach((li) => {
-      const id = li.dataset.id, inp = $('input', li);
-      const set = (n) => { n = Math.max(1, Math.min(MAX, Math.round(+n) || 1)); inp.value = n; solicitud.update(id, { cantidad: n }); paintText(); plan(solicitud.all()); };
+    list.innerHTML = items.map((x) => (famOf(x.id) ? doorCard(x) : pieceRow(x))).join('');
+    $$('.q-item, .q-door', list).forEach((li) => {
+      const id = li.dataset.id, inp = $('.q-door__foot input, .q-item > .q-qty input', li), fam = li.dataset.fam;
+      const set = (n) => { n = Math.max(1, Math.min(MAX, Math.round(+n) || 1)); inp.value = n; own(() => solicitud.update(id, { cantidad: n })); paintText(); plan(solicitud.all()); };
       $$('[data-d]', li).forEach((b) => { b.onclick = () => set(+inp.value + +b.dataset.d); });
       inp.onchange = () => set(inp.value);
-      $('.q-item__x', li).onclick = () => {
+      $('[data-del]', li).onclick = () => {
         const next = li.nextElementSibling || li.previousElementSibling;
-        solicitud.remove(id); renderList(); toast('Se quitó de tu solicitud');
-        (next && $(`.q-item[data-id="${next.dataset.id}"] .q-item__x`, list) || $('#qEmpty a') || form.nombre).focus();
+        own(() => solicitud.remove(id)); renderList(); toast('Se quitó de tu solicitud');
+        (next && $(`[data-id="${next.dataset.id}"] [data-del]`, list) || $('#qAdd button') || form.nombre).focus();
+      };
+      if (!fam) return;
+      // ---- ficha a la medida ----
+      const cur = () => ({ ...defaults(fam, solicitud.all().find((y) => y.id === id) || {}), ...((solicitud.all().find((y) => y.id === id) || {}).cfg || {}) });
+      const save = (patch, redraw = true) => {
+        const c = { ...cur(), ...patch }; own(() => solicitud.update(id, { cfg: c }));
+        if (redraw) $('.q-door__plan', li).innerHTML = plano(fam, c);
+        const area = $('[data-area]', li);
+        if (area) area.textContent = c.ancho && c.alto && !c.sinMedida ? `${(c.ancho * c.alto / 10000).toFixed(2)} m² de vano` : 'En centímetros, o en metros: 1.20 × 2.10';
+        paintText();
+      };
+      $$('.chip[data-k]', li).forEach((b) => { b.onclick = () => {
+        $$(`.chip[data-k="${b.dataset.k}"]`, li).forEach((o) => o.setAttribute('aria-pressed', o === b));
+        const v = b.dataset.v; save({ [b.dataset.k]: /^\d+$/.test(v) ? +v : v });
+      }; });
+      $$('input[data-k=ancho], input[data-k=alto]', li).forEach((f) => {
+        // mientras escribes, el plano solo cambia con una medida que ya tiene sentido (30 cm o más)
+        f.oninput = () => { const v = toCm(f.value); if (v >= 30) $('.q-door__plan', li).innerHTML = plano(fam, { ...cur(), [f.dataset.k]: v }); };
+        f.onchange = () => { const v = toCm(f.value); f.value = v; save({ [f.dataset.k]: v }); };
+      });
+      const no = $('input[data-k=sinMedida]', li);
+      if (no) no.onchange = () => { $$('input[data-k=ancho], input[data-k=alto]', li).forEach((f) => { f.disabled = no.checked; }); save({ sinMedida: no.checked }); };
+      $$('[data-n]', li).forEach((b) => { b.onclick = () => {
+        const n = Math.max(1, Math.min(12, cur().puertas + +b.dataset.n)); $('[data-out=puertas]', li).textContent = n; save({ puertas: n });
+      }; });
+      const dup = $('[data-dup]', li);
+      if (dup) dup.onclick = () => {
+        const src = solicitud.all().find((y) => y.id === id);
+        const nid = `puerta-${fam}-m${Date.now().toString(36)}`;
+        own(() => solicitud.add({ id: nid, nombre: src.nombre, tipo: 'Puerta', cantidad: 1, cfg: { ...cur(), ...(fam === 'cds' ? {} : { ancho: '', alto: '', sinMedida: false }) } }));
+        renderList(); toast('Se agregó otra puerta'); $(`[data-id="${nid}"] input[data-k=ancho], [data-id="${nid}"] .chip`, list)?.focus();
       };
     });
     paintText();
   }
-  $('#qClearAll').onclick = () => { solicitud.clear(); renderList(); toast('Tu solicitud quedó vacía'); form.nombre.focus(); };
-  document.addEventListener('st:solicitud', () => { if (!list.contains(document.activeElement)) renderList(); });   // cambios desde otra pestaña
+  // agregar una puerta a la medida desde aquí mismo
+  $$('#qAdd [data-add]').forEach((b) => { b.onclick = () => {
+    const fam = b.dataset.add, nid = `puerta-${fam}-m${Date.now().toString(36)}`;
+    own(() => solicitud.add({ id: nid, nombre: FAM_NAME[fam], tipo: 'Puerta', cantidad: 1, cfg: defaults(fam) }));
+    renderList(); toast('Se agregó a tu solicitud');
+    const el = $(`[data-id="${nid}"]`, list); el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    ($('input[data-k=ancho]', el) || $('.chip', el)).focus({ preventScroll: true });
+  }; });
+  $('#qClearAll').onclick = () => { own(() => solicitud.clear()); renderList(); toast('Tu solicitud quedó vacía'); form.nombre.focus(); };
+  // cambios desde otra pestaña u otra página; los de esta misma lista ya están dibujados (redibujar aquí quitaba el
+  // foco del campo al pasar de «ancho» a «alto»)
+  document.addEventListener('st:solicitud', () => { if (!mine && !list.contains(document.activeElement)) renderList(); });
 
   // ---------- texto de la solicitud ----------
   const val = (n) => form[n].value.trim();
@@ -80,7 +159,11 @@ export function mountQuote() {
     lines.push(`Nombre: ${val('nombre') || '—'}`);
     for (const [k, l] of [['empresa', 'Empresa'], ['ciudad', 'Ciudad'], ['telefono', 'Teléfono'], ['correo', 'Correo']]) if (val(k)) lines.push(`${l}: ${val(k)}`);
     lines.push('', items.length ? 'Productos:' : 'Productos: ninguno agregado (consulta general)');
-    items.forEach((x) => lines.push(`- ${x.cantidad || 1} × ${x.nombre} (${x.tipo})`));
+    items.forEach((x) => {
+      const fam = famOf(x.id), d = fam ? describe(fam, { ...defaults(fam, x), ...(x.cfg || {}) }) : '';
+      const suf = fam || /\(pieza/i.test(x.nombre) ? '' : ` (${x.tipo.toLowerCase()})`;
+      lines.push(`- ${x.cantidad || 1} × ${x.nombre}${suf}${d ? ' — ' + d : ''}`);
+    });
     if (val('mensaje')) lines.push('', 'Detalles:', val('mensaje'));
     return lines.join('\n');
   }

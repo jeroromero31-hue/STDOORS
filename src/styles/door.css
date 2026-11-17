@@ -120,14 +120,15 @@
   box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: scan-line 900ms cubic-bezier(.6, 0, .25, 1) forwards; }
 @keyframes scan-wipe { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
 @keyframes scan-line { from { top: 0; } to { top: 100%; } }
-.thermo { position: absolute; z-index: 4; top: var(--s-4); left: calc(var(--free, 0px) + var(--s-4)); display: grid; gap: 6px; width: min(240px, 60vw);
-  padding: 10px 12px; border-radius: 12px; background: rgba(10, 20, 64, .62); backdrop-filter: blur(8px); color: #fff; pointer-events: none;
-  opacity: 0; transform: translateY(-6px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
+.thermo { position: absolute; z-index: 4; left: calc(var(--free, 0px) + var(--s-4)); right: var(--s-4); bottom: 10px; display: grid; gap: 4px;
+  color: #fff; pointer-events: none; text-shadow: 0 1px 6px rgba(4, 12, 40, .7);
+  opacity: 0; transform: translateY(6px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
 .door.is-thermal .thermo { opacity: 1; transform: none; }
-.thermo b { font-size: var(--t-xs); font-weight: var(--w-medium); }
-.thermo__bar { display: block; height: 8px; border-radius: 4px; }
-.thermo__l { display: flex; justify-content: space-between; font-size: var(--t-xs); color: rgba(255, 255, 255, .78); }
-.door.is-thermal .readout { color: #fff; }
+.thermo__bar { display: block; height: 4px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .18); }
+.thermo__l { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); font-size: var(--t-xs); line-height: 1.2; }
+.thermo__l b, .thermo__note { font-weight: var(--w-medium); color: rgba(255, 255, 255, .86); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.door.is-thermal .viewer__hint { opacity: 0; }
+.door.is-thermal .readout { color: #fff; bottom: calc(var(--s-5) + 24px); }
 .door.is-thermal .readout span { color: rgba(255, 255, 255, .78); }
 @media (prefers-reduced-motion: reduce) { .viewer__scan, .viewer__scanline { display: none; } }
 

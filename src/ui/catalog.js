@@ -5,13 +5,6 @@ import { partPicture } from './picture.js';
 import data from '../data/components.json';
 import en3d from '../data/piezas-3d.json';
 
-// medida escrita en el nombre de la pieza ("5.80 m", "68 mm", "250 × 750 mm", "diámetro 22 mm"); nada si no trae
-const dimOf = (n) => {
-  const m = n.match(/(\d+(?:[.,]\d+)?\s*[×x]\s*\d+(?:[.,]\d+)?\s*mm)|(\d+(?:[.,]\d+)?\s*(?:mm|m))(?![a-z])/i);
-  if (!m) return '';
-  return (/diámetro/i.test(n) ? 'Ø ' : '') + m[0].replace(/\s*x\s*/i, ' × ');
-};
-
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const FAM = Object.fromEntries(data.familias.map((f) => [f.id, f]));
@@ -43,7 +36,7 @@ export function mountCatalog() {
 
   // puertas: tarjetas de entrada (estado inicial) y chips de filtro
   start.innerHTML = data.familias.map((f, i) => `<button class="cat-fam" data-f="${f.id}" style="--i:${i * 3}">
-      <span class="part__img"><img src="${url(`img/puertas/${f.id}.webp`)}" alt="" width="640" height="480" loading="lazy" decoding="async"><span class="part__x part__x--door" aria-hidden="true"><img src="${url(`img/inicio/escaner/${f.id}-alto-rayos.webp`)}" alt="" width="900" height="1200" loading="lazy" decoding="async"></span></span>
+      <span class="part__img"><img src="${url(`img/puertas/${f.id}.webp`)}" alt="" width="640" height="480" loading="lazy" decoding="async"></span>
       <span class="cat-fam__t"><b>Puerta ${f.nombre.toLowerCase()}</b><span>${f.piezas} piezas</span></span></button>`).join('');
   $('#famChips').innerHTML = data.familias.map((f) => `<button class="chip" data-f="${f.id}" aria-pressed="false">${f.nombre} <span class="chip__n">${f.piezas}</span></button>`).join('');
   $$('.cat-fam', start).forEach((b) => { b.onclick = () => { state.fam = b.dataset.f; state.tipo = ''; render(); grid.querySelector('.part')?.focus({ preventScroll: true }); }; });
@@ -81,17 +74,9 @@ export function mountCatalog() {
     start.hidden = !!showing; grid.hidden = !showing || !list.length; empty.hidden = !showing || !!list.length;
     count.textContent = !showing ? 'Elige una puerta o busca una pieza.'
       : `${list.length} ${list.length === 1 ? 'pieza' : 'piezas'}${state.fam ? ' de la puerta ' + FAM[state.fam].nombre.toLowerCase() : ''}${state.tipo ? ' · ' + TIPO[state.tipo].nombre : ''}${searching ? ` para «${state.q.trim()}»` : ''}`;
-    grid.innerHTML = list.map((p, i) => `<li><button class="part" data-id="${p.id}" style="--i:${Math.min(i, 24)}"><span class="part__img">${partPicture(p)}<span class="part__x" aria-hidden="true">${partPicture(p)}${dimOf(p.nombre) ? `<span class="part__dim">${dimOf(p.nombre)}</span>` : ''}</span></span><span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}${state.fam ? '' : ' · ' + p.familias.map((f) => FAM[f].nombre).join(' y ')}</small></span></button></li>`).join('');
+    grid.innerHTML = list.map((p, i) => `<li><button class="part" data-id="${p.id}" style="--i:${Math.min(i, 24)}"><span class="part__img">${partPicture(p)}</span><span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}${state.fam ? '' : ' · ' + p.familias.map((f) => FAM[f].nombre).join(' y ')}</small></span></button></li>`).join('');
     $$('.part', grid).forEach((b) => { b.onclick = () => openSheet(piezas.find((p) => p.id === b.dataset.id)); });
     sync();
-  }
-
-  // ---------- Fase 10G · Rayos X del catálogo: las fotos pasan a un plano azul y se marca la medida del nombre ----------
-  const xb = $('#catXray');
-  if (xb) {
-    const setX = (on) => { document.body.classList.toggle('is-xray', on); xb.setAttribute('aria-pressed', on); try { sessionStorage.setItem('st.xray', on ? '1' : '0'); } catch { /* sin almacenamiento */ } };
-    xb.onclick = () => setX(!document.body.classList.contains('is-xray'));
-    try { if (sessionStorage.getItem('st.xray') === '1') setX(true); } catch { /* sin almacenamiento */ }
   }
 
   // ---------- ficha ----------
@@ -149,6 +134,17 @@ export function mountCatalog() {
   zoom.addEventListener('click', (e) => { if (e.target === zoom) zoom.close(); });
   zoom.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); zoom.close(); } });
   zoom.addEventListener('close', () => $('[data-zoom-open]', sheet.body)?.focus());
+
+  // ---------- Fase 10H · mesa de piezas: se agarran y se lanzan; tocar una abre su ficha ----------
+  const mesa = $('#catMesa');
+  if (mesa) {
+    const M = [['corrediza-39', -12], ['abatible-30', 8], ['vaiven-02', -6], ['corrediza-37', 12], ['abatible-27', -10], ['corrediza-41', 6], ['vaiven-05', -14], ['corrediza-76', 4]];
+    const narrow = () => mesa.clientWidth < 560;
+    import('./floaters.js').then(({ mountFloaters }) => mountFloaters(mesa, M.map(([key, r], i) => ({
+      key, r, s: 0.24, z: [1, 0.95, 0.9, 1, 1.05, 0.9, 0.95, 1][i],
+      x: 0.12 + (i % 4) * 0.25, y: i < 4 ? 0.3 : 0.7,
+    })), { size: (w) => (narrow() ? w * 0.85 : w), edge: 0.15, tag: false, onPick: (it) => openSheet(it.pieza) })).catch((e) => console.error(e));
+  }
 
   render();
   const want = piezas.find((p) => p.id === qs.get('id'));
