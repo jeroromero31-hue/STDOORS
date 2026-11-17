@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Puerta vaivén — ST Doors</title>
-<meta name="description" content="Puerta vaivén de doble hoja: cada hoja abre hacia los dos lados. Negro, inoxidable o blanco sanitario.">
+<meta name="description" content="Puerta vaivén semi aislante de doble hoja: cada hoja abre hacia los dos lados. Negro, inoxidable o blanco sanitario.">
 <link rel="icon" href="/favicon.png">
 </head>
 <body>
@@ -23,7 +23,7 @@
     <div class="door__col">
       <section class="door__hero" data-view="general" data-open="0">
         <h1>Puerta vaivén</h1>
-        <p class="t-lead">Dos hojas que abren hacia los dos lados.</p>
+        <p class="t-lead">Semi aislante, con dos hojas que abren hacia los dos lados.</p>
         <div class="door__ctl">
           <button class="btn" id="openBtn">Abrir</button>
           <button class="btn btn--line" id="insideBtn" aria-pressed="false">Ver por dentro</button>
@@ -55,9 +55,10 @@
         <h2>Marco perimetral</h2>
         <p class="t-soft">El marco metálico rodea el vano por los lados y por arriba. Entre el marco y cada hoja corre el empaque.</p>
       </section>
-      <section class="door__step door__step--frio" data-view="frio" data-open="-63,63" data-termica="1">
-        <h2>Mira por dónde se escapa el frío</h2>
-        <p class="t-soft">Así lo vería una cámara térmica. Cada paso por la vaivén deja salir aire frío, que baja y corre por el piso. Al volver al centro, las hojas lo cortan.</p>
+      <section class="door__step door__step--frio" data-view="frio" data-open="0" data-termica="1">
+        <h2>Semi aislante: frena el frío al paso</h2>
+        <p class="t-soft">Así lo vería una cámara térmica. La vaivén no sella como una puerta de cámara: frena el paso del aire entre dos áreas y deja pasar rápido. Empújala y regresa sola al centro, así el frío sale solo un momento.</p>
+        <div class="row"><button class="btn btn--line" data-paso-btn data-cur="Pasar">Simular paso</button></div>
       </section>
     </div>
   </div>
@@ -73,6 +74,7 @@
     <div class="wrap stack" style="--stack:32px">
       <h2>Ficha</h2>
       <dl class="spec" style="max-width:860px">
+        <div><dt>Tipo</dt><dd>Semi aislante</dd></div>
         <div><dt>Movimiento</dt><dd>Vaivén, dos hojas independientes</dd></div>
         <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
         <div><dt>Bisagra</dt><dd>Bisagra para puerta vaivén, dos por hoja</dd></div>

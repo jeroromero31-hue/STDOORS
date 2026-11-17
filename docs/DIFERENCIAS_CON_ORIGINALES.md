@@ -317,3 +317,10 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - Temperaturas de aplicación (−5 °C refrigeración en Advanced y Plus, −20 °C congelación en LT) tomadas de strefrigeracion.com/reachin.php; el catálogo PDF no las trae.
 - La prueba de humedad es una ilustración: el vidrio se empaña cuando la humedad elegida pasa el porcentaje de protección del catálogo (65, 100 y 89 %).
 - La capa que oscurece el interior al apagar las luces no existe en el modelo original.
+
+## Fase 10G: anotaciones de ST
+
+- **Pieza 09:** largo 5.80 m por indicación de ST (ABATIBLE.pdf y CORREDIZA.pdf dicen 5.30 m).
+- **Perfil de aluminio "H", 6.50 m:** ST indica que lo llevan todas las puertas; en el catálogo aparece en abatible, corrediza y vaivén (el PDF solo lo lista en vaivén). No tiene punto en los modelos 3D porque no se sabe en qué parte de la abatible y la corrediza va.
+- **Abatible:** en el marco van manguitos roscados (pieza 21) donde el modelo base tenía tapones blancos (pieza 25). La 25 sigue en el catálogo.
+- **Vaivén:** el bumper deja de ser la franja de hule del modelo original (se guarda dentro de la hoja) y pasa a ser la placa del catálogo con su curva en el canto de en medio. La vaivén se presenta como **semi aislante** (indicación de ST); su vista térmica es una ilustración de eso.

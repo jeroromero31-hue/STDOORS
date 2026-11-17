@@ -35,7 +35,7 @@ const glslStops = THERMAL_STOPS.map((h) => {
 });
 
 const fragmentShader = /* glsl */ `
-  uniform float uTime; uniform float uWallZ; uniform float uFloorY; uniform int uN; uniform vec4 uOpen[${MAX}]; uniform float uTop[${MAX}];
+  uniform float uTime; uniform float uWallZ; uniform float uFloorY; uniform int uN; uniform vec4 uOpen[${MAX}]; uniform float uTop[${MAX}]; uniform float uSemi;
   varying vec3 vW; varying vec3 vN;
   float h3(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
   float noise(vec3 x) {
@@ -78,6 +78,22 @@ const fragmentShader = /* glsl */ `
       cold = max(cold, a * lx * ly * lz * (0.55 + 0.9 * flow));
     }
     t = mix(t, 0.1, clamp(cold * 1.35, 0.0, 1.0));
+    // puerta semi aislante (vaivén): la hoja cerrada deja pasar algo de frío (se ve más fresca que el muro) y por la junta
+    // de en medio y por abajo se cuela un hilo de aire frío que baja al piso
+    if (uSemi > 0.0) {
+      float leak = 0.0, panel = 0.0;
+      for (int i = 0; i < ${MAX}; i++) {
+        if (i >= uN) break;
+        vec4 o = uOpen[i]; float shut = 1.0 - clamp(o.z * 3.0, 0.0, 1.0);
+        float inX = step(o.x, p.x) * step(p.x, o.y), inY = step(y, uTop[i]);
+        panel = max(panel, shut * inX * inY * exp(-abs(dz) / 0.07));
+        float seam = exp(-min(abs(p.x - o.x), abs(p.x - o.y)) / 0.02) * inY;           // juntas de los lados y de en medio
+        float under = (1.0 - smoothstep(0.0, 0.16 + 0.08 * flow, y)) * inX * exp(-max(dz, 0.0) / 0.45) * smoothstep(-0.05, 0.02, dz);
+        leak = max(leak, shut * (seam * exp(-abs(dz) / 0.05) * 0.8 + under * (0.55 + 0.6 * flow)));
+      }
+      t = mix(t, 0.42, uSemi * panel * 0.6);
+      t = mix(t, 0.16, uSemi * clamp(leak, 0.0, 1.0));
+    }
     // relieve: sin luces, las caras se separan un poco según hacia dónde miran
     float shade = 0.78 + 0.22 * dot(n, normalize(vec3(0.35, 0.75, 0.55)));
     float rim = 1.0 - abs(dot(n, normalize(cameraPosition - vW)));          // contornos: las caras de canto se oscurecen
@@ -90,11 +106,11 @@ export function createThermal(stage, spec) {
   const uTop = new Array(MAX).fill(2);
   const mat = new THREE.ShaderMaterial({
     vertexShader, fragmentShader, toneMapped: false, side: THREE.DoubleSide,
-    uniforms: { uTime: { value: 0 }, uWallZ: { value: spec.wallZ || 0 }, uFloorY: { value: spec.floorY || 0 }, uN: { value: 0 }, uOpen: { value: uOpen }, uTop: { value: uTop } },
+    uniforms: { uTime: { value: 0 }, uWallZ: { value: spec.wallZ || 0 }, uFloorY: { value: spec.floorY || 0 }, uN: { value: 0 }, uOpen: { value: uOpen }, uTop: { value: uTop }, uSemi: { value: spec.semi ? 1 : 0 } },
   });
   mat.name = 'VistaTermica';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let on = false, saved = null, t0 = performance.now(), last = performance.now();
+  let on = false, saved = null, t0 = performance.now(), last = performance.now(), lastDraw = 0;
   const shown = new Array(MAX).fill(0);                      // apertura «vista»: el frío sale rápido y se disipa lento
   const bg = new THREE.Color(THERMAL_STOPS[0]);
 
@@ -110,7 +126,10 @@ export function createThermal(stage, spec) {
       uOpen[i].set(o.x0, o.x1, shown[i], 0); uTop[i] = o.top;
     });
     mat.uniforms.uTime.value = reduced.matches ? 0 : (now - t0) / 1000;
-    stage.invalidate(2);                                     // la corriente se mueve: se dibuja cada cuadro mientras está activa
+    // la corriente se mueve: se dibuja cada cuadro mientras está activa; en calidad baja (teléfonos), a 30 cuadros por
+    // segundo: la corriente se ve igual y el teléfono se calienta menos
+    if (stage.quality === 'baja' && now - lastDraw < 31) return;
+    lastDraw = now; stage.invalidate(2);
   });
 
   return {

@@ -130,6 +130,7 @@ rows.forEach((r) => { const i = +r.dataset.i; r.addEventListener('pointerenter',
 
 // ---------- CDS ----------
 import('../home/cdsSequence.js').then(({ mountSequence }) => mountSequence($('#cdsSeq'), $('#cdsMedia'))).catch((e) => console.error(e));
+import('../home/scanner.js').then(({ mountScanner }) => mountScanner($('#escaner'))).catch((e) => console.error(e));
 
 // ---------- títulos que entran por líneas al verse ----------
 ['.sys__head h2', '#cdsTitle'].forEach((sel) => revealOnView($(sel)));

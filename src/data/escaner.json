@@ -1,0 +1,325 @@
+{
+ "origen": "scripts/render-escaner.py",
+ "puertas": [
+  {
+   "id": "abatible",
+   "nombre": "Puerta abatible",
+   "href": "/industriales/abatible/",
+   "tags": {
+    "ancho": [
+     {
+      "numero": "30",
+      "nombre": "Bisagra reversible de 68 mm",
+      "x": 0.3329,
+      "y": 0.221
+     },
+     {
+      "numero": "27",
+      "nombre": "Kit de cerrojo de 68 mm",
+      "x": 0.5982,
+      "y": 0.4907
+     },
+     {
+      "numero": "11",
+      "nombre": "Empaque perimetral de refrigeración",
+      "x": 0.6398,
+      "y": 0.3091
+     },
+     {
+      "numero": "09",
+      "nombre": "Marco exterior 110, 5.80 m",
+      "x": 0.3475,
+      "y": 0.4232
+     },
+     {
+      "numero": "21",
+      "nombre": "Manguito roscado para marco",
+      "x": 0.6613,
+      "y": 0.2403
+     }
+    ],
+    "alto": [
+     {
+      "numero": "30",
+      "nombre": "Bisagra reversible de 68 mm",
+      "x": 0.2234,
+      "y": 0.212
+     },
+     {
+      "numero": "27",
+      "nombre": "Kit de cerrojo de 68 mm",
+      "x": 0.6622,
+      "y": 0.4906
+     },
+     {
+      "numero": "11",
+      "nombre": "Empaque perimetral de refrigeración",
+      "x": 0.7311,
+      "y": 0.3027
+     },
+     {
+      "numero": "09",
+      "nombre": "Marco exterior 110, 5.80 m",
+      "x": 0.2479,
+      "y": 0.421
+     },
+     {
+      "numero": "21",
+      "nombre": "Manguito roscado para marco",
+      "x": 0.7667,
+      "y": 0.2314
+     }
+    ]
+   }
+  },
+  {
+   "id": "corrediza",
+   "nombre": "Puerta corrediza",
+   "href": "/industriales/corrediza/",
+   "tags": {
+    "ancho": [
+     {
+      "numero": "59",
+      "nombre": "Cubre riel de aluminio – 6.25 m",
+      "x": 0.7334,
+      "y": 0.1259
+     },
+     {
+      "numero": "57",
+      "nombre": "Riel de aluminio modelo Mirror – 6.00 m",
+      "x": 0.3267,
+      "y": 0.1355
+     },
+     {
+      "numero": "47",
+      "nombre": "Bloque cierre para riel",
+      "x": 0.1158,
+      "y": 0.1257
+     },
+     {
+      "numero": "48",
+      "nombre": "Bloque central para riel",
+      "x": 0.5291,
+      "y": 0.1449
+     },
+     {
+      "numero": "38",
+      "nombre": "Polea plástica izquierda",
+      "x": 0.1092,
+      "y": 0.3066
+     },
+     {
+      "numero": "39",
+      "nombre": "Manija externa fija",
+      "x": 0.1277,
+      "y": 0.5556
+     },
+     {
+      "numero": "58",
+      "nombre": "Riel guía inferior de aluminio – 7.00 m",
+      "x": 0.7285,
+      "y": 0.7542
+     }
+    ],
+    "alto": [
+     {
+      "numero": "59",
+      "nombre": "Cubre riel de aluminio – 6.25 m",
+      "x": 0.7353,
+      "y": 0.2546
+     },
+     {
+      "numero": "57",
+      "nombre": "Riel de aluminio modelo Mirror – 6.00 m",
+      "x": 0.3148,
+      "y": 0.2661
+     },
+     {
+      "numero": "47",
+      "nombre": "Bloque cierre para riel",
+      "x": 0.1054,
+      "y": 0.2634
+     },
+     {
+      "numero": "48",
+      "nombre": "Bloque central para riel",
+      "x": 0.5218,
+      "y": 0.2688
+     },
+     {
+      "numero": "38",
+      "nombre": "Polea plástica izquierda",
+      "x": 0.0994,
+      "y": 0.3771
+     },
+     {
+      "numero": "39",
+      "nombre": "Manija externa fija",
+      "x": 0.1189,
+      "y": 0.5331
+     },
+     {
+      "numero": "58",
+      "nombre": "Riel guía inferior de aluminio – 7.00 m",
+      "x": 0.737,
+      "y": 0.6687
+     }
+    ]
+   }
+  },
+  {
+   "id": "vaiven",
+   "nombre": "Puerta vaivén",
+   "href": "/industriales/vaiven/",
+   "tags": {
+    "ancho": [
+     {
+      "numero": "03",
+      "nombre": "Ventanilla 40 mm, 250 × 750 mm",
+      "x": 0.3431,
+      "y": 0.3456
+     },
+     {
+      "numero": "02",
+      "nombre": "Bisagra para puerta vaivén",
+      "x": 0.7423,
+      "y": 0.2205
+     },
+     {
+      "numero": "06",
+      "nombre": "Bumper de 150 mm",
+      "x": 0.3413,
+      "y": 0.5914
+     },
+     {
+      "numero": "01",
+      "nombre": "Empaque lateral para vaivén, 2.415 m",
+      "x": 0.7638,
+      "y": 0.4901
+     },
+     {
+      "numero": "",
+      "nombre": "Perfil de aluminio vaivén 40 mm, 6.10 m",
+      "x": 0.4706,
+      "y": 0.5122
+     }
+    ],
+    "alto": [
+     {
+      "numero": "03",
+      "nombre": "Ventanilla 40 mm, 250 × 750 mm",
+      "x": 0.3004,
+      "y": 0.3728
+     },
+     {
+      "numero": "02",
+      "nombre": "Bisagra para puerta vaivén",
+      "x": 0.816,
+      "y": 0.2753
+     },
+     {
+      "numero": "06",
+      "nombre": "Bumper de 150 mm",
+      "x": 0.2977,
+      "y": 0.5737
+     },
+     {
+      "numero": "01",
+      "nombre": "Empaque lateral para vaivén, 2.415 m",
+      "x": 0.8443,
+      "y": 0.4909
+     },
+     {
+      "numero": "",
+      "nombre": "Perfil de aluminio vaivén 40 mm, 6.10 m",
+      "x": 0.4673,
+      "y": 0.5089
+     }
+    ]
+   }
+  },
+  {
+   "id": "cds",
+   "nombre": "Puertas CDS Legacy",
+   "href": "/cds/",
+   "tags": {
+    "ancho": [
+     {
+      "numero": "",
+      "nombre": "Puerta a 90°",
+      "x": 0.534,
+      "y": 0.3488
+     },
+     {
+      "numero": "",
+      "nombre": "Kwik Torque",
+      "x": 0.3526,
+      "y": 0.8413
+     },
+     {
+      "numero": "",
+      "nombre": "Kwik Level",
+      "x": 0.3481,
+      "y": 0.1209
+     },
+     {
+      "numero": "",
+      "nombre": "Mullion Design",
+      "x": 0.3471,
+      "y": 0.4532
+     },
+     {
+      "numero": "",
+      "nombre": "Triple sello",
+      "x": 0.5586,
+      "y": 0.6392
+     },
+     {
+      "numero": "",
+      "nombre": "KeyLED",
+      "x": 0.362,
+      "y": 0.2485
+     }
+    ],
+    "alto": [
+     {
+      "numero": "",
+      "nombre": "Puerta a 90°",
+      "x": 0.5428,
+      "y": 0.3864
+     },
+     {
+      "numero": "",
+      "nombre": "Kwik Torque",
+      "x": 0.3241,
+      "y": 0.7567
+     },
+     {
+      "numero": "",
+      "nombre": "Kwik Level",
+      "x": 0.3199,
+      "y": 0.2141
+     },
+     {
+      "numero": "",
+      "nombre": "Mullion Design",
+      "x": 0.3176,
+      "y": 0.4634
+     },
+     {
+      "numero": "",
+      "nombre": "Triple sello",
+      "x": 0.5723,
+      "y": 0.6023
+     },
+     {
+      "numero": "",
+      "nombre": "KeyLED",
+      "x": 0.3352,
+      "y": 0.3083
+     }
+    ]
+   }
+  }
+ ]
+}

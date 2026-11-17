@@ -301,3 +301,58 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
   box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: hx-scanline 850ms cubic-bezier(.6, 0, .25, 1) forwards; }
 @keyframes hx-scan { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
 @keyframes hx-scanline { from { top: 0; } to { top: 100%; } }
+
+/* ---------- Fase 10G · Escáner: rayos X de las cuatro puertas, en un plano técnico ---------- */
+.scan { --bp: #041726; position: relative; height: calc(100svh * 4.6); background: var(--bp); color: #fff; }
+.scan__pin { position: sticky; top: 0; height: 100svh; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; padding-top: 69px; }
+.scan__grid { position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(120, 200, 255, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 200, 255, .07) 1px, transparent 1px),
+    linear-gradient(rgba(120, 200, 255, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 200, 255, .035) 1px, transparent 1px);
+  background-size: 160px 160px, 160px 160px, 32px 32px, 32px 32px; mask-image: radial-gradient(ellipse at 50% 55%, #000 45%, transparent 85%); }
+.scan__head { position: relative; z-index: 2; display: grid; gap: 4px; padding-top: var(--s-4); }
+.scan__kicker { display: flex; align-items: center; gap: 10px; font-size: var(--t-sm); color: #9fe8f2; font-weight: var(--w-medium); }
+.scan__kicker b { color: rgba(255, 255, 255, .7); font-weight: var(--w-medium); font-variant-numeric: tabular-nums; }
+.scan__dot { width: 8px; height: 8px; border-radius: 50%; background: #9fe8f2; box-shadow: 0 0 10px 2px rgba(159, 232, 242, .7); animation: scan-blink 1.4s steps(2) infinite; }
+@keyframes scan-blink { 50% { opacity: .25; } }
+.scan__head h2 { font-size: var(--t-3xl); line-height: 1; color: #fff; }
+.scan__name { font-size: var(--t-lg); font-weight: var(--w-bold); color: rgba(255, 255, 255, .86); min-height: 1.4em; }
+.scan__stage { position: relative; z-index: 1; display: grid; place-items: center; min-height: 0; }
+.scan__door { --cut: 0; --in: 1; grid-area: 1 / 1; position: relative; margin: 0; height: min(100%, calc((100vw - 32px) * 4 / 3)); aspect-ratio: 3 / 4; max-width: calc(100vw - 32px);
+  opacity: 0; visibility: hidden; transition: opacity 400ms var(--ease-out), visibility 0s 400ms; }
+.scan__door.is-on { opacity: 1; visibility: visible; transition: opacity 400ms var(--ease-out); }
+.scan__door picture, .scan__door img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scan__door img { object-fit: cover; border-radius: 18px; }
+.scan__n { clip-path: inset(calc(var(--cut) * 100%) 0 0 0); transform: scale(calc(.94 + .06 * var(--in))); transform-origin: 50% 60%; }
+.scan__x { transform: scale(calc(.94 + .06 * var(--in))); transform-origin: 50% 60%; }
+.scan__line { position: absolute; z-index: 3; left: -12px; right: -12px; top: calc(var(--cut) * 100%); height: 2px; pointer-events: none; opacity: 0; transition: opacity 250ms;
+  background: linear-gradient(90deg, transparent, #9fe8f2 12%, #fff 50%, #9fe8f2 88%, transparent); box-shadow: 0 0 24px 6px rgba(30, 143, 224, .6), 0 0 2px 1px #fff; }
+.scan__line.is-on { opacity: 1; }
+.scan__line span { position: absolute; right: 16px; top: 8px; font-size: var(--t-xs); font-weight: var(--w-bold); color: #9fe8f2; }
+.scan__tags { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; z-index: 2; }
+.scan__tags--ancho { display: none; }
+.scan__tag { position: absolute; left: calc(var(--x) * 100%); top: calc(var(--y) * 100%); width: 0; height: 0; opacity: 0; transform: translateY(6px); transition: opacity 350ms var(--ease-out), transform 450ms var(--ease-out); }
+.scan__tag.is-on { opacity: 1; transform: none; }
+.scan__tag i { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #9fe8f2; box-shadow: 0 0 10px rgba(159, 232, 242, .8); }
+.scan__tag span { position: absolute; left: 14px; top: calc(-12px + var(--dy, 0px)); white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis;
+  padding: 4px 8px; border-radius: 6px; background: rgba(4, 23, 38, .82); border: 1px solid rgba(159, 232, 242, .45); font-size: var(--t-xs); color: #fff; }
+.scan__tag.is-l span { left: auto; right: 14px; }
+.scan__tag b { color: #9fe8f2; }
+.scan__foot { position: relative; z-index: 2; padding-block: var(--s-4) var(--s-5); }
+.scan__go { color: #fff; border-color: rgba(255, 255, 255, .6); }
+@media (min-width: 901px) {
+  .scan__pin { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); grid-template-rows: 1fr auto; align-items: center; }
+  .scan__head { grid-column: 1; grid-row: 1; align-self: center; padding-left: var(--pad-x); }
+  .scan__stage { grid-column: 2; grid-row: 1 / 3; height: 100%; padding: var(--s-5) var(--pad-x) var(--s-5) 0; }
+  .scan__door { height: min(100%, 72vh); aspect-ratio: 6 / 5; max-width: 100%; }
+  .scan__foot { grid-column: 1; grid-row: 2; align-self: start; padding-left: var(--pad-x); }
+  .scan__tags--alto { display: none; } .scan__tags--ancho { display: block; }
+  .scan__tag span { max-width: 22vw; }
+}
+/* sin movimiento: las cuatro puertas en rayos X, una debajo de otra */
+.scan--static { height: auto; }
+.scan--static .scan__pin { position: relative; height: auto; }
+.scan--static .scan__stage { display: grid; gap: var(--s-5); }
+.scan--static .scan__door { grid-area: auto; opacity: 1; visibility: visible; height: auto; width: min(100%, 640px); }
+.scan--static .scan__n, .scan--static .scan__line { display: none; }
+.scan__tag span::before { content: ''; position: absolute; left: -9px; top: calc(50% - var(--dy, 0px) / 2 - 0.5px); width: 9px; height: 1px; background: rgba(159, 232, 242, .6); }
+.scan__tag.is-l span::before { left: auto; right: -9px; }

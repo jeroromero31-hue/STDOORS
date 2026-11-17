@@ -1,6 +1,7 @@
 // Cotizar: la solicitud se edita aquí y se envía por un canal real (correo o WhatsApp) que abre el propio usuario.
 // No hay servidor configurado, así que la página no finge un envío: abre el programa con el texto listo o lo copia.
-import { solicitud, contacto, toast } from './site.js';
+import { solicitud, contacto, toast, url } from './site.js';
+import catalog from '../data/components.json';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -14,11 +15,39 @@ export function mountQuote() {
     ? 'Elige cómo enviarla. Se abre tu correo o WhatsApp con todo escrito; la envías tú desde ahí.'
     : `Se abre tu programa de correo con todo escrito, dirigido a ${contacto.correo}; la envías tú desde ahí. También puedes copiar el texto.`;
 
+  // ---------- Fase 10G · plano de la solicitud y miniaturas en rayos X ----------
+  // Puertas: el render en rayos X de esa puerta (el del escáner del Inicio). Piezas: su foto del catálogo en rayos X.
+  const FAMS = ['abatible', 'corrediza', 'vaiven', 'cds'];
+  function thumb(x) {
+    const fam = FAMS.find((f) => x.id.startsWith(`puerta-${f}`));
+    if (fam) return `<span class="q-thumb q-thumb--door" aria-hidden="true"><img src="${url(`img/inicio/escaner/${fam}-alto-rayos.webp`)}" alt="" loading="lazy" decoding="async"></span>`;
+    const p = catalog.piezas.find((c) => c.id === x.id);
+    if (p) return `<span class="q-thumb" aria-hidden="true"><img src="${url('img/componentes/' + p.imagen['480'].webp)}" alt="" loading="lazy" decoding="async"></span>`;
+    return '<span class="q-thumb q-thumb--none" aria-hidden="true"></span>';
+  }
+  const planEl = $('#qPlan'); let shown = { p: 0, c: 0, u: 0 };
+  function plan(items) {
+    if (!planEl) return;
+    const doors = items.filter((x) => x.tipo === 'Puerta' || x.id.startsWith('puerta-'));
+    const now = { p: doors.length, c: items.length - doors.length, u: items.reduce((a, x) => a + (x.cantidad || 1), 0) };
+    planEl.hidden = !items.length;
+    const from = { ...shown }, t0 = performance.now(), red = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tick = (t) => {
+      const k = red ? 1 : Math.min(1, (t - t0) / 600), e = 1 - (1 - k) ** 3;
+      ['p', 'c', 'u'].forEach((key) => { const el = planEl.querySelector(`[data-k=${key}]`); if (el) el.textContent = Math.round(from[key] + (now[key] - from[key]) * e); });
+      if (k < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick); shown = now;
+    planEl.classList.remove('is-scan'); void planEl.offsetWidth; planEl.classList.add('is-scan');
+  }
+
   // ---------- productos ----------
   function renderList() {
     const items = solicitud.all();
     $('#qEmpty').hidden = !!items.length; $('#qClearAll').hidden = !items.length;
+    plan(items);
     list.innerHTML = items.map((x) => `<li class="q-item" data-id="${x.id}">
+        ${thumb(x)}
         <div class="q-item__t"><b>${x.nombre}</b><span class="t-small t-soft">${x.tipo}</span></div>
         <div class="q-qty" role="group" aria-label="Cantidad de ${x.nombre}">
           <button type="button" data-d="-1" aria-label="Uno menos">−</button>
@@ -29,7 +58,7 @@ export function mountQuote() {
       </li>`).join('');
     $$('.q-item', list).forEach((li) => {
       const id = li.dataset.id, inp = $('input', li);
-      const set = (n) => { n = Math.max(1, Math.min(MAX, Math.round(+n) || 1)); inp.value = n; solicitud.update(id, { cantidad: n }); paintText(); };
+      const set = (n) => { n = Math.max(1, Math.min(MAX, Math.round(+n) || 1)); inp.value = n; solicitud.update(id, { cantidad: n }); paintText(); plan(solicitud.all()); };
       $$('[data-d]', li).forEach((b) => { b.onclick = () => set(+inp.value + +b.dataset.d); });
       inp.onchange = () => set(inp.value);
       $('.q-item__x', li).onclick = () => {

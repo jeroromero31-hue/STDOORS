@@ -16,6 +16,16 @@
   <div class="q-grid">
     <section class="q-list" aria-labelledby="qListT">
       <div class="q-list__head"><h2 id="qListT" class="t-h3">Productos</h2><button class="link t-small" id="qClearAll" hidden>Vaciar solicitud</button></div>
+      <div class="q-plan" id="qPlan" aria-live="polite" hidden>
+        <div class="q-plan__grid" aria-hidden="true"></div>
+        <p class="q-plan__t">Plano de tu solicitud</p>
+        <dl class="q-plan__n">
+          <div><dt>Puertas</dt><dd data-k="p">0</dd></div>
+          <div><dt>Piezas</dt><dd data-k="c">0</dd></div>
+          <div><dt>Unidades</dt><dd data-k="u">0</dd></div>
+        </dl>
+        <i class="q-plan__scan" aria-hidden="true"></i>
+      </div>
       <ul class="q-items" id="qItems"></ul>
       <div class="q-empty stack" id="qEmpty" hidden>
         <p>Tu solicitud está vacía. Agrega una puerta o una pieza, o escríbenos directamente con el formulario.</p>

@@ -7,7 +7,7 @@ mountSite('industriales');
 const PUERTAS = [
   { id: 'abatible', nombre: 'Puerta abatible', como: 'Gira sobre sus bisagras y cierra con chapa de palanca.' },
   { id: 'corrediza', nombre: 'Puerta corrediza', como: 'Corre colgada del riel y, al cerrar, baja para sellar contra el marco.' },
-  { id: 'vaiven', nombre: 'Puerta vaivén', como: 'Dos hojas que abren hacia los dos lados.' },
+  { id: 'vaiven', nombre: 'Puerta vaivén', como: 'Semi aislante. Dos hojas que abren hacia los dos lados.' },
 ];
 const n = (id) => data.piezas.filter((p) => p.familias.includes(id)).length;
 document.getElementById('indList').innerHTML = PUERTAS.map((d) => `

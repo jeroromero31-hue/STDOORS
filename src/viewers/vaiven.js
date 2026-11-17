@@ -132,7 +132,8 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
   stage.scene.add(root);
   // lo que se puede tomar (las hojas) y lo que lo tapa (marco, muro y piso): manda lo primero que toque el puntero
   const blockers = []; backdrop.group.traverse((o) => { if (o.isMesh) blockers.push(o); });
-  const pickables = () => [...meshes, ...blockers];
+  const extraPick = [];                                     // piezas propias que también mueven la hoja (bumper)
+  const pickables = () => [...meshes, ...extraPick, ...blockers];
   const motion = hingeMotion(stage, hinges, pickables);
   // Las dos hojas no se mueven a la vez cerca del cierre: sus empaques de canto se cruzarían hasta 6.7 mm hacia los 6°
   // (docs/DIFERENCIAS_CON_ORIGINALES.md). Al abrir, la segunda arranca cuando la primera pasa de 12°; al cerrar, la
@@ -154,47 +155,75 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
 
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
-  // ---------- Fase 10E · bumper a la medida: 150, 500 o 1000 mm (piezas 06, 07 y 08 del catálogo) ----------
-  // El bumper del modelo es la franja de hule a media altura de cada hoja (malla «rubber», junto con el hule de la
-  // ventanilla, más sus remates «rubber-edge»). Para cambiar su alto no se escala: la mitad de arriba del perfil sube y
-  // la de abajo baja, así los cantos redondeados conservan su forma y solo crece la cara plana. Su centro se acomoda
-  // para que quepa entre la placa inferior (hasta 0.41 m) y el hule de la ventanilla (desde 1.42 m).
+  // ---------- Fase 10E/10G · bumper a la medida: 150, 500 o 1000 mm (piezas 06, 07 y 08 del catálogo) ----------
+  // Como las fotos del catálogo: placa negra en cada cara de la hoja que da la vuelta al canto de en medio con su curva
+  // (en la vaivén, que abre a los dos lados, las dos curvas se juntan en el canto). Tornillos en el canto de arriba y del
+  // lado de la bisagra. La franja de hule del modelo original se guarda dentro de la hoja (el hule de la ventanilla queda).
+  // Alto 150, 500 o 1000 mm; el centro se acomoda para quedar entre la placa inferior (0.41 m) y la ventanilla (1.42 m).
   const BUMPERS = [{ id: '150', mm: 150, numero: '06', center: 0.965 }, { id: '500', mm: 500, numero: '07', center: 0.95 }, { id: '1000', mm: 1000, numero: '08', center: 0.912 }];
-  const bumperAnchor = V(0.56, 0.965, 0.07);
-  let band = null, bNow = BUMPERS[0], tw = null;
+  const bumperAnchor = V(0.56, 0.965, 0.045);
+  let bNow = BUMPERS[0], tw = null, bandHidden = false;
   const cur = { mm: 150, center: 0.965 };                    // medida y centro dibujados ahora (a media transición también)
-  const bandOf = () => {
-    if (band) return band;
-    const ms = meshes.filter((m) => /^(left|right)\/rubber(-edge)?\//.test(m.name));
-    const edges = ms.filter((m) => m.name.includes('rubber-edge'));
-    if (!edges.length) return null;
-    edges[0].geometry.computeBoundingBox();
-    const { min, max } = edges[0].geometry.boundingBox;
-    band = { y0: min.y, y1: max.y, c0: (min.y + max.y) / 2, list: ms.map((m) => ({ geo: m.geometry, orig: m.geometry.attributes.position.array.slice() })) };
-    return band;
-  };
-  const deform = (mm, c) => {
-    const b = bandOf(); if (!b) return;
-    const ext = (mm - 150) / 2000, dc = c - b.c0;
-    for (const { geo, orig } of b.list) {
-      const p = geo.attributes.position.array;
-      for (let i = 1; i < p.length; i += 3) {
-        const y = orig[i];
-        p[i] = y >= b.y0 - 0.004 && y <= b.y1 + 0.004 ? y + dc + Math.sign(y - b.c0) * ext : y;
-      }
-      geo.attributes.position.needsUpdate = true;
-    }
+  const BX0 = 0.16, BXC = 1.092, BZ = 0.034, BT = 0.004;    // de después de la bisagra a la curva; cara de la placa y grueso
+  const bumperGeo = (() => {
+    const sh = new THREE.Shape();
+    sh.moveTo(BX0, BZ); sh.lineTo(BXC, BZ); sh.absarc(BXC, 0, BZ, Math.PI / 2, -Math.PI / 2, true); sh.lineTo(BX0, -BZ);
+    sh.lineTo(BX0, -(BZ + BT)); sh.lineTo(BXC, -(BZ + BT)); sh.absarc(BXC, 0, BZ + BT, -Math.PI / 2, Math.PI / 2, false); sh.lineTo(BX0, BZ + BT); sh.closePath();
+    return new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false, curveSegments: 20 }).rotateX(Math.PI / 2).translate(0, 1, 0);   // alto 1 m, de 0 a 1
+  })();
+  const bumperMat = new THREE.MeshStandardMaterial({ color: 0x15171a, roughness: 0.58, metalness: 0, side: THREE.DoubleSide });
+  bumperMat.name = 'Bumper';
+  const screwGeo = new THREE.CylinderGeometry(0.0034, 0.0034, 0.002, 12).rotateX(Math.PI / 2);
+  const bumpers = [[slots.left, 1], [slots.right, -1]].map(([slot, sx]) => {
+    const g = new THREE.Group(); g.name = 'Bumper'; slot.add(g);
+    const plate = new THREE.Mesh(bumperGeo, bumperMat); plate.scale.x = sx; plate.castShadow = true; plate.receiveShadow = true; g.add(plate);
+    plate.userData.hinge = hinges[sx > 0 ? 0 : 1]; extraPick.push(plate);   // se toma como la hoja
+    const top = [0.24, 0.44, 0.64, 0.84, 1.03].map((x) => [x * sx, 'top']), side = Array.from({ length: 8 }, (_, k) => [(BX0 + 0.03) * sx, k]);
+    const screws = [...top, ...side].flatMap(([x, kind]) => [1, -1].map((fz) => {
+      const m = new THREE.Mesh(screwGeo, materials.screw || materials.steel || bumperMat); m.position.set(x, 0, fz * (BZ + BT + 0.001)); m.userData.kind = kind; g.add(m); return m;
+    }));
+    return { plate, screws };
+  });
+  const placeBumper = (mm, c) => {
+    const h = mm / 1000, lo = c - h / 2, hi = c + h / 2;
+    bumpers.forEach(({ plate, screws }) => {
+      plate.scale.y = h; plate.position.y = lo;
+      const n = Math.max(1, Math.min(8, Math.floor((h - 0.06) / 0.12) + 1));    // tornillos del lado de la bisagra según el alto
+      screws.forEach((m) => {
+        if (m.userData.kind === 'top') { m.position.y = hi - 0.022; m.visible = true; }
+        else { const k = m.userData.kind; m.visible = k < n && h > 0.3; m.position.y = n > 1 ? hi - 0.07 - k * ((h - 0.1) / (n - 1)) : c; }
+      });
+    });
     bumperAnchor.y = c; cur.mm = mm; cur.center = c;
   };
-  const finishBand = () => { const b = bandOf(); if (b) b.list.forEach(({ geo }) => { geo.computeBoundingBox(); geo.computeBoundingSphere(); }); };
-  stage.onFrame.add((dt) => {
-    if (!tw || !bandOf()) return;                            // el modelo aún no llega: la transición espera
+  placeBumper(150, 0.965);
+  // la franja de hule del modelo (bumper original) se guarda dentro de la hoja; el hule de la ventanilla no se toca
+  const hideBand = () => {
+    const ms = meshes.filter((m) => /^(left|right)\/rubber(-edge)?\//.test(m.name)); if (!ms.length) return false;
+    const edge = ms.find((m) => m.name.includes('rubber-edge')); edge.geometry.computeBoundingBox();
+    const { min, max } = edge.geometry.boundingBox;
+    // con sus tornillos (los de la franja, no los de la bisagra ni los de la placa inferior)
+    const sc = meshes.filter((m) => /^(left|right)\/screw\//.test(m.name));
+    [...ms, ...sc].forEach((m) => {
+      const p = m.geometry.attributes.position.array, isScrew = sc.includes(m);
+      for (let k = 0; k < p.length; k += 3) {
+        if (p[k + 1] < min.y - (isScrew ? 0.012 : 0.004) || p[k + 1] > max.y + (isScrew ? 0.012 : 0.004)) continue;
+        if (isScrew && Math.abs(p[k]) < 0.2) continue;
+        p[k + 2] = 0;
+      }
+      m.geometry.attributes.position.needsUpdate = true; m.geometry.computeBoundingBox(); m.geometry.computeBoundingSphere();
+    });
+    return true;
+  };
+  stage.onFrame.add(() => {
+    if (!bandHidden && meshes.length) { bandHidden = hideBand(); if (bandHidden) stage.invalidate(2); }
+    if (!tw) return;
     if (tw.t0 === undefined) tw.t0 = performance.now();      // por reloj, no por cuadros: dura lo mismo en un teléfono lento
     tw.t = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1, (performance.now() - tw.t0) / 850);
     const k = tw.t < 0.5 ? 4 * tw.t ** 3 : 1 - (-2 * tw.t + 2) ** 3 / 2;
-    deform(tw.a.mm + (tw.b.mm - tw.a.mm) * k, tw.a.center + (tw.b.center - tw.a.center) * k);
+    placeBumper(tw.a.mm + (tw.b.mm - tw.a.mm) * k, tw.a.center + (tw.b.center - tw.a.center) * k);
     stage.invalidate(2);
-    if (tw.t >= 1) { tw = null; finishBand(); }
+    if (tw.t >= 1) tw = null;
   });
   const setBumper = (id) => {
     const to = BUMPERS.find((b) => b.id === String(id)); if (!to || to === bNow) return;
@@ -207,16 +236,15 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
     { numero: '01', parent: slots.right, position: V(0.0, 1.35, 0.04) },                         // empaque lateral
     { id: 'vaiven-perfil-aluminio-40-mm', parent: slots.left, position: V(1.125, 1.25, 0.034) }, // perfil de la hoja
   ];
-  // cota del bumper: de su canto de abajo a su canto de arriba, junto al borde exterior de la hoja izquierda
-  // y el contorno de la franja en la cara de cada hoja, para que se distinga aun con el acabado negro
+  // cota del bumper: de su canto de abajo a su canto de arriba, junto al canto de la bisagra de la hoja izquierda,
+  // y el contorno de la placa en la cara de cada hoja
   const tmpA = V(0, 0, 0), tmpB = V(0, 0, 0), quads = [0, 1].map(() => [V(0, 0, 0), V(0, 0, 0), V(0, 0, 0), V(0, 0, 0)]);
   const measure = () => {
-    const b = bandOf(); if (!b) return null;
-    const h = (b.y1 - b.y0) + (cur.mm - 150) / 1000, c = cur.center, lo = c - h / 2, hi = c + h / 2;
-    tmpA.set(0.03, lo, 0.075); tmpB.set(0.03, hi, 0.075);
+    const h = cur.mm / 1000, c = cur.center, lo = c - h / 2, hi = c + h / 2, zq = BZ + BT + 0.002;
+    tmpA.set(0.03, lo, zq); tmpB.set(0.03, hi, zq);
     slots.left.localToWorld(tmpA); slots.left.localToWorld(tmpB);
-    [[slots.left, 0.044, 1.06], [slots.right, -0.044, -1.06]].forEach(([slot, x0, x1], i) => {
-      const q = quads[i]; q[0].set(x0, lo, 0.07); q[1].set(x1, lo, 0.07); q[2].set(x1, hi, 0.07); q[3].set(x0, hi, 0.07);
+    [[slots.left, BX0, BXC + BZ], [slots.right, -BX0, -(BXC + BZ)]].forEach(([slot, x0, x1], i) => {
+      const q = quads[i]; q[0].set(x0, lo, zq); q[1].set(x1, lo, zq); q[2].set(x1, hi, zq); q[3].set(x0, hi, zq);
       q.forEach((v) => slot.localToWorld(v));
     });
     return { a: tmpA, b: tmpB, quads, label: `${Math.round(cur.mm / 10) * 10} mm` };
@@ -226,7 +254,7 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
     root, slots, materials, meshes, hinges, ready, pickables, motion, measure,
     // «Ver el frío»: cada hoja abre su mitad del hueco
     thermal: {
-      wallZ: 0, floorY: 0,
+      wallZ: 0, floorY: 0, semi: true,                           // semi aislante: la hoja cerrada frena el frío, no lo sella
       openings: () => { const R = 1.24 + VAIVEN.frame.shift, top = 2.51 + VAIVEN.frame.lift;
         return [{ x0: -R, x1: 0, top, amount: Math.abs(hinges[0].angle) / MAX }, { x0: 0, x1: R, top, amount: Math.abs(hinges[1].angle) / MAX }]; },
     },

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
-<meta name="description" content="Puertas abatibles, corredizas y vaivén para cámaras frigoríficas, y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
+<meta name="description" content="Puertas abatibles y corredizas para cámaras frigoríficas, vaivén semi aislantes y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
 <link rel="icon" href="/favicon.png">
 <script>try { if (sessionStorage.getItem('st.intro') || matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('sin-intro'); } catch (e) { document.documentElement.classList.add('sin-intro'); }</script>
 </head>
@@ -98,9 +98,9 @@
           <div class="ch__t">
             <p class="ch__kind">Dos hojas que abren hacia los dos lados</p>
             <h2 id="chVaiven">Vaivén</h2>
-            <p class="ch__lead">Dos hojas independientes, con ventanilla para ver quién viene y bumper en la parte baja.</p>
+            <p class="ch__lead">Semi aislante, de dos hojas independientes, con ventanilla para ver quién viene y bumper.</p>
             <dl class="ch__spec">
-              <div><dt>Ventanilla</dt><dd>40 mm, 250 × 750 mm</dd></div>
+              <div><dt>Tipo</dt><dd>Semi aislante</dd></div>
               <div><dt>Bumper</dt><dd>150, 500 o 1000 mm</dd></div>
               <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
             </dl>
@@ -111,6 +111,20 @@
     </section>
 
     <!-- Cifras: solo datos del catálogo y de la ficha CDS -->
+    <!-- Fase 10G · Escáner: cada puerta pasa bajo una línea de escaneo y se ve por dentro (src/home/scanner.js) -->
+    <section class="scan" id="escaner" aria-labelledby="scanTitle">
+      <div class="scan__pin">
+        <div class="scan__grid" aria-hidden="true"></div>
+        <div class="wrap scan__head">
+          <p class="scan__kicker"><span class="scan__dot" aria-hidden="true"></span>Escáner <b class="scan__count" aria-hidden="true">1 de 4</b></p>
+          <h2 id="scanTitle">Míralas por dentro</h2>
+          <p class="scan__name" aria-live="polite"></p>
+        </div>
+        <div class="scan__stage" id="scanStage"></div>
+        <div class="wrap scan__foot"><a class="btn btn--line scan__go" href="/industriales/abatible/" data-cur="Abrir">Abrir en 3D</a></div>
+      </div>
+    </section>
+
     <section class="stats" aria-label="ST Doors en cifras">
       <div class="wrap">
         <dl class="stats__list">

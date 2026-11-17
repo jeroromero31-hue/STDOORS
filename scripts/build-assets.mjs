@@ -72,6 +72,8 @@ function corregir(item) {
   // 09–26: listadas en los PDF de Abatible y de Corrediza -> una sola pieza compatible con ambas
   if (item.familias[0] === 'abatible' && n >= 9 && n <= 26) item.familias = ['abatible', 'corrediza'];
   if (n === 10) avisos.push('Largo distinto en los PDF: 5.80 m (Abatible) y 4.50 m (Corrediza). Por confirmar si es la misma pieza.');
+  // Fase 10G: ST corrige el largo del marco exterior 110 (los PDF dicen 5.30 m)
+  if (n === 9 && item.familias.includes('abatible')) { item.nombre = 'Marco exterior 110, 5.80 m'; item.id = item.id.replace('5-30-m', '5-80-m'); }
   if (item.familias.includes('vaiven') && n === 2) {
     item.nombre = 'Bisagra para puerta vaivén';
     avisos.push('Nombre tomado del PDF de Vaivén; el archivo original dice "puerta abatible".');
@@ -85,7 +87,8 @@ function corregir(item) {
 // Perfiles adicionales de vaivén: nombres del PDF, sin número inventado
 const EXTRA = {
   VAIVEN_ADICIONAL_PERFIL_40MM: { id: 'vaiven-perfil-aluminio-40-mm', nombre: 'Perfil de aluminio vaivén 40 mm, 6.10 m' },
-  VAIVEN_ADICIONAL_PERFIL_H: { id: 'vaiven-perfil-aluminio-h', nombre: 'Perfil de aluminio "H", 6.50 m' },
+  // Fase 10G: ST indica que el perfil H de aluminio lo llevan todas las puertas
+  VAIVEN_ADICIONAL_PERFIL_H: { id: 'vaiven-perfil-aluminio-h', nombre: 'Perfil de aluminio "H", 6.50 m', familias: ['abatible', 'corrediza', 'vaiven'] },
 };
 
 // Piezas que aparecen en los PDF pero no tienen imagen: NO se publican; quedan registradas
@@ -131,6 +134,7 @@ for (const r of rows) {
     original: r.archivo_relativo,
   };
   item = corregir(item);
+  if (extraKey && EXTRA[extraKey].familias) item.familias = EXTRA[extraKey].familias;
   item.tipo = tipoDe(item.nombre);
   item.pdf = item.familias.map((f) => PDF[f]);
   const base = item.id;

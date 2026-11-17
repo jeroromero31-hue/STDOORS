@@ -1,5 +1,5 @@
 {
- "generado": "2026-11-12",
+ "generado": "2026-11-17",
  "fuente": "INVENTARIO_COMPONENTES.csv + correcciones de la auditoría (Fase 0)",
  "tamanos": [
   480,
@@ -10,12 +10,12 @@
   {
    "id": "abatible",
    "nombre": "Abatible",
-   "piezas": 27
+   "piezas": 28
   },
   {
    "id": "corrediza",
    "nombre": "Corrediza",
-   "piezas": 57
+   "piezas": 58
   },
   {
    "id": "vaiven",
@@ -293,9 +293,9 @@
    }
   },
   {
-   "id": "abatible-09-marco-exterior-110-5-30-m",
+   "id": "abatible-09-marco-exterior-110-5-80-m",
    "numero": "09",
-   "nombre": "Marco exterior 110, 5.30 m",
+   "nombre": "Marco exterior 110, 5.80 m",
    "familias": [
     "abatible",
     "corrediza"
@@ -309,16 +309,16 @@
    ],
    "imagen": {
     "480": {
-     "webp": "abatible-09-marco-exterior-110-5-30-m-480.webp",
-     "avif": "abatible-09-marco-exterior-110-5-30-m-480.avif"
+     "webp": "abatible-09-marco-exterior-110-5-80-m-480.webp",
+     "avif": "abatible-09-marco-exterior-110-5-80-m-480.avif"
     },
     "960": {
-     "webp": "abatible-09-marco-exterior-110-5-30-m-960.webp",
-     "avif": "abatible-09-marco-exterior-110-5-30-m-960.avif"
+     "webp": "abatible-09-marco-exterior-110-5-80-m-960.webp",
+     "avif": "abatible-09-marco-exterior-110-5-80-m-960.avif"
     },
     "1600": {
-     "webp": "abatible-09-marco-exterior-110-5-30-m-1600.webp",
-     "avif": "abatible-09-marco-exterior-110-5-30-m-1600.avif"
+     "webp": "abatible-09-marco-exterior-110-5-80-m-1600.webp",
+     "avif": "abatible-09-marco-exterior-110-5-80-m-1600.avif"
     }
    }
   },
@@ -2227,6 +2227,8 @@
    "numero": "",
    "nombre": "Perfil de aluminio \"H\", 6.50 m",
    "familias": [
+    "abatible",
+    "corrediza",
     "vaiven"
    ],
    "original": "03_COMPONENTES_ORIGINALES_ALTA_CALIDAD/VAIVEN/VAIVEN_ADICIONAL_PERFIL_H.png",
@@ -2235,6 +2237,8 @@
    ],
    "tipo": "perfiles",
    "pdf": [
+    "ABATIBLE.pdf",
+    "CORREDIZA.pdf",
     "VAIVEN.pdf"
    ],
    "imagen": {

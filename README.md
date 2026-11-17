@@ -56,6 +56,7 @@ Los 36 cuadros que avanzan con el scroll en la sección CDS del Inicio se dibuja
 ```bash
 npx vite --port 5199 &                                        # servidor de desarrollo (sirve lab/cds-secuencia.html)
 python3 scripts/render-cds-sequence.py --nuevo                # → public/img/inicio/cds/ y src/data/cds-secuencia.json
+python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
 ```
 
 Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.
@@ -137,6 +138,8 @@ src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scro
 src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
 src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista
 src/ui/cdsPage.js        CDS: comparador con corte del vidrio, prueba de humedad y luces KeyLED
+src/ui/vaivenPage.js     Vaivén: «Simular paso» (las hojas abren y regresan solas)
+src/home/scanner.js      Inicio: escáner de rayos X de las cuatro puertas (imágenes de scripts/render-escaner.py)
 src/styles/home.css      estilos del Inicio (solo se cargan ahí)
 src/data/contacto.json   correo, teléfono y WhatsApp de ST
 src/data/inicio-fotos.json, cds-instalaciones.json, cds-secuencia.json   fotos y secuencia generadas por los scripts

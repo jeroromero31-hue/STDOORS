@@ -198,3 +198,35 @@ Fuentes: vidrios, resistencia, argón y protección, del catálogo Legacy. Tempe
 Inicio 29/29 · encuadre de la entrada en todos los tamaños · abatible, corrediza 19/19, vaivén 23/23, CDS 20/20 · puntos de pieza 36/36 · componentes, industriales y sitio completos · iPhone Duo (3 formas y 9 páginas) · teléfonos · accesibilidad (axe) 0 fallas en las 9 páginas, escritorio y celular. Las pruebas de la CDS se ajustaron al comparador nuevo (pestañas, corte y protección 65/100/89 %).
 
 Corrección que salió en las pruebas: el vaho y la capa de "luces apagadas" de la CDS estorbaban al tomar la puerta o un producto con el puntero; ya no se pueden tocar.
+
+---
+
+# Fase 10G · Anotaciones de ST, escáner en el Inicio y todo pensado para el celular
+
+**Pedido:** pieza 09 de 5.80 m; vaivén semi aislante (con un enfoque igual de pro); perfil H de aluminio en todas las puertas; en la abatible, manguito roscado en vez de tapón blanco; bumper con su curva; bisagra de la abatible a su tamaño de pieza; Inicio al nivel de las páginas de puerta (con lo de rayos X); quitar el bajón de la CDS en el Inicio; Componentes y Cotizar al mismo nivel; prioridad al celular.
+
+## Correcciones de ST
+
+- **Pieza 09:** "Marco exterior 110, 5.80 m" (los PDF dicen 5.30 m; manda la corrección de ST). Cambia también su dirección en el catálogo.
+- **Perfil de aluminio "H", 6.50 m:** aparece en las tres puertas industriales del catálogo.
+- **Abatible:** los tapones blancos del marco pasan a ser **manguitos roscados** (pieza 21) como su foto: cabeza plana en "D" y el cuerpo metido en el marco (se ve en rayos X). El punto de pieza señala la 21.
+- **Bisagra de la abatible:** el suplemento que la sube al frente de la hoja ahora es del color del marco; la bisagra gris queda del tamaño de la pieza.
+- **Bumper de la vaivén:** ahora es la placa negra del catálogo, en las dos caras, que da la vuelta al canto de en medio con su curva, con tornillos arriba y del lado de la bisagra. Empieza después de la bisagra. Sigue cambiando a 150, 500 y 1000 mm con su cota.
+- **Vaivén semi aislante:** en el título de la página, la ficha, el Inicio y el listado. Su vista térmica es distinta: la hoja cerrada se ve más fresca que el muro y por las juntas y por abajo se cuela un hilo de aire frío (frena el frío, no lo sella). En ese paso hay un botón **Simular paso**: las hojas se abren de golpe, se quedan un momento y regresan solas al centro, pasándose un poco del otro lado; con la vista térmica se ve cuánto frío sale en un paso.
+
+## Inicio: escáner
+
+Sección nueva después de las tres puertas industriales: "Míralas por dentro". Las cuatro puertas pasan, una por una, bajo una línea de escaneo; arriba de la línea la puerta queda en rayos X sobre un plano técnico y se van señalando sus piezas con el número del catálogo (en la CDS, sus funciones). Botón para abrir esa puerta en 3D.
+
+Son imágenes de nuestros mismos modelos, dibujadas desde la misma cámara en normal y en rayos X (`scripts/render-escaner.py` con `lab/escaner.html`), en horizontal para computadora y en vertical para celular: en el teléfono no se carga 3D en esta sección. Las etiquetas se acomodan solas para no encimarse. Con "reducir movimiento", las cuatro puertas en rayos X una tras otra.
+
+## Fluidez en el celular
+
+- **CDS en el Inicio:** antes se decodificaban los 72 cuadros completos (en celular unos 190 MB de imagen en memoria) y el teléfono se trababa al llegar. Ahora se guardan los archivos comprimidos (~1 MB) y solo se decodifican, ya al tamaño de la pantalla, los 12 cuadros alrededor del que se ve.
+- **Vista térmica:** en teléfonos se dibuja a 30 cuadros por segundo (la corriente se ve igual y el teléfono se calienta menos). Medido: la vista térmica y los rayos X cuestan menos que la vista normal.
+- **Menú:** en celular ya no difumina lo de atrás (ese desenfoque se recalcula en cada cuadro del scroll).
+
+## Componentes y Cotizar
+
+- **Componentes:** botón "Ver en rayos X". Cada foto pasa a un plano azul con una línea de escaneo (una tras otra) y, si el nombre trae medida (5.80 m, 68 mm, 4.50 m…), aparece con su línea de cota. Las tarjetas de puerta muestran el render en rayos X de esa puerta. La elección se recuerda al cambiar de página.
+- **Cotizar:** "Plano de tu solicitud" con puertas, piezas y unidades que cuentan al cambiar, y cada producto con su miniatura en rayos X (la puerta o la pieza). En celular, cantidad y "Quitar" van bajo el nombre.
