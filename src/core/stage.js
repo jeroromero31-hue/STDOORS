@@ -5,8 +5,10 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 
 export const QUALITY = {
   alta: { pixelRatio: 2, minPixelRatio: 1.5, shadows: true, shadowMap: 2048 },   // en pantallas de densidad 1 se dibuja a 1.5×: los cantos finos dejan de verse a trazos
-  media: { pixelRatio: 1.5, shadows: true, shadowMap: 1024 },
-  baja: { pixelRatio: 1, shadows: false, shadowMap: 512 },
+  // Fase 10I · en celular ya no se baja tanto: «media» dibuja a 2× (las pantallas de teléfono son de 2× o 3×) y «baja»
+  // a 1.5× en vez de 1×; con la escena quieta se dibuja un cuadro más nítido (ver «nitidez en reposo»)
+  media: { pixelRatio: 2, minPixelRatio: 1.25, shadows: true, shadowMap: 1024 },
+  baja: { pixelRatio: 1.5, shadows: false, shadowMap: 512 },
 };
 
 export function webglAvailable() {
@@ -16,9 +18,12 @@ export function webglAvailable() {
 export function guessQuality() {
   const q = new URLSearchParams(location.search).get('calidad');
   if (QUALITY[q]) return q;
+  // Fase 10I · Safari no informa la memoria y en iPhone reporta pocos núcleos: eso ya no manda un teléfono capaz a «baja».
+  // Solo baja de entrada con memoria informada de 2 GB o menos; si luego no va fluido, la calidad adaptativa baja un nivel.
   const coarse = matchMedia('(pointer: coarse)').matches, mem = navigator.deviceMemory || 8, cores = navigator.hardwareConcurrency || 8;
-  if (mem <= 3 || cores <= 4) return 'baja';
-  return coarse ? 'media' : 'alta';
+  if (mem <= 2) return 'baja';
+  if (coarse) return 'media';
+  return mem <= 3 || cores <= 4 ? 'media' : 'alta';
 }
 
 // Entorno de estudio propio: sala gris clara y neutra (sin tinte) con bandas de luz largas (dan lectura al metal cepillado).
@@ -81,8 +86,17 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   scene.add(key, new THREE.HemisphereLight(0xffffff, 0xbdbdbd, 0.3));
 
   const stage = { renderer, scene, camera, controls, key, canvas, container, quality, onFrame: new Set(), afterFrame: new Set() };
+  // nitidez en reposo: con la escena quieta se dibuja un cuadro a la densidad de la pantalla (hasta 2.5×) y al moverse
+  // se regresa a la del nivel de calidad. Así lo que se mira de cerca se ve nítido y al girar sigue fluido.
+  const baseRatio = () => { const Q = QUALITY[stage.quality]; return Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio); };
+  const idleRatio = () => Math.min(devicePixelRatio || 1, 2.5);
+  let sharp = false;
+  stage.setSharp = (on) => {
+    on = on && idleRatio() > baseRatio() + 0.05; if (on === sharp) return false;
+    sharp = on; renderer.setPixelRatio(on ? idleRatio() : baseRatio()); resize(); return true;
+  };
   stage.setQuality = (q) => {
-    stage.quality = q; const Q = QUALITY[q];
+    stage.quality = q; const Q = QUALITY[q]; sharp = false;
     renderer.setPixelRatio(Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio));
     renderer.shadowMap.enabled = Q.shadows; key.castShadow = Q.shadows; key.shadow.mapSize.set(Q.shadowMap, Q.shadowMap);
     if (key.shadow.map) { key.shadow.map.dispose(); key.shadow.map = null; }
@@ -138,7 +152,7 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   // Calidad adaptativa (Fase 8): mientras se dibuja de corrido se mide el tiempo entre cuadros; si la mediana de 16 pasa
   // de 50 ms (menos de 20 cuadros por segundo) se baja un nivel. Nunca si la calidad se fijó con ?calidad=.
   const forced = !!QUALITY[new URLSearchParams(location.search).get('calidad')], lower = { alta: 'media', media: 'baja' };
-  let samples = [], prevDrawn = false, skipped = 0;
+  let samples = [], prevDrawn = false, skipped = 0, lastChange = 0;
   const adapt = (interval) => {
     if (forced || !lower[stage.quality]) return;
     samples.push(interval); if (samples.length < 16) return;
@@ -154,11 +168,16 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
     controls.update();
     scene.updateMatrixWorld(); camera.updateMatrixWorld();
     stage.afterFrame.forEach((f) => f(dt, t));                // capas en pantalla que siguen al 3D: con la cámara ya final
-    const s2 = signature(), why = warm > 0 && t < warmUntil ? 'inicio' : s2 !== sig ? 'cambio' : t - lastDraw > 1000 && skipped >= 3 ? 'seguridad' : '', draw = !!why;
+    let s2 = signature();
+    // nitidez en reposo: al cambiar algo se regresa a la densidad normal; 450 ms quieta, un cuadro nítido
+    if (s2 !== sig && sharp) { stage.setSharp(false); s2 = signature(); }
+    if (s2 === sig && !sharp && warm <= 0 && t - lastChange > 450 && stage.setSharp(true)) { s2 = signature(); sig = NaN; stage.whyDrawn.nitidez = (stage.whyDrawn.nitidez || 0) + 1; }
+    if (s2 !== sig) lastChange = t;
+    const why = warm > 0 && t < warmUntil ? 'inicio' : s2 !== sig ? 'cambio' : t - lastDraw > 1000 && skipped >= 3 ? 'seguridad' : '', draw = !!why;
     if (draw) stage.whyDrawn[why] = (stage.whyDrawn[why] || 0) + 1;
     if (warm > 0) warm--;
     if (draw) {
-      if (prevDrawn) adapt(interval);
+      if (prevDrawn && !sharp) adapt(interval);
       renderer.render(scene, camera); sig = s2; lastDraw = performance.now(); stage.frames++;   // desde que terminó de dibujar
     }
     prevDrawn = draw; skipped = draw ? 0 : skipped + 1;   // con GPU muy lenta el intervalo pasa de 1 s aunque no se dibuje

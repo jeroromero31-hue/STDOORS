@@ -2,7 +2,7 @@
 // El contenido vive en el HTML; aquí solo va el comportamiento.
 import { Raycaster } from 'three';
 import '../styles/door.css';
-import { mountSite, solicitud, toast, url } from './site.js';
+import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS } from './site.js';
 import { partPicture } from './picture.js';
 import { createStage } from '../core/stage.js';
 import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
@@ -18,7 +18,24 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 export function mountDoorPage({ familia, nombre, createViewer, poster, section = 'industriales', extend = null }) {
+  document.body.dataset.door = familia;
   mountSite(section);
+  // Fase 10I · cambiar de puerta sin pasar por el menú: el nombre de la puerta en la barra de secciones abre las cuatro
+  // puertas; al final de la página, «Otras puertas»
+  {
+    const me = DOORS.find((d) => d.id === familia), nameEl = $('.subnav__name');
+    if (me && nameEl) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'subnav__switch'; b.setAttribute('aria-haspopup', 'dialog');
+      b.setAttribute('aria-label', `${nameEl.textContent}. Cambiar de puerta`);
+      b.innerHTML = `${familia === 'cds' ? '' : '<span class="subnav__pre">Puerta </span>'}${familia === 'cds' ? me.nombre : me.nombre.toLowerCase()}<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      nameEl.replaceWith(b);
+      const sh = createSheet('Cambiar de puerta'); sh.meta.textContent = 'Cambiar de puerta'; sh.el.classList.add('sheet--doors');
+      sh.body.innerHTML = doorCards(familia, { cls: 'dcards dcards--sheet' }) + `<p class="t-small" style="margin-top:16px"><a class="link" href="${url('industriales/')}">Comparar las puertas industriales</a></p>`;
+      b.onclick = () => sh.open();
+    }
+    const main = $('main');
+    if (main && me) main.insertAdjacentHTML('beforeend', `<section class="wrap door-more" aria-labelledby="doorMoreT"><h2 id="doorMoreT" class="t-h3">Otras puertas</h2>${doorCards(familia, { cls: 'dcards dcards--more', only: DOORS.filter((d) => d.id !== familia).map((d) => d.id) })}</section>`);
+  }
   const door = $('.door'), viewerEl = $('#viewer');
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
@@ -48,6 +65,14 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     // los modelos que se descargan avisan cuando están listos; si fallan, queda la imagen fija
     if (viewer.ready) {
       viewerEl.classList.add('is-loading');
+      // Fase 10I · mientras baja el modelo: la foto de la puerta, difuminada, y una barra con el avance
+      const ph = document.createElement('div'); ph.className = 'viewer__ph'; ph.setAttribute('aria-hidden', 'true');
+      ph.innerHTML = `<img src="${url(poster)}" alt="" decoding="async"><span class="viewer__load"><span>Cargando la puerta en 3D</span><i><b></b></i></span>`;
+      viewerEl.append(ph);
+      const onP = (e) => ph.style.setProperty('--k', Math.max(0, Math.min(1, +e.detail || 0)).toFixed(3));
+      addEventListener('st:model-progress', onP);
+      const done = () => { removeEventListener('st:model-progress', onP); ph.style.setProperty('--k', 1); ph.classList.add('is-done'); setTimeout(() => ph.remove(), 900); };
+      viewer.ready.then(done, done);
       viewer.ready.then(() => viewerEl.classList.remove('is-loading'), (err) => {
         console.error(err); stage.renderer.setAnimationLoop(null);
         viewerEl.classList.remove('is-loading'); viewerEl.innerHTML = `<div class="viewer__fallback">${still('No se pudo cargar el modelo 3D.')}</div>`;
@@ -68,11 +93,16 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
 
     // encuadre en lo que dejan libre las tarjetas (computadora)
     const holder = $('.door__viewer');
+    // Fase 10I · en un plegable abierto en dos pantallas, la puerta queda entera en la de la derecha (más allá de la bisagra)
+    const spanQ = matchMedia('(horizontal-viewport-segments: 2)');
+    const probe = document.createElement('i'); probe.style.cssText = 'position:fixed;left:0;top:0;width:env(viewport-segment-left 1 0, 0px);height:0;visibility:hidden;pointer-events:none';
+    document.body.append(probe);
     const fitInset = () => {
-      if (!wide.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
-      const v = viewerEl.getBoundingClientRect(), right = Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
-      const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
+      if (!wide.matches && !spanQ.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
+      const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
+      const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(spanQ.matches ? 0.6 : 0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
     };
+    spanQ.addEventListener('change', fitInset);
     fitInset(); new ResizeObserver(fitInset).observe(viewerEl);
     // lectura en vivo: apertura de la hoja en grados (o recorrido, en la corrediza)
     const ro = document.createElement('p'); ro.className = 'readout'; ro.setAttribute('aria-hidden', 'true');

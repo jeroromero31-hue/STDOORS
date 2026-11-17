@@ -23,6 +23,7 @@ const BR = 0.0195;                       // radio del barril
 const PX = -W / 2 + 0.0055;              // eje de bisagra en x: sobre el borde de la placa de la hoja
 const LIP = 0.0085;                      // fondo del labio de aluminio de la hoja: la placa de la hoja va encima
 const PZ = ZF + LIP + HP.t + BR;         // eje de bisagra en z: el barril apoya en la placa
+const ZR = ZF + LIP, GAP = 0.005;        // frente del marco alrededor de la hoja (mismo plano que las placas) y holgura
 const BUMPER_TOP = 0.92;                 // altura del bumper del modelo base
 export const ABATIBLE = { W, H, T, PX, PZ, ZF, ZB, OW, OH, FD, MAX_OPEN: 95 };
 
@@ -52,6 +53,11 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     frameMeshes.push(add(frame, new THREE.BoxGeometry(0.012, OH, 0.16), R.hygienicWhite, -OW / 2 + 0.006, OH / 2, -0.08));
     frameMeshes.push(add(frame, new THREE.BoxGeometry(0.012, OH, 0.16), R.hygienicWhite, OW / 2 - 0.006, OH / 2, -0.08));
     frameMeshes.push(add(frame, new THREE.BoxGeometry(OW, 0.012, 0.16), R.hygienicWhite, 0, OH - 0.006, -0.08));
+    // Fase 10I · el marco rodea la hoja hasta su frente (como en la foto de referencia de la abatible): por fuera de la hoja
+    // sube hasta el plano de su perfil de aluminio, así la bisagra va pegada al marco y a la hoja, sin suplemento
+    const RW = OW / 2 + FW - (W / 2 + GAP), RT = OH + FW - (YT + GAP);
+    for (const s of [-1, 1]) frameMeshes.push(add(frame, rbox(RW, OH + FW, ZR - FD, 0.004), R.hygienicWhite, s * (W / 2 + GAP + RW / 2), (OH + FW) / 2, (FD + ZR) / 2));
+    frameMeshes.push(add(frame, rbox(OW + 2 * FW, RT, ZR - FD, 0.004), R.hygienicWhite, 0, YT + GAP + RT / 2, (FD + ZR) / 2));
     // manguitos roscados para marco (pieza 21, como la foto): cabeza plana en "D" sobre la cara del marco y el cuerpo
     // metido en el marco (se ve en «Rayos X»)
     const sleeveHead = (() => {
@@ -60,14 +66,14 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       return new THREE.ExtrudeGeometry(sh, { depth: 0.0016, bevelEnabled: true, bevelThickness: 0.0011, bevelSize: 0.0011, bevelSegments: 3, curveSegments: 28 });
     })();
     const sleeveBody = new THREE.CylinderGeometry(0.0062, 0.0062, 0.034, 20).rotateX(Math.PI / 2).translate(0, 0, -0.017);
-    const vx = (W / 2 + OW / 2 + FW) / 2;
+    const vx = (W / 2 + GAP + OW / 2 + FW) / 2;
     const plugMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f2, roughness: 0.42 });
     const sleeve = (x, y, rot) => {
-      const g = new THREE.Group(); g.position.set(x, y, FD); g.rotation.z = rot; g.name = 'ManguitoRoscado'; frame.add(g);
+      const g = new THREE.Group(); g.position.set(x, y, ZR); g.rotation.z = rot; g.name = 'ManguitoRoscado'; frame.add(g);
       add(g, sleeveHead, plugMat, 0, 0, 0.0011, { shadow: false }); add(g, sleeveBody, plugMat, 0, 0, 0, { shadow: false });
     };
     for (const s of [-1, 1]) for (const y of [0.32, 1.02, 1.72]) sleeve(s * vx, y, s < 0 ? 0 : Math.PI);   // lo plano hacia el hueco
-    for (const x of [-0.25, 0.25]) sleeve(x, YT + (OH + FW - YT) / 2 + 0.002, -Math.PI / 2);
+    for (const x of [-0.25, 0.25]) sleeve(x, YT + GAP + (OH + FW - YT - GAP) / 2, -Math.PI / 2);
     // contrapieza del cerrojo: en el canto del marco, queda cubierta por la hoja cerrada (como en la foto)
     add(frame, rbox(0.016, 0.078, 0.046, 0.005), R.plasticGray, OW / 2 - 0.008 - 0.012, LK.y0 + LK.H - 0.045, 0.030);
     add(frame, rbox(0.006, 0.040, 0.030, 0.002), R.steelHardware, OW / 2 - 0.008 - 0.021, LK.y0 + LK.H - 0.045, 0.030);
@@ -170,8 +176,8 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     s0.absarc(-w / 2 + r, h / 2 - r, r, Math.PI / 2, Math.PI); s0.lineTo(-w / 2, -h / 2 + r); s0.absarc(-w / 2 + r, -h / 2 + r, r, Math.PI, Math.PI * 1.5);
     return new THREE.ExtrudeGeometry(s0, { depth: HP.t - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 3, curveSegments: 10 }).translate(0, 0, 0.0015);
   };
-  // Las dos placas quedan en un mismo plano, como en la foto: la del marco va sobre un suplemento que la sube hasta el
-  // frente de la hoja (la hoja está 108 mm por delante de la cara del marco).
+  // Las dos placas quedan en un mismo plano, como en la foto: la del marco va directo sobre el frente del marco (que
+  // rodea la hoja a su misma altura) y la de la hoja sobre su perfil.
   const XL = -0.531, ZP = ZF + LIP + HP.t, RA = BR - 0.001, XC = PX - 0.0055;   // XC: hasta aquí el brazo baja a la placa
   const arm = (hgt) => {
     const sh = new THREE.Shape(), zc = PZ - Math.sqrt(RA * RA - (XC - PX) ** 2), a0 = Math.atan2(zc - PZ, XC - PX);
@@ -182,7 +188,7 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   };
   const hingeYs = [0.30, 1.74];
   const hingeParts = [];
-  const hingeMat = R.plasticBlack;                          // Fase 10H: negra, como el cerrojo (indicación de ST)
+  const hingeMat = R.plasticGray;                           // gris, como la foto de la pieza 30 (indicación de ST, 10I)
   const seamMat = new THREE.MeshStandardMaterial({ color: 0x55595d, roughness: 0.7 });
   // despiece en el plano de la vista «bisagra»: d = a la derecha en pantalla, u = arriba, c = hacia la cámara
   const SR = new THREE.Vector3(0.79, 0, 0.61), SC = new THREE.Vector3(-0.6, 0.2, 0.78);
@@ -192,8 +198,6 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     const moving = new THREE.Group(); moving.position.set(0, hy, 0); moving.name = 'BisagraMovil'; leaf.add(moving);
     const part = (m, dx, dy, dz) => { if (k === 1) hingeParts.push({ m, home: m.position.clone(), dir: new THREE.Vector3(dx, dy, dz) }); return m; };
     // placas: la del marco sobre su cara, la de la hoja sobre la cara frontal (pegada al canto)
-    // suplemento: del color del marco, para que se lea como parte del marco y la bisagra conserve su tamaño de pieza
-    frameMeshes.push(add(fixed, rbox(HP.w + 0.006, HP.h + 0.006, ZF + LIP - FD, 0.006), R.hygienicWhite, -0.527, 0, (FD + ZF + LIP) / 2));
     part(add(fixed, plate(), hingeMat, -0.527, 0, ZF + LIP), ...ex(-0.05, 0, 0));
     part(add(moving, plate(), hingeMat, -W / 2 + 0.0255, 0, ZF + LIP), ...ex(0.075, 0, 0));
     // cuerpo en "C": brazo superior grueso, brazo inferior delgado y la columna entre ambos
@@ -248,8 +252,8 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       { numero: '30', parent: frame, position: V(PX - 0.012, hingeYs[1] + 0.05, PZ + RA) },
       { numero: '27', parent: leaf, position: V(LK.x, LK.y0 + LK.H * 0.5, ZF + LK.D) },
       { numero: '11', parent: leaf, position: V(W / 2 - 0.035, 1.55, ZB - 0.012) },
-      { numero: '09', parent: frame, position: V(-(OW / 2 + FW - 0.02), 1.25, FD) },
-      { numero: '21', parent: frame, position: V((W / 2 + OW / 2 + FW) / 2, 1.72, FD + 0.006) },
+      { numero: '09', parent: frame, position: V(-(OW / 2 + FW - 0.02), 1.25, ZR) },
+      { numero: '21', parent: frame, position: V((W / 2 + GAP + OW / 2 + FW) / 2, 1.72, ZR + 0.006) },
     ],
     views: {
       general: (st) => { const d = st.fitDistance(1.6, 2.2, 1.1); return { pos: [d * 0.42, 1.18, d * 0.91], tgt: [0.02, 1.02, 0.1] }; },

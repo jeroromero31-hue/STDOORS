@@ -96,6 +96,30 @@
    "img": "img/flotantes/corrediza-42-apoyo-gancho-cierre.webp",
    "w": 251,
    "h": 520
+  },
+  {
+   "id": "abatible-11-empaque-perimetral-de-refrigeracion",
+   "img": "img/flotantes/abatible-11-empaque-perimetral-de-refrigeracion.webp",
+   "w": 520,
+   "h": 336
+  },
+  {
+   "id": "corrediza-58-riel-guia-inferior-de-aluminio-7-00-m",
+   "img": "img/flotantes/corrediza-58-riel-guia-inferior-de-aluminio-7-00-m.webp",
+   "w": 520,
+   "h": 390
+  },
+  {
+   "id": "corrediza-72-calcomania-para-palanca-interior-izquierda",
+   "img": "img/flotantes/corrediza-72-calcomania-para-palanca-interior-izquierda.webp",
+   "w": 520,
+   "h": 386
+  },
+  {
+   "id": "vaiven-06-bumper-de-150-mm",
+   "img": "img/flotantes/vaiven-06-bumper-de-150-mm.webp",
+   "w": 520,
+   "h": 253
   }
  ]
 }

@@ -7,6 +7,8 @@ import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
 import { intro, splitLines, revealOnView, playLines } from '../ui/cine.js';
 import vaivenBin from '../models/vaiven.bin?url';
+import vaivenBinz from '../models/vaiven.binz?url';
+import { modelRequest } from '../core/modelLoad.js';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 
@@ -48,7 +50,7 @@ const load = {
 };
 if (glOk) {
   // el modelo (1.2 MB) empieza a bajar ya, junto con el JavaScript del 3D, no cuando este termina de llegar
-  const response = fetch(vaivenBin);
+  const response = modelRequest({ z: vaivenBinz, raw: vaivenBin });
   if (!reducedMotion()) hx.classList.add('hx--live');           // la sección se alarga: el scroll abre la puerta
   // el texto se reparte con el avance: el título se va, el velo azul marino llega al cruzar
   if (!reducedMotion()) track(hx, (p) => {

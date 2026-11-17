@@ -333,3 +333,9 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Corrediza, manija:** en vez de la palanca externa grande (pieza 64) se muestra la manija externa fija chica (pieza 39: dos bloques negros con un tubo de acero), que es la que más se pide. La palanca sigue en el catálogo de Componentes. El punto de pieza de la 39 está sobre la manija.
 - **Corrediza, guía de abajo:** el brazo negro sale de una placa en el canto, pasa por debajo del riel y el perno sube hacia el riel (en el modelo base el soporte colgaba hacia abajo).
 - **Las fotos del escáner del Inicio** se volvieron a dibujar con estos cambios.
+
+## Fase 10I
+
+- **Abatible:** el marco rodea la hoja hasta el plano de su perfil de aluminio (por fuera de la hoja), para que la bisagra vaya pegada al marco y a la hoja sin suplemento (indicación de ST). La bisagra vuelve a gris.
+- **Corrediza:** la manija externa fija (39) se modeló según la foto de ST y va sobre la cara de la hoja; la palanca de 68 mm (64) del modelo base es una opción. La barra de acero de la palanca, que el modelo base traía dentro de la malla de la lámina de la hoja, se separó en `door/steel/8-palanca` (mismos triángulos).
+- **Modelos:** además del `.bin` original se publica una copia gzip (`.binz`) que el navegador descomprime y verifica contra el manifiesto; los datos no cambian.

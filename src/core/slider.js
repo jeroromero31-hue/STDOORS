@@ -73,10 +73,11 @@ export function attachTap(stage, pick, onTap) {
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   let down = null;
   const setRay = (e) => { const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); };
-  canvas.addEventListener('pointerdown', (e) => { if (e.button > 0) return; setRay(e); down = pick(ray) ? { x: e.clientX, y: e.clientY, t: performance.now() } : null; });
+  // el tiempo del toque se mide con la hora de los eventos (no con la hora en que se atienden): un cuadro pesado no lo vuelve arrastre
+  canvas.addEventListener('pointerdown', (e) => { if (e.button > 0) return; setRay(e); down = pick(ray) ? { x: e.clientX, y: e.clientY, t: e.timeStamp } : null; });
   canvas.addEventListener('pointerup', (e) => {
     if (!down) return; const d = down; down = null;
-    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6 && performance.now() - d.t < 500) onTap();
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 6 && e.timeStamp - d.t < 500) onTap();
   });
   canvas.addEventListener('pointercancel', () => { down = null; });
 }

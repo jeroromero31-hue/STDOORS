@@ -1,7 +1,7 @@
 """Escáner del Inicio: cada puerta, normal y en rayos X, desde la misma cámara; en horizontal y en vertical.
 Uso (con el servidor de desarrollo corriendo:  npx vite --port 5199):
     python3 scripts/render-escaner.py [--base http://localhost:5199]
-Escribe public/img/inicio/escaner/<puerta>-<formato>-<modo>.webp y src/data/escaner.json (posiciones de las etiquetas)."""
+Escribe public/img/inicio/escaner/<puerta>-<formato>-<modo>.webp, src/data/escaner.json (posiciones de las etiquetas)\ny las fotos de cada puerta public/img/puertas/<puerta>.webp y <puerta>-480.webp."""
 import argparse, asyncio, io, json, os
 from PIL import Image
 from playwright.async_api import async_playwright
@@ -32,8 +32,19 @@ async def main(base, solo=None):
                     await pg.close()
             data['puertas'].append(entry)
         await b.close()
+    posters(solo)
     if solo: print(json.dumps(data, ensure_ascii=False)[:1500]); return
     with open(os.path.join(ROOT, 'src', 'data', 'escaner.json'), 'w') as f: json.dump(data, f, ensure_ascii=False, indent=1)
+
+# Fase 10I · las fotos de cada puerta (Industriales, menú, carga del 3D) salen del mismo render: 4:3 y miniatura de 480
+CROP = {'abatible': 60, 'corrediza': 40, 'vaiven': 50, 'cds': 50}
+def posters(solo=None):
+    out = os.path.join(ROOT, 'public', 'img', 'puertas')
+    for pid, y in CROP.items():
+        if solo and pid not in solo: continue
+        im = Image.open(os.path.join(OUT, f'{pid}-ancho-normal.webp')).convert('RGB').crop((0, y, 1200, y + 900))
+        im.save(os.path.join(out, f'{pid}.webp'), 'WEBP', quality=80, method=6)
+        im.resize((480, 360), Image.LANCZOS).save(os.path.join(out, f'{pid}-480.webp'), 'WEBP', quality=78, method=6)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(); ap.add_argument('--base', default='http://localhost:5199'); ap.add_argument('--solo', nargs='*')

@@ -54,8 +54,26 @@ function seo() {
   };
 }
 
+// Fase 10I · el modelo 3D empieza a bajar junto con el JavaScript: <link rel="preload"> al .binz de cada puerta
+// (y al de la vaivén en el Inicio). Solo en el build, cuando ya se conoce el nombre con su huella.
+const PRELOAD = { 'industriales/corrediza/': 'corrediza', 'industriales/vaiven/': 'vaiven', '': 'vaiven' };
+function preloadModels() {
+  return {
+    name: 'st-preload-models',
+    enforce: 'post',
+    transformIndexHtml(html, ctx) {
+      if (!ctx.bundle) return html;
+      const route = ctx.path.replace(/index\.html$/, '').replace(/^\//, ''), m = PRELOAD[route];
+      if (m === undefined) return html;
+      const asset = Object.keys(ctx.bundle).find((k) => new RegExp(`^assets/${m}-[^/]+\\.binz$`).test(k));
+      if (!asset) return html;
+      return { html, tags: [{ tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: BASE + asset, crossorigin: 'anonymous', fetchpriority: 'high' }, injectTo: 'head' }] };
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [seo()],
+  plugins: [seo(), preloadModels()],
   // Para publicar en una subcarpeta (p. ej. GitHub Pages): VITE_BASE=/nombre-repo/ npm run build
   base: process.env.VITE_BASE || '/',
   build: { rollupOptions: { input: htmlEntries() }, chunkSizeWarningLimit: 800 },

@@ -55,8 +55,8 @@ Los 36 cuadros que avanzan con el scroll en la sección CDS del Inicio se dibuja
 
 ```bash
 npx vite --port 5199 &                                        # servidor de desarrollo (sirve lab/cds-secuencia.html)
-python3 scripts/render-cds-sequence.py --nuevo                # → scripts/fuentes/cds-secuencia/ (36 cuadros, fuente del video)
-python3 scripts/build-cds-video.py                          # → public/video/cds-*.mp4/.webm, carteles y src/data/cds-secuencia.json (ffmpeg)
+python3 scripts/render-cds-video.py --nuevo                  # → public/video/cds-*.mp4/.webm (96 cuadros reales a 30 por segundo), carteles y src/data/cds-secuencia.json (ffmpeg)
+node scripts/comprimir-modelos.mjs                          # → src/models/*.binz (gzip de cada .bin; se descarga 4 a 6 veces menos)
 python3 scripts/build-flotantes.py                          # → public/img/flotantes/ (recortes de piezas) y src/data/flotantes.json
 python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
 ```

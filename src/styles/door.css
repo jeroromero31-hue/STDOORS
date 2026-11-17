@@ -5,6 +5,16 @@
 .subnav a { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-height: var(--tap); min-width: var(--tap); white-space: nowrap; text-decoration: none; font-size: var(--t-sm); font-weight: var(--w-medium); color: var(--c-ink-soft); border-bottom: 2px solid transparent; }
 .subnav a[aria-current=true] { color: var(--c-ink); border-color: var(--c-navy); }
 @media (max-width: 640px) { .subnav__name { display: none; } }
+/* Fase 10I · cambio de puerta desde la barra de secciones */
+.subnav__switch { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; min-height: var(--tap); margin-right: auto; padding: 0 12px 0 14px; border: 1.5px solid var(--c-line); border-radius: 999px;
+  background: var(--c-white); font: inherit; font-size: var(--t-sm); font-weight: var(--w-bold); color: var(--c-ink); cursor: pointer; white-space: nowrap; }
+.subnav__switch:hover { border-color: var(--c-navy); }
+.subnav__switch svg { width: 12px; height: 12px; }
+@media (max-width: 640px) { .subnav__pre { display: none; } .subnav__switch { text-transform: capitalize; } }
+.dcards--sheet { margin-top: 8px; }
+.door-more { padding-block: var(--s-6) var(--section-y); display: grid; gap: var(--s-4); }
+.dcards--more { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 640px) { .dcards--more { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dcards--more li:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 
 .door { --top: 121px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 36%); background: var(--c-wall); color: var(--c-ink); transition: background var(--d-mode), color var(--d-mode); }
 .door.is-inside { background: var(--c-navy); color: var(--c-on-navy); --c-ink-soft: var(--c-on-navy-soft); --c-line: var(--c-line-navy); }

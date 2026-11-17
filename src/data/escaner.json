@@ -28,14 +28,14 @@
      {
       "numero": "09",
       "nombre": "Marco exterior 110, 5.80 m",
-      "x": 0.3475,
-      "y": 0.4232
+      "x": 0.3297,
+      "y": 0.4243
      },
      {
       "numero": "21",
       "nombre": "Manguito roscado para marco",
-      "x": 0.6613,
-      "y": 0.2403
+      "x": 0.6496,
+      "y": 0.2373
      }
     ],
     "alto": [
@@ -60,14 +60,14 @@
      {
       "numero": "09",
       "nombre": "Marco exterior 110, 5.80 m",
-      "x": 0.2479,
-      "y": 0.421
+      "x": 0.2182,
+      "y": 0.4221
      },
      {
       "numero": "21",
       "nombre": "Manguito roscado para marco",
-      "x": 0.7667,
-      "y": 0.2314
+      "x": 0.7476,
+      "y": 0.2281
      }
     ]
    }
@@ -111,8 +111,8 @@
      {
       "numero": "39",
       "nombre": "Manija externa fija",
-      "x": 0.1467,
-      "y": 0.6728
+      "x": 0.1457,
+      "y": 0.6527
      },
      {
       "numero": "58",
@@ -155,8 +155,8 @@
      {
       "numero": "39",
       "nombre": "Manija externa fija",
-      "x": 0.1383,
-      "y": 0.6063
+      "x": 0.1355,
+      "y": 0.5942
      },
      {
       "numero": "58",

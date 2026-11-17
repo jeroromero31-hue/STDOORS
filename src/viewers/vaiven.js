@@ -6,6 +6,8 @@
 import * as THREE from 'three';
 import manifest from '../models/vaiven.json';
 import binUrl from '../models/vaiven.bin?url';
+import binzUrl from '../models/vaiven.binz?url';
+import { loadModel } from '../core/modelLoad.js';
 import logoUrl from '../models/logo-hoja.png';
 import { createRig, VAIVEN, axisLocal, widenFrame, splitPieces } from './vaiven.rig.js';
 import { Hinge, hingeMotion } from '../core/hinge.js';
@@ -90,8 +92,7 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
   stage.onFrame.add((dt) => hinges.forEach((h) => h.update(dt)));
 
   // ---------- geometría ----------
-  const ready = (response || fetch(binUrl)).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return readBody(r, manifest.formato.bytes, onProgress); }).then((buf) => {
-    if (buf.byteLength !== manifest.formato.bytes) throw new Error('El modelo llegó incompleto');
+  const ready = loadModel({ z: binzUrl, raw: binUrl, bytes: manifest.formato.bytes, onProgress, response }).then((buf) => {
     for (const [i, grupo, material, nv, ni, po, no, io] of manifest.mallas) {
       if (OMIT.has(`${grupo}/${material}`)) continue;
       const geo = new THREE.BufferGeometry();
@@ -317,16 +318,4 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       bumper: (st) => { const h = 0.17 + (bNow.mm - 150) / 1000; return frameBox(st, [-1.12, bNow.center - h / 2 - 0.16, 0, -0.04, bNow.center + h / 2 + 0.16, 0.08], -0.35, 0.08, 1.1); },
     },
   };
-}
-
-// Lee la respuesta por partes para poder avisar el avance; sin aviso que dar, la lee de una vez.
-async function readBody(r, total, onProgress) {
-  if (!onProgress || !r.body || !r.body.getReader) return r.arrayBuffer();
-  const out = new Uint8Array(total), reader = r.body.getReader(); let n = 0;
-  for (;;) {
-    const { done, value } = await reader.read(); if (done) break;
-    if (n + value.length > total) throw new Error('El modelo llegó con más datos de los esperados');
-    out.set(value, n); n += value.length; onProgress(n / total);
-  }
-  return n === total ? out.buffer : out.buffer.slice(0, n);
 }

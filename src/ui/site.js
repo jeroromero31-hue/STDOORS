@@ -20,6 +20,19 @@ const NAV = [
   { href: 'cds/', label: 'CDS', key: 'cds' },
   { href: 'componentes/', label: 'Componentes', key: 'componentes' },
 ];
+// Fase 10I · las cuatro puertas, para el menú, el cambio rápido de puerta y «otras puertas»
+export const DOORS = [
+  { id: 'abatible', href: 'industriales/abatible/', nombre: 'Abatible', desc: 'Gira sobre sus bisagras' },
+  { id: 'corrediza', href: 'industriales/corrediza/', nombre: 'Corrediza', desc: 'Corre colgada del riel' },
+  { id: 'vaiven', href: 'industriales/vaiven/', nombre: 'Vaivén', desc: 'Semi aislante, abre a los dos lados' },
+  { id: 'cds', href: 'cds/', nombre: 'CDS Legacy', desc: 'Exhibición Reach-In, por juego' },
+];
+// tarjetas de puerta: foto, nombre y una línea; la actual queda marcada
+export function doorCards(current = '', { cls = 'dcards', only = null } = {}) {
+  return `<ul class="${cls}">${DOORS.filter((d) => !only || only.includes(d.id)).map((d, i) => `<li style="--i:${i}"><a class="dcard${d.id === current ? ' is-here' : ''}" href="${url(d.href)}"${d.id === current ? ' aria-current="page"' : ''}>
+      <span class="dcard__img"><img src="${url(`img/puertas/${d.id}-480.webp`)}" alt="" width="480" height="360" loading="lazy" decoding="async"></span>
+      <span class="dcard__t"><b>${d.id === 'cds' ? d.nombre : 'Puerta ' + d.nombre.toLowerCase()}</b> <span>${d.id === current ? 'Estás aquí' : d.desc}</span></span></a></li>`).join('')}</ul>`;
+}
 
 // ---------- Mi solicitud: puertas y piezas para cotizar ----------
 const KEY = 'st.solicitud.v1';
@@ -74,6 +87,25 @@ export function createSheet(label) {
   return api;
 }
 
+// ---------- Fase 10I · plegables (Duo): al plegar o desplegar, la pantalla se cierra y se abre como una puerta vaivén ----------
+// Un cambio brusco de ancho (más de 22 % de una vez: plegar, desplegar o girar el teléfono) tapa el reacomodo con dos hojas
+// azul marino que se juntan en la bisagra y vuelven a abrir. Cambiar el tamaño de una ventana arrastrando no lo dispara.
+function foldWatch() {
+  let lastW = innerWidth, t = 0;
+  addEventListener('resize', () => {
+    const w = innerWidth, jump = Math.abs(w - lastW) / Math.max(1, lastW); lastW = w;
+    if (jump < 0.22 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let fx = document.querySelector('.foldfx');
+    if (!fx) {
+      fx = document.createElement('div'); fx.className = 'foldfx'; fx.setAttribute('aria-hidden', 'true');
+      fx.innerHTML = `<i class="foldfx__l"></i><i class="foldfx__r"></i><img src="${url('img/marca/st-logo-blanco.png')}" alt="" width="120" height="49">`;
+      document.body.append(fx);
+    }
+    fx.classList.remove('is-on'); void fx.offsetWidth; fx.classList.add('is-on');
+    clearTimeout(t); t = setTimeout(() => fx.classList.remove('is-on'), 1100);
+  });
+}
+
 // ---------- marco de página ----------
 export function mountSite(page) {
   // los enlaces escritos en el HTML como "/ruta/" siguen funcionando si el sitio se publica en una subcarpeta
@@ -91,8 +123,36 @@ export function mountSite(page) {
     </div>`;
   const skip = document.createElement('a'); skip.className = 'skip'; skip.href = '#main'; skip.textContent = 'Ir al contenido';
   document.body.prepend(skip, header);
+  // Fase 10I · menú del celular: las cuatro puertas con su foto (un toque para llegar a cualquiera), Componentes, Cotizar
+  // con lo que llevas y el contacto. En computadora, al pasar por «Industriales» se despliegan las tres puertas.
+  const here = document.body.dataset.door || page;
+  const menu = document.createElement('div'); menu.className = 'menu'; menu.id = 'menu'; menu.hidden = true;
+  menu.innerHTML = `<div class="wrap menu__in">
+      <p class="menu__l">Puertas</p>
+      ${doorCards(here, { cls: 'dcards dcards--menu' })}
+      <ul class="menu__rows">
+        <li><a href="${url('industriales/')}"${page === 'industriales' ? ' aria-current="page"' : ''}><b>Industriales</b> <span>Compara las tres y elige</span></a></li>
+        <li><a href="${url('componentes/')}"${page === 'componentes' ? ' aria-current="page"' : ''}><b>Componentes</b> <span>Piezas de repuesto con su número</span></a></li>
+        <li><a href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}><b>Cotizar</b> <span data-menu-count>Tu solicitud</span></a></li>
+        <li><a href="${url('')}"${page === 'inicio' ? ' aria-current="page"' : ''}><b>Inicio</b> <span>El recorrido completo</span></a></li>
+      </ul>
+      <p class="menu__c"><a href="mailto:${contacto.correo}">${contacto.correo}</a><a href="tel:${contacto.telefono.replace(/[^+\d]/g, '')}">${contacto.telefono}</a></p>
+    </div>`;
+  header.append(menu);
   const menuBtn = header.querySelector('.nav__menu');
-  menuBtn.onclick = () => { const o = header.classList.toggle('is-open'); menuBtn.setAttribute('aria-expanded', o); menuBtn.textContent = o ? 'Cerrar' : 'Menú'; };
+  const setMenu = (o) => {
+    header.classList.toggle('is-open', o); menu.hidden = !o; menuBtn.setAttribute('aria-expanded', o); menuBtn.textContent = o ? 'Cerrar' : 'Menú';
+    document.documentElement.classList.toggle('menu-open', o);
+    const n = solicitud.all().length, mc = menu.querySelector('[data-menu-count]'); if (mc) mc.textContent = n ? `${n} ${n === 1 ? 'producto' : 'productos'} en tu solicitud` : 'Arma tu solicitud';
+    if (o) requestAnimationFrame(() => menu.querySelector('a')?.focus({ preventScroll: true })); else menuBtn.focus({ preventScroll: true });
+  };
+  menuBtn.onclick = () => setMenu(!header.classList.contains('is-open'));
+  menu.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+  menu.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('resize', () => { if (innerWidth > 760 && header.classList.contains('is-open')) setMenu(false); });
+  // computadora: panel de las tres puertas industriales bajo «Industriales»
+  const indLi = [...header.querySelectorAll('.nav__links li')].find((li) => li.querySelector(`a[href="${url('industriales/')}"]`));
+  if (indLi) { indLi.classList.add('nav__drop'); indLi.insertAdjacentHTML('beforeend', `<div class="nav__panel">${doorCards(here, { cls: 'dcards dcards--panel', only: ['abatible', 'corrediza', 'vaiven'] })}</div>`); }
   addEventListener('scroll', () => header.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
 
   const footer = document.createElement('footer');
@@ -118,4 +178,9 @@ export function mountSite(page) {
     });
   });
   addEventListener('storage', (e) => { if (e.key === KEY) emit(); });
+  foldWatch();
+  // Fase 10I · caché en el teléfono (solo en el sitio publicado; en pruebas automáticas, con ?sw=1)
+  if (import.meta.env.PROD && 'serviceWorker' in navigator && (!navigator.webdriver || /[?&]sw=1/.test(location.search))) {
+    addEventListener('load', () => navigator.serviceWorker.register(url('sw.js'), { scope: url('') }).catch(() => {}));
+  }
 }

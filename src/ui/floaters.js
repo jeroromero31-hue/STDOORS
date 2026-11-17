@@ -122,15 +122,16 @@ export function mountFloaters(box, items, opts = {}) {
       if (e.button > 0) return;
       e.preventDefault(); el.setPointerCapture(e.pointerId);
       held = k; const s = S[k]; s.free = false; s.vx = s.vy = 0;
-      drag = { k, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now(), moved: false, samples: [] };
+      drag = { k, id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, t: e.timeStamp, moved: false, samples: [] };
       el.classList.add('is-held'); box.classList.add('is-playing'); wake();
+      if (e.pointerType === 'touch' && navigator.vibrate) try { navigator.vibrate(6); } catch { /* sin vibración */ }
     });
     el.addEventListener('pointermove', (e) => {
       if (!drag || drag.k !== k || e.pointerId !== drag.id) return;
       const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly; drag.lx = e.clientX; drag.ly = e.clientY;
       if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 7) drag.moved = true;
       const s = S[k]; s.x += dx; s.y += dy; s.hx = s.x; s.hy = s.y;
-      const now = performance.now(); drag.samples.push([now, e.clientX, e.clientY]);
+      const now = e.timeStamp; drag.samples.push([now, e.clientX, e.clientY]);
       while (drag.samples.length > 2 && now - drag.samples[0][0] > 90) drag.samples.shift();
       s.a += (dx * 0.004 - s.a * 0.02);                      // se inclina hacia donde la llevas
       if (drag.moved && tagFor === k) hideTag();
@@ -138,9 +139,9 @@ export function mountFloaters(box, items, opts = {}) {
     const end = (e) => {
       if (!drag || drag.k !== k || e.pointerId !== drag.id) return;
       const s = S[k], d = drag; drag = null; held = null; el.classList.remove('is-held'); box.classList.remove('is-playing');
-      if (!d.moved && performance.now() - d.t < 450) { s.hx = s.x; s.hy = s.y; pick(k); wake(); return; }
+      if (!d.moved && e.timeStamp - d.t < 450) { s.hx = s.x; s.hy = s.y; pick(k); wake(); return; }
       const sm = d.samples, a = sm[0], b = sm[sm.length - 1];
-      if (sm.length > 1 && b[0] - a[0] > 8 && performance.now() - b[0] < 80 && !reduce()) {
+      if (sm.length > 1 && b[0] - a[0] > 8 && e.timeStamp - b[0] < 80 && !reduce()) {
         const k1 = 1000 / (b[0] - a[0]), cap = 2600;
         s.vx = Math.max(-cap, Math.min(cap, (b[1] - a[1]) * k1)); s.vy = Math.max(-cap, Math.min(cap, (b[2] - a[2]) * k1));
         s.va = s.vx / 260; s.free = true;

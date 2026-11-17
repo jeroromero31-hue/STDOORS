@@ -17,7 +17,9 @@ SRC = os.path.join(ROOT, 'public/img/componentes')
 OUT = os.path.join(ROOT, 'public/img/flotantes')
 # piezas compactas y reconocibles (los perfiles de varios metros se ven como una raya)
 PIEZAS = ['corrediza-39', 'abatible-30', 'vaiven-02', 'corrediza-37', 'abatible-27', 'corrediza-41', 'vaiven-05', 'corrediza-47',
-          'abatible-21', 'corrediza-76', 'corrediza-40', 'abatible-35', 'vaiven-03', 'corrediza-74', 'abatible-23', 'corrediza-42']
+          'abatible-21', 'corrediza-76', 'corrediza-40', 'abatible-35', 'vaiven-03', 'corrediza-74', 'abatible-23', 'corrediza-42',
+          # Fase 10I · una por tipo para las tarjetas de Componentes
+          'abatible-11', 'corrediza-58', 'corrediza-72', 'vaiven-06']
 MAX = 520
 
 

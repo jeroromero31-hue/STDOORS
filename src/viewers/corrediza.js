@@ -7,6 +7,8 @@ import * as THREE from 'three';
 import { rbox } from '../core/stage.js';
 import manifest from '../models/corrediza.json';
 import binUrl from '../models/corrediza.bin?url';
+import binzUrl from '../models/corrediza.binz?url';
+import { loadModel } from '../core/modelLoad.js';
 import logoUrl from '../models/logo-hoja.png';
 import { MECH, motion, progressForSlide, applyPose } from './corrediza.kinematics.js';
 import { createRig } from './corrediza.rig.js';
@@ -53,8 +55,7 @@ export function createCorrediza(stage) {
   }
 
   // ---------- geometría ----------
-  const ready = fetch(binUrl).then((r) => { if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`); return r.arrayBuffer(); }).then((buf) => {
-    if (buf.byteLength !== manifest.formato.bytes) throw new Error('El modelo llegó incompleto');
+  const ready = loadModel({ z: binzUrl, raw: binUrl, bytes: manifest.formato.bytes }).then((buf) => {
     for (const [i, grupo, material, nv, ni, po, no, io] of manifest.mallas) {
       if (SCENERY.has(material)) continue;
       const geo = new THREE.BufferGeometry();
@@ -105,11 +106,12 @@ export function createCorrediza(stage) {
   const pickDoor = (ray) => { const x = first(ray); return x && x.object.userData.role === 'door' ? x : null; };
   const pickCover = (ray) => { const x = first(ray); return x && x.object.userData.role === 'cover' ? x : null; };
 
-  // ---------- Fase 10H · herrajes como los pide ST ----------
-  // 1. En vez de la palanca externa larga (pieza 64), la manija externa fija chica (pieza 39): dos bloques negros con
-  //    un tubo de acero entre ellos, en el frente de la hoja junto a su canto. Así la puerta se ve como se pide casi siempre.
-  // 2. La guía de abajo: el brazo negro sale del canto de la hoja por debajo del riel y el perno sube al riel
-  //    (antes el soporte colgaba hacia abajo).
+  // ---------- herrajes como los pide ST (Fases 10H e 10I) ----------
+  // 1. Manija externa fija chica (pieza 39), como la foto de ST: cada soporte negro es una placa atornillada sobre la cara
+  //    de la hoja junto al canto, que dobla hacia afuera y termina en un nudillo redondo; el tubo de acero va entre los dos
+  //    nudillos. La palanca externa de 68 mm (pieza 64) del modelo base queda como opción («Manija»).
+  // 2. La guía de abajo: el brazo negro sale de una placa en el canto, pasa por debajo del riel y el perno sube al riel.
+  const handle = { mode: 'chica', lever: [], small: [] };
   const swapHardware = () => {
     const byName = (re) => meshes.filter((m) => re.test(m.name));
     const lever = byName(/^door\/(molded|polymer-side|polymer-inner|satin-pin|shadow)\//);
@@ -117,17 +119,55 @@ export function createCorrediza(stage) {
     const black = (guide.find((m) => /graphite/.test(m.name)) || {}).material || new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.55 });
     const steel = (lever.find((m) => /satin-pin/.test(m.name)) || {}).material || new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 1, roughness: 0.3 });
     const screw = (guide.find((m) => /screw/.test(m.name)) || {}).material || steel;
-    [...lever, ...guide].forEach((m) => { m.visible = false; m.userData.role = 'hidden'; });
-    const part = (geo, mat, x, y, z, name) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.name = name; m.castShadow = true; m.receiveShadow = true; m.userData.role = 'door'; slots.door.add(m); meshes.push(m); return m; };
-    // manija: bloques de 9 cm con dos tornillos, tubo de 30 cm a 5 cm de la cara
-    const XF = -0.86, ZF = 0.452, YC = 0.6, GAP = 0.30;
-    [1, -1].forEach((s) => {
-      const y = YC + s * (GAP / 2 + 0.035);
-      part(rbox(0.05, 0.09, 0.022, 0.008), black, XF, y, ZF + 0.011, 'ManijaBloque');
-      part(rbox(0.036, 0.04, 0.05, 0.008), black, XF, y - s * 0.02, ZF + 0.045, 'ManijaBrazo');
-      [0.022, -0.022].forEach((dy) => part(new THREE.CylinderGeometry(0.0055, 0.0055, 0.003, 14).rotateX(Math.PI / 2), screw, XF, y + dy + s * 0.008, ZF + 0.0235, 'ManijaTornillo'));
+    guide.forEach((m) => { m.visible = false; m.userData.role = 'hidden'; });
+    // la barra de acero de la palanca viene unida a la lámina de la hoja (door/steel/8): sus triángulos pasan a una malla
+    // propia, que se ve solo con la palanca (no se pierde ni se agrega ningún triángulo del modelo base)
+    const sheet = meshes.find((m) => m.name === 'door/steel/8');
+    if (sheet && sheet.geometry.index) {
+      slots.door.updateWorldMatrix(true, true);
+      const g = sheet.geometry, P = g.attributes.position, I = g.index.array, M = sheet.matrixWorld.clone().premultiply(slots.door.matrixWorld.clone().invert()), q = new THREE.Vector3();
+      const bar = (i) => { q.fromBufferAttribute(P, i).applyMatrix4(M); return q.z > 0.375 && q.x < -0.89 && q.y > 0.5 && q.y < 1.45; };
+      const keep = [], cut = [];
+      for (let t = 0; t < I.length; t += 3) (bar(I[t]) && bar(I[t + 1]) && bar(I[t + 2]) ? cut : keep).push(I[t], I[t + 1], I[t + 2]);
+      if (cut.length) {
+        const gb = new THREE.BufferGeometry(); Object.entries(g.attributes).forEach(([k, a]) => gb.setAttribute(k, a)); gb.setIndex(cut); gb.computeBoundingSphere();
+        g.setIndex(keep); g.computeBoundingSphere();
+        const m = new THREE.Mesh(gb, sheet.material); m.name = 'door/steel/8-palanca'; m.castShadow = sheet.castShadow; m.receiveShadow = sheet.receiveShadow;
+        m.position.copy(sheet.position); m.quaternion.copy(sheet.quaternion); m.scale.copy(sheet.scale); m.userData = { ...sheet.userData };
+        sheet.parent.add(m); meshes.push(m); lever.push(m);
+      }
+    }
+    handle.lever = lever.map((m) => ({ m, role: m.userData.role }));
+    const part = (geo, mat, x, y, z, name, list) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.name = name; m.castShadow = true; m.receiveShadow = true; m.userData.role = 'door'; slots.door.add(m); meshes.push(m); if (list) list.push(m); return m; };
+
+    // perfil del soporte en planta (u: desde el canto hacia adentro, v: hacia afuera de la cara), medido sobre la foto
+    const Z0 = 0.369, X0 = -0.915, YC = 0.66, LT = 0.165, HB = 0.078;   // cara de la hoja, inicio de la placa, centro, tubo visible, alto del soporte
+    const K = [0.060, 0.034], KR = 0.0145, TH = 0.007;
+    const prof = (() => {
+      const sh = new THREE.Shape(), B = [0.034, 0], C = [0.0525, 0.0225];
+      const d = [C[0] - B[0], C[1] - B[1]], L = Math.hypot(...d), n = [-d[1] / L * TH, d[0] / L * TH];
+      const Ci = [C[0] + n[0], C[1] + n[1]], t = (TH - (B[1] + n[1])) / (d[1] / L), F = [B[0] + n[0] + d[0] / L * t, TH];
+      const a0 = Math.atan2(C[1] - K[1], C[0] - K[0]), a1 = Math.atan2(Ci[1] - K[1], Ci[0] - K[0]) + Math.PI * 2;
+      sh.moveTo(0.002, 0); sh.lineTo(B[0], 0); sh.lineTo(C[0], C[1]);
+      sh.absarc(K[0], K[1], KR, a0, a1, false);
+      sh.lineTo(Ci[0], Ci[1]); sh.lineTo(F[0], F[1]); sh.lineTo(0.002, TH); sh.quadraticCurveTo(0, TH, 0, TH - 0.002); sh.lineTo(0, 0.002); sh.quadraticCurveTo(0, 0, 0.002, 0);
+      return sh;
+    })();
+    const bracketGeo = new THREE.ExtrudeGeometry(prof, { depth: HB - 0.004, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.0015, bevelSegments: 3, curveSegments: 28 })
+      .rotateX(Math.PI / 2).translate(0, (HB - 0.004) / 2, 0);   // (u, v, alto) → (x, z, y), centrado en su alto
+    const screwGeo = new THREE.CylinderGeometry(0.0046, 0.0038, 0.0024, 18).rotateX(Math.PI / 2);
+    const sockGeo = new THREE.CylinderGeometry(0.0018, 0.0018, 0.0008, 6).rotateX(Math.PI / 2);
+    const sockMat = new THREE.MeshStandardMaterial({ color: 0x0b0c0e, roughness: 0.8 });
+    [1, -1].forEach((sg) => {
+      const yc = YC + sg * (LT / 2 + HB / 2);
+      part(bracketGeo, black, X0, yc, Z0, 'ManijaSoporte', handle.small);
+      [0.019, -0.019].forEach((dy) => {
+        part(screwGeo, screw, X0 + 0.017, yc + dy, Z0 + TH + 0.0012, 'ManijaTornillo', handle.small);
+        part(sockGeo, sockMat, X0 + 0.017, yc + dy, Z0 + TH + 0.0026, 'ManijaTornillo', handle.small);
+      });
     });
-    part(new THREE.CylinderGeometry(0.0115, 0.0115, GAP + 0.03, 24), steel, XF, YC, ZF + 0.058, 'ManijaTubo');
+    part(new THREE.CylinderGeometry(0.0095, 0.0095, LT + HB, 28), steel, X0 + K[0], YC, Z0 + K[1], 'ManijaTubo', handle.small);
+
     // guía: placa en el canto de la hoja, brazo por debajo del riel, perno con tuerca hacia arriba
     const XE = 0.95;
     part(rbox(0.016, 0.12, 0.11, 0.01), black, XE, -0.17, 0.27, 'GuiaPlaca');
@@ -135,8 +175,20 @@ export function createCorrediza(stage) {
     part(rbox(0.05, 0.045, 0.33, 0.016), black, XE + 0.03, -0.14, 0.075, 'GuiaBrazo');
     part(new THREE.CylinderGeometry(0.0065, 0.0065, 0.05, 16), steel, XE + 0.03, -0.095, -0.06, 'GuiaPerno');
     part(new THREE.CylinderGeometry(0.012, 0.012, 0.009, 6), screw, XE + 0.03, -0.112, -0.06, 'GuiaTuerca');
+    setHandle(handle.mode);
     return lever.length + guide.length;
   };
+  // anclas de la manija: la chica (39) sobre su tubo; la palanca (64) sobre la palanca
+  const handleAnchor = { numero: '39', parent: slots.door, position: new THREE.Vector3(-0.855, 0.66, 0.42) };
+  const HANDLE_AT = { chica: [-0.855, 0.66, 0.42, '39'], palanca: [-0.86, 0.6, 0.47, '64'] };
+  function setHandle(mode) {
+    handle.mode = mode === 'palanca' ? 'palanca' : 'chica';
+    const lv = handle.mode === 'palanca';
+    handle.lever.forEach(({ m, role }) => { m.visible = lv; m.userData.role = lv ? role : 'hidden'; });
+    handle.small.forEach((m) => { m.visible = !lv; m.userData.role = lv ? 'hidden' : 'door'; });
+    const [x, y, z, n] = HANDLE_AT[handle.mode]; handleAnchor.position.set(x, y, z); handleAnchor.numero = n;
+    if (stage.invalidate) stage.invalidate(3);
+  }
 
   // caja de la hoja cerrada, en el mundo, para «Ver el frío»
   let closedBox = null;
@@ -187,13 +239,22 @@ export function createCorrediza(stage) {
       },
     },
     // anclas para los puntos de pieza (numero = pieza del catálogo)
+    // Fase 10I · manija chica (la que más se pide) o palanca de 68 mm
+    configs: [{
+      key: 'manija', label: 'Manija', view: 'manija',
+      items: [
+        { id: 'chica', label: 'Manija fija', numero: '39', detail: 'Manija externa fija (pieza 39)' },
+        { id: 'palanca', label: 'Palanca 68 mm', numero: '64', detail: 'Palanca externa de 68 mm (pieza 64)' },
+      ],
+      current: () => handle.mode, set: setHandle,
+    }],
     anchors: [
       { numero: '59', parent: slots.cover, position: V(2.05, 2.70, 0.37) },
       { numero: '57', parent: slots.static, position: V(0.02, 2.60, 0.235) },
       { numero: '47', parent: slots.static, position: V(-0.94, 2.60, 0.235) },
       { numero: '48', parent: slots.static, position: V(1.02, 2.60, 0.235) },
       { numero: '38', parent: slots.door, position: V(-0.985, 1.95, 0.31) },
-      { numero: '39', parent: slots.door, position: V(-0.86, 0.6, 0.52) },
+      handleAnchor,
       { numero: '58', parent: slots.static, position: V(2.25, -0.035, -0.03) },
     ],
     views: {
@@ -204,6 +265,7 @@ export function createCorrediza(stage) {
       polea: orbit(-0.90, 2.50, 0.2, 0.42, 0.10, 1.35),         // polea izquierda y bloque de cierre
       empaque: orbit(0.935, 1.30, 0.22, -1.0, 0.08, 1.55),      // canto derecho: hoja, empaque y marco de perfil
       guia: orbit(1.0, -0.03, 0.10, -0.6, 0.10, 1.6),           // brida de la hoja sobre el riel guía del muro
+      manija: orbit(-0.86, 0.68, 0.40, 0.6, 0.08, 0.9),        // la manija (chica o palanca), de 3/4 para ver cuánto sale de la hoja
       frio: (st) => frame(st, [-1.3, FLOOR_Y, WALL_Z, 3.2, 2.6, 2.6], 0.22, 0.34),   // hueco, riel y el piso de enfrente
     },
   };

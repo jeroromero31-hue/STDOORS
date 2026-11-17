@@ -270,3 +270,59 @@ Recortes reales de 16 piezas del catálogo (`scripts/build-flotantes.py`, fondo 
 Inicio 31/31 (mesa de piezas: arrastrar y tocar; video CDS que termina en 90°) · encuadre de la entrada en todos los tamaños · CDS con jaladera 4/4 · abatible · corrediza 20/20 (sin palanca, con manija 39 y guía nueva; las 118 mallas del modelo base siguen) · vaivén 23/23 (lámina siempre metálica) · CDS 20/20 · componentes 22/22 · cotizar e industriales 14/14 (puerta a la medida: 1.2 → 120 cm, plano y texto) · sitio 11/11 · puntos de pieza 36/36 · iPhone Duo y 9 páginas · teléfonos 10/10 · accesibilidad (axe) 0 fallas en las 9 páginas, y también en Cotizar con fichas a la medida llenas.
 
 Corrección que salió en las pruebas: al pasar de «ancho» a «alto» en Cotizar, la lista se redibujaba y se perdía lo escrito; ahora los cambios de la misma página no redibujan la lista.
+
+---
+
+# Fase 10I · Correcciones de ST, carga más rápida, navegación y Componentes / Industriales nuevos
+
+**Pedido:** la manija nueva de la corrediza "vuela" y no es igual a la de la foto; la palanca grande, como opción; la CDS del Inicio se sigue trabando; más cosas para que la página se vea mejor; que el 3D cargue más rápido; el escáner del Inicio en celular tapa el producto; cambiar de puerta sin pasar por Menú → Industriales; algo especial para el plegable (Duo) con animación al plegar; que en celular no baje tanto la calidad del 3D; menú, Industriales, Componentes y la ficha de cada pieza, más trabajados. Y la bisagra de la abatible: pegada al marco y a la puerta, sin elevación, y gris como antes.
+
+## Herrajes
+
+- **Abatible:** la bisagra vuelve a gris (como la foto de la pieza 30). Ya no lleva suplemento: el marco rodea la hoja hasta su mismo frente (como en la foto de referencia de la abatible), así la placa del marco y la de la hoja quedan en un mismo plano, pegadas al marco y a la puerta. Los manguitos roscados van sobre ese frente.
+- **Corrediza, manija:** quedaba 8 cm adelante de la hoja. Ahora cada soporte es la pieza de la foto: placa negra atornillada sobre la cara de la hoja junto al canto (dos tornillos), que dobla hacia afuera y termina en un nudillo redondo; el tubo de acero va entre los dos nudillos. La barra de la palanca que venía unida a la lámina de la hoja se separó en su propia malla (sin perder ni agregar triángulos).
+- **Corrediza, palanca:** opción **Manija** en la página: "Manija fija" (pieza 39, la de siempre) o "Palanca 68 mm" (pieza 64). Se ve en el 3D, el punto de pieza cambia de número, queda en la dirección y en la solicitud. Hay un paso nuevo, "La manija".
+
+## CDS en el Inicio
+
+El video ahora sale de 96 cuadros reales dibujados con el modelo 3D a 30 por segundo (antes eran 36 cuadros con intermedios inventados por el programa, que se veían a saltos). Piso del interior mate, como la secuencia original. `scripts/render-cds-video.py`.
+
+## 3D: carga y calidad
+
+- **Modelos comprimidos:** la corrediza y la vaivén se descargan en gzip (`.binz`: 293 KB y 194 KB en vez de 1.2 MB cada una) y el navegador los descomprime sin pérdidas, con su tamaño verificado. Si el navegador no sabe descomprimir, pide el `.bin` original. `scripts/comprimir-modelos.mjs`.
+- **Empiezan a bajar antes:** cada página de puerta (y el Inicio) pide su modelo desde el `<head>`, junto con el JavaScript.
+- **Caché en el teléfono:** un service worker guarda JavaScript, estilos, fuentes y modelos (todo lo que lleva huella en el nombre) y las imágenes; al volver o al pasar de una puerta a otra abren al instante. Las páginas y los videos van siempre a la red.
+- **Mientras carga:** la foto de la puerta difuminada y una barra con el avance real de la descarga.
+- **Calidad en celular:** un teléfono ya no cae a "baja" solo por reportar pocos núcleos (los iPhone lo hacen); "media" dibuja a 2× y "baja" a 1.5×. Con la escena quieta se dibuja un cuadro a la densidad de la pantalla (hasta 2.5×): lo que se mira de cerca se ve nítido y al girar sigue fluido.
+
+## Navegación
+
+- **Menú nuevo (celular):** las cuatro puertas con su foto (un toque a cualquiera; la actual dice "Estás aquí"), luego Industriales, Componentes, Cotizar con lo que llevas e Inicio, y el contacto.
+- **Computadora:** al pasar por "Industriales" se despliegan las tres puertas con su foto.
+- **Cambiar de puerta:** en cada página de puerta, el nombre en la barra de secciones ("Corrediza ⌄") abre las cuatro puertas; al final de la página, "Otras puertas".
+- **Entre páginas:** paso suave (desvanecido) en los navegadores que lo soportan; la barra de arriba no parpadea.
+
+## Inicio: escáner en celular
+
+Sobre la puerta solo van puntos con número; abajo, en una línea, la pieza que el escáner acaba de encontrar ("2 · Kit de cerrojo de 68 mm · Pieza 27"). La puerta se ve completa.
+
+## Industriales
+
+"Tres formas de abrir una cámara": las tres puertas en imagen alta que pasa a rayos X (al pasar el puntero; en celular, una vez al verse, en carrusel), **el espacio que pide cada una** visto desde arriba y animado (giro de la abatible, recorrido de la corrediza junto al muro, vaivén hacia los dos lados) y **lado a lado** (cómo abre, cómo cierra, aislamiento, espacio, acabados, piezas). Cierra con "Se fabrican a la medida de tu vano" y el enlace a cotizar.
+
+## Componentes
+
+- **Por tipo de pieza:** ocho tarjetas (herrajes, montaje, perfiles, fijación, empaques, protección, eléctrico, señalización), cada una con una pieza real recortada.
+- **Tarjetas con número:** el número de catálogo va sobre la foto.
+- **Ficha técnica:** número grande, tipo y puerta, foto sobre retícula con su cota cuando el nombre trae medida (5.80 m, 68 mm…), datos (número, tipo, medida, puerta, fuente), **dónde va** (la puerta con un punto que late en su lugar, para las piezas señaladas en el escáner), cantidad antes de agregar, **copiar referencia** y compartir (para mandarla por WhatsApp), y más piezas del mismo tipo y puerta.
+
+## Plegables (Duo)
+
+- Al plegar, desplegar o girar (un cambio brusco de ancho), dos hojas azul marino se juntan en la bisagra con el logotipo y vuelven a abrir, como una vaivén, mientras la página se reacomoda debajo. Con "reducir movimiento" no se anima.
+- Abierto en dos pantallas: en las puertas, el texto en la pantalla izquierda y la puerta entera en la derecha (nada cae en la bisagra); también Cotizar y el menú se acomodan a cada pantalla.
+
+## Pruebas (10I)
+
+Inicio 31/31 · encuadre de la entrada en todos los tamaños · CDS con jaladera 4/4 · abatible (giro, despiece, pasos) · corrediza 21/21 (manija como la foto, opción de palanca, 119 mallas y los mismos 43 394 triángulos, modelo comprimido; si no descarga, imagen fija) · vaivén 23/23 · CDS 20/20 · componentes 22/22 · cotizar e industriales 14/14 (menú nuevo, tocables ≥ 44 px) · sitio 11/11 · puntos de pieza 36/36 · Duo 7/7 y 9 páginas en sus 3 tamaños · teléfonos 10/10 · accesibilidad (axe) 0 fallas en las 9 páginas y también con el menú abierto, la ficha de pieza y el cambio de puerta.
+
+Correcciones que salieron en las pruebas: los toques (tapa de la corrediza, piezas flotantes) ahora se miden con la hora del evento, así un cuadro pesado no convierte un toque en arrastre; los números del escáner en celular se dibujan a 12 px.

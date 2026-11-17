@@ -14,6 +14,13 @@ const poster = params.get('poster') === '1';
 if (!poster) cds.setInside(true);
 cds.setLED(true);
 stage.controls.enabled = false;
+// Fase 10I · piso del interior mate (como la secuencia original): sin reflejos ni la franja de sombra del muro de paneles
+stage.scene.traverse((o) => {
+  if (o.name === 'SombraDeContacto') o.visible = false;
+  if (o.isMesh && o.parent && o.parent.name === 'MuroYPiso' && o.geometry.type === 'PlaneGeometry') {
+    const m = o.material; m.roughnessMap = null; m.roughness = 1; m.metalness = 0; m.envMapIntensity = 0; m.needsUpdate = true;
+  }
+});
 const W = DIM.TOTAL_W, H = DIM.TOTAL_H;
 const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 const seg = (p, a, b) => Math.min(1, Math.max(0, (p - a) / (b - a)));
@@ -35,8 +42,8 @@ window.frame = (k) => {
   const v = wide ? frameBox(stage, box, y0 + (y1 - y0) * ease(k), 0.08 - 0.04 * k, 1.04 - 0.05 * ease(k))
     : frameBox(stage, box, y0 + (y1 - y0) * ease(k), 0.08 - 0.04 * k, 1.1 - 0.08 * ease(k));
   stage.camera.position.fromArray(v.pos); stage.controls.target.fromArray(v.tgt); stage.camera.lookAt(stage.controls.target);
-  stage.invalidate(6);
-  return new Promise((r) => setTimeout(r, 250));
+  stage.invalidate(2);
+  return new Promise((r) => setTimeout(r, 120));
 };
 window.__cds = cds;
 window.posterShot = () => {

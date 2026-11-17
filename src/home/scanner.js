@@ -15,11 +15,21 @@ export function mountScanner(section) {
     <figure class="scan__door" data-i="${i}" ${i ? 'aria-hidden="true"' : ''}>
       <picture class="scan__x"><source media="(min-width: 901px)" data-srcset="${img(d, 'ancho', 'rayos')}"><img alt="${d.nombre} en rayos X" data-src="${img(d, 'alto', 'rayos')}" decoding="async"></picture>
       <picture class="scan__n" aria-hidden="true"><source media="(min-width: 901px)" data-srcset="${img(d, 'ancho', 'normal')}"><img alt="" data-src="${img(d, 'alto', 'normal')}" decoding="async"></picture>
-      ${['ancho', 'alto'].map((fmt) => `<ol class="scan__tags scan__tags--${fmt}">${(d.tags[fmt] || []).map((t) => `
-        <li class="scan__tag ${t.x > 0.56 ? 'is-l' : ''}" style="--x:${t.x};--y:${t.y}" data-y="${t.y}"><i aria-hidden="true"></i><span>${t.numero ? `<b>${t.numero}</b> ` : ''}${t.nombre}</span></li>`).join('')}</ol>`).join('')}
+      ${['ancho', 'alto'].map((fmt) => `<ol class="scan__tags scan__tags--${fmt}">${(d.tags[fmt] || []).map((t, k) => `
+        <li class="scan__tag ${t.x > 0.56 ? 'is-l' : ''}" style="--x:${t.x};--y:${t.y}" data-y="${t.y}" data-k="${k + 1}" data-n="${t.numero || ''}" data-name="${t.nombre}"><i aria-hidden="true" data-k="${k + 1}"></i><span>${t.numero ? `<b>${t.numero}</b> ` : ''}${t.nombre}</span></li>`).join('')}</ol>`).join('')}
       <i class="scan__line" aria-hidden="true"><span>Rayos X</span></i>
     </figure>`).join('');
   const figs = [...stage.querySelectorAll('.scan__door')];
+  // Fase 10I · en celular las etiquetas tapaban la puerta: sobre la imagen solo va un punto con número y abajo, en una
+  // línea, la pieza que el escáner acaba de encontrar
+  const now = document.createElement('p'); now.className = 'scan__now'; now.setAttribute('aria-hidden', 'true');
+  go.before(now);
+  let nowKey = '';
+  const showNow = (tg) => {
+    const key = tg ? tg.closest('.scan__door').dataset.i + ':' + tg.dataset.k : ''; if (key === nowKey) return; nowKey = key;
+    now.innerHTML = tg ? `<i>${tg.dataset.k}</i><span>${tg.dataset.name}</span>${tg.dataset.n ? `<b>Pieza ${tg.dataset.n}</b>` : ''}` : '';
+    now.classList.toggle('is-on', !!tg);
+  };
   // las imágenes se piden cuando la sección se acerca
   new IntersectionObserver(([e], io) => {
     if (!e.isIntersecting) return; io.disconnect();
@@ -67,6 +77,8 @@ export function mountScanner(section) {
     f.style.setProperty('--in', seg(t, 0, 0.12).toFixed(3));
     f.querySelector('.scan__line').classList.toggle('is-on', cut > 0.001 && cut < 0.999);
     const fmt = wideQ.matches ? 'ancho' : 'alto';
-    f.querySelectorAll(`.scan__tags--${fmt} .scan__tag`).forEach((tg) => tg.classList.toggle('is-on', cut >= +tg.dataset.y));
+    let lastOn = null;
+    f.querySelectorAll(`.scan__tags--${fmt} .scan__tag`).forEach((tg) => { const on = cut >= +tg.dataset.y; tg.classList.toggle('is-on', on); if (on && (!lastOn || +tg.dataset.y >= +lastOn.dataset.y)) lastOn = tg; });
+    showNow(lastOn);
   }, { mode: 'pin', smooth: 10 });
 }
