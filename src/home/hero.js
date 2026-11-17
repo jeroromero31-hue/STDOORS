@@ -8,6 +8,7 @@ import { createFinishRegistry } from '../materials/FinishRegistry.js';
 import { createVaiven } from '../viewers/vaiven.js';
 import { createVapor } from './vapor.js';
 import { applyLook } from './look.js';
+import { createThermal, THERMAL_STOPS } from '../core/thermal.js';
 import { track, seg, easeInOut, easeOut, reducedMotion, clamp01 } from './scrub.js';
 import catalog from '../data/components.json';
 
@@ -153,6 +154,15 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
     if (over && p >= 0.06) { over = false; dispatchEvent(new CustomEvent('cur:label', { detail: '' })); }
     hl.jump(aL + swing[0].a); hr.jump(aR + swing[1].a);
     if (vapor) vapor.set(0.25 * seg(p, 0.08, 0.2) + 0.75 * seg(p, 0.2, 0.55));
+    // Fase 10F · mientras las hojas abren, la escena pasa a la vista térmica: se ve salir el frío por el piso
+    if (thermal) {
+      const want = p > 0.3 && p < 0.56;
+      if (want !== thermal.on) {
+        scan();
+        thermal.set(want); if (vapor) vapor.points.visible = !want;
+        thermo.classList.toggle('is-on', want);
+      }
+    }
     if (lighting) lighting.set(easeInOut(seg(p, 0.1, 0.45)));
 
     // cámara
@@ -186,9 +196,21 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
     set(readout.el, seg(p, 0.08, 0.14) * (1 - seg(p, 0.4, 0.46)));   // se va antes de entrar al azul marino
   });
 
-  let lighting = null;
+  let lighting = null, thermal = null;
+  // barrido de escáner al entrar y salir de la vista térmica: la imagen anterior se retira de arriba abajo
+  const thermo = document.getElementById('hxThermo');
+  if (thermo) thermo.querySelector('.hx__thermo-bar').style.background = `linear-gradient(90deg, ${THERMAL_STOPS.join(', ')})`;
+  const scan = () => {
+    const c = stage.renderer.domElement; if (!c.width) return;
+    stage.renderer.render(stage.scene, stage.camera);
+    const ov = document.createElement('canvas'); ov.className = 'hx__scan'; ov.width = c.width; ov.height = c.height; ov.setAttribute('aria-hidden', 'true');
+    ov.getContext('2d').drawImage(c, 0, 0); c.after(ov);
+    const ln = document.createElement('i'); ln.className = 'hx__scanline'; ln.setAttribute('aria-hidden', 'true'); gl.append(ln);
+    setTimeout(() => { ov.remove(); ln.remove(); }, 900);
+  };
   viewer.ready.then(() => {
     lighting = applyLook(stage, viewer);
+    if (viewer.thermal && thermo && !reducedMotion()) thermal = createThermal(stage, viewer.thermal);
     ready = true; load.done(); stage.invalidate(60);
     gl.classList.add('is-ready');
   }, (err) => { console.error(err); stage.renderer.setAnimationLoop(null); onFail('modelo'); });

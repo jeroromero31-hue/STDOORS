@@ -286,3 +286,18 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 @media (pointer: coarse) { .hx__fx { background: radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
 .hx__gl.is-ready + .hx__fx { opacity: 1; }
 
+
+/* Fase 10F · vista térmica en la entrada: escala y barrido de escáner */
+.hx__thermo { position: absolute; z-index: 5; top: calc(69px + var(--s-4)); right: var(--pad-x); display: grid; gap: 6px; width: min(260px, 64vw);
+  padding: 12px 14px; border-radius: 14px; background: rgba(10, 20, 64, .66); backdrop-filter: blur(8px); color: #fff; pointer-events: none;
+  opacity: 0; transform: translateY(-8px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
+.hx__thermo.is-on { opacity: 1; transform: none; }
+.hx__thermo b { font-size: var(--t-sm); font-weight: var(--w-bold); }
+.hx__thermo-bar { display: block; height: 8px; border-radius: 4px; }
+.hx__thermo-l { display: flex; justify-content: space-between; font-size: var(--t-xs); color: rgba(255, 255, 255, .8); }
+.hx__thermo-n { font-size: var(--t-xs); color: rgba(255, 255, 255, .7); }
+.hx__scan { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; animation: hx-scan 850ms cubic-bezier(.6, 0, .25, 1) forwards; }
+.hx__scanline { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3; pointer-events: none; background: #9fe8f2;
+  box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: hx-scanline 850ms cubic-bezier(.6, 0, .25, 1) forwards; }
+@keyframes hx-scan { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
+@keyframes hx-scanline { from { top: 0; } to { top: 100%; } }

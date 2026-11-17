@@ -135,6 +135,8 @@ src/home/cdsSequence.js  Inicio: secuencia CDS cuadro por cuadro
 src/home/look.js         Inicio: luz y materiales de foto de producto (reflector, muro de paneles, piso pulido, luz fría)
 src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scroll suave (Lenis) y cursor en todo el sitio
 src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
+src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista
+src/ui/cdsPage.js        CDS: comparador con corte del vidrio, prueba de humedad y luces KeyLED
 src/styles/home.css      estilos del Inicio (solo se cargan ahí)
 src/data/contacto.json   correo, teléfono y WhatsApp de ST
 src/data/inicio-fotos.json, cds-instalaciones.json, cds-secuencia.json   fotos y secuencia generadas por los scripts

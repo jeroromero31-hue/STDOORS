@@ -306,3 +306,14 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 ## Las 4 puertas · Fase 10E: «Ver el frío»
 
 - Vista añadida, no existe en los originales. Es una ilustración del aire frío saliendo por la puerta abierta; no muestra temperaturas ni datos de desempeño.
+
+## Abatible · Fase 10F: bisagra reversible según la foto del componente
+
+- La bisagra de leva del modelo base se cambió por la bisagra reversible de la foto `ABATIBLE_30` (pieza 30 del catálogo): dos placas, cuerpo en "C", perno, barril y collarín. Las placas quedan en un mismo plano, como en la foto; como la hoja está 108 mm por delante de la cara del marco, la placa del marco va sobre un **suplemento** que no aparece en la foto (agregado para que la pieza tenga dónde apoyar).
+- El eje de giro de la hoja pasa al eje del barril nuevo, por delante de la cara de la hoja.
+
+## CDS · Fase 10F: datos del comparador y prueba de humedad
+
+- Temperaturas de aplicación (−5 °C refrigeración en Advanced y Plus, −20 °C congelación en LT) tomadas de strefrigeracion.com/reachin.php; el catálogo PDF no las trae.
+- La prueba de humedad es una ilustración: el vidrio se empaña cuando la humedad elegida pasa el porcentaje de protección del catálogo (65, 100 y 89 %).
+- La capa que oscurece el interior al apagar las luces no existe en el modelo original.

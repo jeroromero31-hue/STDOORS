@@ -12,11 +12,12 @@ import { createHotspots } from '../core/hotspots.js';
 import catalog from '../data/components.json';
 import { splitLines, playLines } from './cine.js';
 import { createThermal, THERMAL_STOPS } from '../core/thermal.js';
+import { createXray } from '../core/xray.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-export function mountDoorPage({ familia, nombre, createViewer, poster, section = 'industriales' }) {
+export function mountDoorPage({ familia, nombre, createViewer, poster, section = 'industriales', extend = null }) {
   mountSite(section);
   const door = $('.door'), viewerEl = $('#viewer');
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
@@ -119,7 +120,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const o = viewer.options;
       sw.classList.add('chips'); sw.setAttribute('aria-label', o.label);
       sw.innerHTML = o.items.map((it) => `<button class="chip" data-o="${it.id}" aria-pressed="false" title="${it.title || it.label}">${it.label}</button>`).join('');
-      const pick = (id) => { o.set(id); keep('modelo', id); state.option = o.items.find((x) => x.id === id); fin.textContent = state.option.detail || ''; $$('.chip', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.o === id)); };
+      const pick = (id) => { o.set(id); keep('modelo', id); state.option = o.items.find((x) => x.id === id); fin.textContent = state.option.detail || ''; $$('.chip', sw).forEach((b) => b.setAttribute('aria-pressed', b.dataset.o === id)); const n = $('.thermo__note'); if (n && viewer.thermal && viewer.thermal.note) n.textContent = viewer.thermal.note(); door.dispatchEvent(new CustomEvent('door:option', { detail: { id } })); };
       $$('.chip', sw).forEach((b) => { b.onclick = () => { if (state.option && b.dataset.o === state.option.id) return; crossfade(() => pick(b.dataset.o)); live.textContent = state.option.title || state.option.label; }; });
       const q = new URLSearchParams(location.search).get('modelo'); pick(o.items.some((x) => x.id === q) ? q : o.current());
     } else { sw.remove(); fin.textContent = 'Un acabado'; }
@@ -261,25 +262,45 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     // Un botón junto a «Ver por dentro» y un paso propio en el recorrido (data-termica): al llegar a él la escena se
     // vuelve térmica sola y al salir regresa; si la persona la encendió con el botón, se queda hasta que la apague.
     let thermal = null, coldAuto = false, coldBtn = null;
+    let xray = null, xrayBtn = null;
+    // barrido de escáner al cambiar de vista: la imagen anterior se retira de arriba abajo
+    const scanSwap = () => {
+      const c = stage.renderer.domElement, holder = $('.door__viewer');
+      if (reduceMo || !c.width) return;
+      stage.renderer.render(stage.scene, stage.camera);
+      const ov = document.createElement('canvas'); ov.className = 'viewer__scan'; ov.width = c.width; ov.height = c.height; ov.setAttribute('aria-hidden', 'true');
+      ov.getContext('2d').drawImage(c, 0, 0); c.after(ov);
+      const ln = document.createElement('i'); ln.className = 'viewer__scanline'; ln.setAttribute('aria-hidden', 'true'); holder.append(ln);
+      setTimeout(() => { ov.remove(); ln.remove(); }, 1000);
+    };
+    // Fase 10F · «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista
+    const setXray = (on) => {
+      if (!xray || on === xray.on) return;
+      if (on && thermal && thermal.on) setCold(false);
+      scanSwap(); xray.set(on); door.classList.toggle('is-xray', on);
+      xrayBtn.setAttribute('aria-pressed', on);
+      live.textContent = on ? 'Rayos X: se ven las piezas de adentro de la puerta' : 'Vista normal';
+    };
     const setCold = (on, auto = false) => {
       if (!thermal || on === thermal.on) { coldAuto = on && auto && coldAuto; return; }
-      const c = stage.renderer.domElement, holder = $('.door__viewer');
-      if (!reduceMo && c.width) {                                   // barrido de escáner: la imagen anterior se retira de arriba abajo
-        stage.renderer.render(stage.scene, stage.camera);
-        const ov = document.createElement('canvas'); ov.className = 'viewer__scan'; ov.width = c.width; ov.height = c.height; ov.setAttribute('aria-hidden', 'true');
-        ov.getContext('2d').drawImage(c, 0, 0); c.after(ov);
-        const ln = document.createElement('i'); ln.className = 'viewer__scanline'; ln.setAttribute('aria-hidden', 'true'); holder.append(ln);
-        setTimeout(() => { ov.remove(); ln.remove(); }, 1000);
-      }
+      if (on && xray && xray.on) setXray(false);
+      scanSwap();
       thermal.set(on); coldAuto = on && auto;
       door.classList.toggle('is-thermal', on);
-      coldBtn.setAttribute('aria-pressed', on); coldBtn.textContent = on ? 'Vista normal' : 'Ver el frío';
+      coldBtn.setAttribute('aria-pressed', on);
       live.textContent = on ? 'Vista térmica: el azul es frío. Abre la puerta y mira cómo sale el aire frío.' : 'Vista normal';
+      noteCold();
     };
+    // nota de la escala (CDS: aplicación del modelo elegido)
+    const noteCold = () => { const n = $('.thermo__note'); if (n && viewer.thermal && viewer.thermal.note) n.textContent = viewer.thermal.note(); };
     if (viewer.thermal) {
       thermal = createThermal(stage, viewer.thermal);
-      insideBtn.insertAdjacentHTML('afterend', '<button class="btn btn--line" id="coldBtn" aria-pressed="false" data-cur="Térmica">Ver el frío</button>');
+      // vistas especiales: dos botones pequeños juntos (uno a la vez)
+      insideBtn.insertAdjacentHTML('afterend', '<div class="door__views chips" role="group" aria-label="Vistas especiales"><button class="chip" id="coldBtn" aria-pressed="false" data-cur="Térmica">Ver el frío</button></div>');
       coldBtn = $('#coldBtn');
+      xray = createXray(stage);
+      coldBtn.insertAdjacentHTML('afterend', '<button class="chip" id="xrayBtn" aria-pressed="false" data-cur="Rayos X">Rayos X</button>');
+      xrayBtn = $('#xrayBtn'); xrayBtn.onclick = () => { setXray(!xray.on); hint.classList.add('is-off'); };
       coldBtn.onclick = () => {
         const on = !thermal.on; setCold(on, false); hint.classList.add('is-off');
         if (on && !state.inside) {
@@ -288,8 +309,20 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
         }
       };
       const scale = `linear-gradient(90deg, ${THERMAL_STOPS.join(', ')})`;
-      $('.door__viewer').insertAdjacentHTML('beforeend', `<div class="thermo" aria-hidden="true"><b>Vista térmica ilustrativa</b><span class="thermo__bar" style="background:${scale}"></span><span class="thermo__l"><span>Frío</span><span>Ambiente</span></span></div>`);
+      $('.door__viewer').insertAdjacentHTML('beforeend', `<div class="thermo" aria-hidden="true"><b>Vista térmica ilustrativa</b><span class="thermo__bar" style="background:${scale}"></span><span class="thermo__l"><span>Frío</span><span>Ambiente</span></span>${viewer.thermal.note ? '<span class="thermo__note"></span>' : ''}</div>`);
     } else $$('[data-termica]').forEach((el) => el.remove());
+
+    // ---------- Fase 10F · despiece de la bisagra (abatible): las piezas se separan al llegar al paso y se arman al salir ----------
+    let exTimer = 0, exOn = false;
+    const setExplode = (on) => {
+      if (!viewer.explode || on === exOn) return; exOn = on; viewer.explode(on);
+      $$('[data-despiece-btn]').forEach((b) => { b.textContent = on ? 'Armar' : 'Separar piezas'; b.setAttribute('aria-pressed', on); });
+      live.textContent = on ? 'Bisagra separada en sus piezas' : 'Bisagra armada';
+    };
+    $$('[data-despiece-btn]').forEach((b) => { b.textContent = 'Separar piezas'; b.onclick = () => { clearTimeout(exTimer); setExplode(!exOn); }; });
+
+    // extensiones propias de una página (CDS: prueba de humedad, luces KeyLED)
+    if (extend) extend({ viewer, stage, rig, motion, state, live, door, noteCold });
 
     insideBtn.onclick = () => {
       state.inside = !state.inside; door.classList.toggle('is-inside', state.inside); viewer.setInside(state.inside);
@@ -317,6 +350,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const t = now.querySelector('h2'); if (t && !reduceMo) playLines(t);
       if (now !== blocks[0]) hint.classList.add('is-off');        // el aviso de arrastre solo acompaña a la vista inicial
       if (thermal) { if (now.dataset.termica) { if (!thermal.on) setCold(true, true); } else if (coldAuto) setCold(false); }
+      if (viewer.explode) { clearTimeout(exTimer); if (now.dataset.despiece) exTimer = setTimeout(() => setExplode(true), 700); else setExplode(false); }
+      door.dispatchEvent(new CustomEvent('door:step', { detail: { block: now } }));      // para las extensiones de cada página
       if (state.inside) return;                                   // en modo interior manda el usuario
       rig.go(now.dataset.view); motion.step(now.dataset);
     };

@@ -55,6 +55,12 @@
         <h2>Triple sello con imán</h2>
         <p class="t-soft">El empaque de triple sello envuelve el marco por dentro y, con su imán integrado, sella la puerta al cerrar.</p>
       </section>
+      <section class="door__step" data-view="humedad" data-open="0" data-humedad="1">
+        <h2>Prueba de humedad</h2>
+        <p class="t-soft">Sube la humedad del lugar y mira el vidrio de afuera. Cada modelo tiene su protección contra la humedad: Advanced 65 %, LT 89 % y Plus 100 %.</p>
+        <div class="humid" data-humedad-ui></div>
+        <p class="t-small t-soft">Ilustrativo, con los porcentajes del catálogo.</p>
+      </section>
       <section class="door__step door__step--frio" data-view="frio" data-open="0,90,0" data-termica="1">
         <h2>Mira por dónde se escapa el frío</h2>
         <p class="t-soft">Así lo vería una cámara térmica. Solo la puerta abierta deja salir el frío del exhibidor; las de los lados, cerradas, lo mantienen adentro.</p>
@@ -62,6 +68,7 @@
       <section class="door__step" data-view="keyled" data-open="0" data-led="1">
         <h2>Iluminación KeyLED</h2>
         <p class="t-soft">Sin balastro, con conexión eléctrica en un solo extremo y protección de vinilo.</p>
+        <div class="row"><button class="btn btn--line" data-led-btn aria-pressed="false">Apagar luces</button></div>
       </section>
       <section class="door__step" data-view="frontal" data-open="0">
         <h2>Advanced, Plus o LT</h2>
@@ -73,7 +80,7 @@
   <section class="surface-ice section" id="modelos">
     <div class="wrap stack" style="--stack:32px">
       <div class="stack"><h2>Tres modelos, un mismo marco</h2><p class="t-lead">Por fuera son iguales. Cambia el vidrio: cuántos lleva, si tiene resistencia y si la cámara lleva argón.</p></div>
-      <div class="cds-models" id="modelos-grid"></div>
+      <div class="cmp-root" id="modelos-grid"></div>
     </div>
   </section>
 

@@ -2,7 +2,8 @@
 // con tres cambios documentados en docs/DIFERENCIAS_CON_ORIGINALES.md:
 //   1. Chapa nueva según ABATIBLE_CHAPA_REAL_REFERENCIA_OBLIGATORIA.png.
 //   2. Bumper único: inox diamante. Acabados solo del registro compartido.
-//   3. El pivote de la hoja pasa al eje del barril de las bisagras (antes giraba 27.5 mm por delante de él).
+//   3. Bisagras como la foto del componente (ABATIBLE_30, bisagra reversible): placa en el marco, placa en la hoja,
+//      cuerpo en "C" con brazo arriba y abajo, perno visible, barril y collarín. La hoja gira sobre el eje del barril.
 import * as THREE from 'three';
 import { frameBox } from '../core/cameraRig.js';
 import { rbox, scaleUV, swapUV } from '../core/stage.js';
@@ -16,10 +17,12 @@ const W = 1.00, H = 2.00, T = 0.10;      // hoja
 const YB = 0.012, YT = YB + H;
 const ZB = 0.068, ZF = ZB + T;           // cara posterior / frontal de la hoja
 const PW = 0.045;                        // perfil perimetral de aluminio
-const PX = -W / 2 - 0.012;               // eje de bisagra en x
-const BR = 0.0135;                       // radio del barril
-const BZ0 = FD + 0.011, BZ1 = ZF - 0.018;
-const PZ = BZ1 - BR + 0.004;             // eje de bisagra en z = centro del barril
+// bisagra reversible (proporciones medidas sobre la foto ABATIBLE_30): el barril va sobre la placa de la hoja y su eje es el giro
+const HP = { w: 0.048, h: 0.170, t: 0.008, r: 0.009 };   // placas
+const BR = 0.0195;                       // radio del barril
+const PX = -W / 2 + 0.0055;              // eje de bisagra en x: sobre el borde de la placa de la hoja
+const LIP = 0.0085;                      // fondo del labio de aluminio de la hoja: la placa de la hoja va encima
+const PZ = ZF + LIP + HP.t + BR;         // eje de bisagra en z: el barril apoya en la placa
 const BUMPER_TOP = 0.92;                 // altura del bumper del modelo base
 export const ABATIBLE = { W, H, T, PX, PZ, ZF, ZB, OW, OH, FD, MAX_OPEN: 95 };
 
@@ -146,33 +149,69 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     const pm = grab(add(lever, paddle, R.plasticBlack, 0, 0, 0.010)); pm.rotation.x = 0.10;
   }
 
-  // ---------- bisagras de leva (geometría aprobada del modelo base) ----------
-  const screw = () => new THREE.CylinderGeometry(0.0052, 0.0052, 0.0024, 16).rotateX(Math.PI / 2);
-  const block = (pts) => new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([u, v]) => new THREE.Vector2(u, v))), { depth: BZ1 - BZ0 - 0.006, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 3, curveSegments: 8 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x5f6468, roughness: 0.6 });
+  // ---------- bisagras reversibles, como la foto del componente (pieza 30) ----------
+  // Fijo (en el marco): placa, cuerpo en "C" (columna + brazo superior + brazo inferior), perno y collarín.
+  // Móvil (en la hoja): placa y barril. El barril y el collarín son concéntricos con el eje en todo el recorrido.
+  // Cada pieza guarda hacia dónde se separa en el despiece (solo la bisagra de arriba, la que se ve de cerca).
+  const plate = () => {
+    const { w, h, r } = HP, s0 = new THREE.Shape();
+    s0.moveTo(-w / 2 + r, -h / 2); s0.lineTo(w / 2 - r, -h / 2); s0.absarc(w / 2 - r, -h / 2 + r, r, -Math.PI / 2, 0);
+    s0.lineTo(w / 2, h / 2 - r); s0.absarc(w / 2 - r, h / 2 - r, r, 0, Math.PI / 2); s0.lineTo(-w / 2 + r, h / 2);
+    s0.absarc(-w / 2 + r, h / 2 - r, r, Math.PI / 2, Math.PI); s0.lineTo(-w / 2, -h / 2 + r); s0.absarc(-w / 2 + r, -h / 2 + r, r, Math.PI, Math.PI * 1.5);
+    return new THREE.ExtrudeGeometry(s0, { depth: HP.t - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 3, curveSegments: 10 }).translate(0, 0, 0.0015);
+  };
+  // Las dos placas quedan en un mismo plano, como en la foto: la del marco va sobre un suplemento que la sube hasta el
+  // frente de la hoja (la hoja está 108 mm por delante de la cara del marco).
+  const XL = -0.531, ZP = ZF + LIP + HP.t, RA = BR - 0.001, XC = PX - 0.0055;   // XC: hasta aquí el brazo baja a la placa
+  const arm = (hgt) => {
+    const sh = new THREE.Shape(), zc = PZ - Math.sqrt(RA * RA - (XC - PX) ** 2), a0 = Math.atan2(zc - PZ, XC - PX);
+    sh.moveTo(XL, ZP); sh.lineTo(XC, ZP); sh.lineTo(XC, zc);
+    sh.absarc(PX, PZ, RA, a0, Math.PI / 2, false); sh.lineTo(XL, PZ + RA); sh.closePath();
+    return new THREE.ExtrudeGeometry(sh, { depth: hgt - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 3, curveSegments: 24 })
+      .rotateX(Math.PI / 2).translate(0, -0.0015, 0);          // planta (x, z) extruida hacia abajo
+  };
   const hingeYs = [0.30, 1.74];
-  for (const hy of hingeYs) {
-    const fixed = new THREE.Group(); fixed.position.set(PX, hy, 0); frame.add(fixed);
-    const moving = new THREE.Group(); moving.position.set(PX, hy, 0); leaf.add(moving);
-    const pu = -0.030;
-    add(fixed, rbox(0.068, 0.244, 0.010, 0.010), R.plasticGray, pu, 0, FD + 0.005);
-    add(fixed, rbox(0.060, 0.236, 0.003, 0.008), dark, pu, 0, FD + 0.0095, { shadow: false });
-    for (const du of [-0.020, 0.010]) for (const dv of [-0.108, 0.104]) {
-      add(fixed, new THREE.CylinderGeometry(0.0068, 0.0068, 0.0012, 18).rotateX(Math.PI / 2), R.rubber, pu + du, dv, FD + 0.0112, { shadow: false });
-      add(fixed, screw(), R.steelHardware, pu + du, dv, FD + 0.0125, { shadow: false });
-      add(fixed, new THREE.BoxGeometry(0.007, 0.0012, 0.0008), R.rubber, pu + du, dv, FD + 0.0139, { shadow: false });
-    }
-    add(fixed, block([[-0.056, -0.080], [-0.006, -0.080], [-0.006, -0.026], [-0.056, -0.046]]), R.plasticGray, 0, 0, BZ0 + 0.003);
-    add(moving, block([[-0.056, -0.042], [-0.006, -0.022], [-0.006, 0.074], [-0.056, 0.074]]), R.plasticGray, 0, 0, BZ0 + 0.003);
-    const step = add(fixed, new THREE.BoxGeometry(0.020, 0.004, BZ1 - BZ0), dark, -0.044, -0.0425, (BZ0 + BZ1) / 2, { shadow: false }); step.rotation.z = Math.atan2(0.020, 0.050);
-    // barril sobre el eje de giro: mitad inferior fija, mitad superior con la hoja (concéntricas en todo el recorrido)
-    add(fixed, new THREE.CylinderGeometry(BR, BR, 0.074, 32), R.plasticGray, 0, -0.062, PZ);
-    add(moving, new THREE.CylinderGeometry(BR, BR, 0.108, 32), R.plasticGray, 0, 0.040, PZ);
-    const cap1 = add(moving, new THREE.SphereGeometry(BR, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), R.plasticGray, 0, 0.094, PZ); cap1.scale.y = 0.4;
-    const cap2 = add(fixed, new THREE.SphereGeometry(BR, 24, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), R.plasticGray, 0, -0.099, PZ); cap2.scale.y = 0.4;
-    add(fixed, new THREE.CylinderGeometry(BR - 0.001, BR - 0.001, 0.003, 32), dark, 0, -0.0245, PZ, { shadow: false });
-    add(moving, rbox(0.016, 0.080, 0.020, 0.004), R.plasticGray, 0.009, 0.026, PZ - 0.006);
-  }
+  const hingeParts = [];
+  const spacerMat = R.plasticGray.clone(); spacerMat.color.multiplyScalar(0.78);    // el suplemento, un tono abajo de la bisagra
+  const seamMat = new THREE.MeshStandardMaterial({ color: 0x55595d, roughness: 0.7 });
+  // despiece en el plano de la vista «bisagra»: d = a la derecha en pantalla, u = arriba, c = hacia la cámara
+  const SR = new THREE.Vector3(0.79, 0, 0.61), SC = new THREE.Vector3(-0.6, 0.2, 0.78);
+  const ex = (d, u, c) => { const v = SR.clone().multiplyScalar(d).addScaledVector(SC, c); v.y += u; return [v.x, v.y, v.z]; };
+  hingeYs.forEach((hy, k) => {
+    const fixed = new THREE.Group(); fixed.position.set(0, hy, 0); fixed.name = 'BisagraFija'; frame.add(fixed);
+    const moving = new THREE.Group(); moving.position.set(0, hy, 0); moving.name = 'BisagraMovil'; leaf.add(moving);
+    const part = (m, dx, dy, dz) => { if (k === 1) hingeParts.push({ m, home: m.position.clone(), dir: new THREE.Vector3(dx, dy, dz) }); return m; };
+    // placas: la del marco sobre su cara, la de la hoja sobre la cara frontal (pegada al canto)
+    add(fixed, rbox(HP.w - 0.008, HP.h - 0.014, ZF + LIP - FD, 0.004), spacerMat, -0.527, 0, (FD + ZF + LIP) / 2);   // suplemento
+    part(add(fixed, plate(), R.plasticGray, -0.527, 0, ZF + LIP), ...ex(-0.05, 0, 0));
+    part(add(moving, plate(), R.plasticGray, -W / 2 + 0.0255, 0, ZF + LIP), ...ex(0.075, 0, 0));
+    // cuerpo en "C": brazo superior grueso, brazo inferior delgado y la columna entre ambos
+    part(add(fixed, arm(0.032), R.plasticGray, 0, 0.066, 0), ...ex(0, 0.055, 0.03));
+    part(add(fixed, arm(0.016), R.plasticGray, 0, -0.050, 0), ...ex(0, -0.06, 0.03));
+    part(add(fixed, rbox(0.016, 0.084, PZ + RA - ZP - 0.003, 0.003), R.plasticGray, XL + 0.008, -0.008, (ZP + PZ + RA - 0.003) / 2), ...ex(-0.028, 0, 0.03));
+    // perno de acero: se ve entre el brazo superior y el barril
+    part(add(fixed, new THREE.CylinderGeometry(0.0042, 0.0042, 0.106, 20), R.steelHardware, PX, -0.008, PZ), ...ex(0.035, 0.15, 0.05));
+    // barril (con la hoja) y collarín (fijo), concéntricos con el eje
+    const barrel = add(moving, new THREE.CylinderGeometry(BR, BR, 0.061, 40), R.plasticGray, PX, -0.0025, PZ); barrel.name = 'BarrilBisagra';
+    part(barrel, ...ex(0.035, 0.01, 0.06));
+    part(add(fixed, new THREE.CylinderGeometry(BR - 0.0012, BR - 0.0012, 0.0165, 40), R.plasticGray, PX, -0.0415, PZ), ...ex(0.035, -0.035, 0.06));
+    // filo oscuro entre barril y collarín (como en la foto): viaja con el collarín en el despiece
+    part(add(fixed, new THREE.CylinderGeometry(BR - 0.0006, BR - 0.0006, 0.0008, 40), seamMat, PX, -0.0332, PZ, { shadow: false }), ...ex(0.035, -0.035, 0.06));
+  });
+
+  // despiece de la bisagra de arriba: 0 = armada, 1 = separada (las piezas salen hacia la cámara, con un pequeño retraso entre ellas)
+  let exT = 0, exGoal = 0;
+  const reducedEx = matchMedia('(prefers-reduced-motion: reduce)');
+  stage.onFrame.add((dt) => {
+    if (exT === exGoal) return;
+    exT = reducedEx.matches ? exGoal : exT + Math.sign(exGoal - exT) * Math.min(Math.abs(exGoal - exT), dt / 1.1);
+    hingeParts.forEach(({ m, home, dir }, i) => {
+      const t = Math.min(1, Math.max(0, exT * 1.35 - i * 0.05)), e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      m.position.copy(home).addScaledVector(dir, e);
+    });
+    if (stage.invalidate) stage.invalidate(2);
+  });
+  const explode = (on) => { exGoal = on ? 1 : 0; if (stage.invalidate) stage.invalidate(2); };
 
   // ---------- acabados: solo los del registro; el marco acompaña al inoxidable como en las fotos ----------
   let finish = 'hygienicWhite';
@@ -189,13 +228,13 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   stage.scene.add(root);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   return {
-    root, pivot, leaf, hinge, pickables: () => pickables,
+    root, pivot, leaf, hinge, pickables: () => pickables, explode,
     thermal: { wallZ: 0, floorY: 0, openings: () => [{ x0: -OW / 2, x1: OW / 2, top: OH, amount: Math.min(1, Math.abs(hinge.angle) / 80) }] },
     get finish() { return finish; }, setFinish,
     setInside: backdrop.setInside,   // el muro pasa de blanco a azul marino
     // anclas para los puntos de pieza (numero = pieza del catálogo)
     anchors: [
-      { numero: '30', parent: frame, position: V(PX - 0.03, hingeYs[1], FD + 0.07) },
+      { numero: '30', parent: frame, position: V(PX - 0.012, hingeYs[1] + 0.05, PZ + RA) },
       { numero: '27', parent: leaf, position: V(LK.x, LK.y0 + LK.H * 0.5, ZF + LK.D) },
       { numero: '11', parent: leaf, position: V(W / 2 - 0.035, 1.55, ZB - 0.012) },
       { numero: '09', parent: frame, position: V(-(OW / 2 + FW - 0.02), 1.25, FD) },
@@ -206,7 +245,8 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       frontal: (st) => { const d = st.fitDistance(1.55, 2.35); return { pos: [0, 1.05, d], tgt: [0, 1.03, 0.1] }; },
       abierta: (st) => { const d = st.fitDistance(2.3, 2.3, 1.1); return { pos: [d * 0.5, 1.25, d * 0.87], tgt: [0.1, 1.02, 0.35] }; },
       interior: (st) => { const d = st.fitDistance(2.2, 2.3, 1.1); return { pos: [d * 0.64, 1.3, d * 0.77], tgt: [0.05, 1.02, 0.4] }; },
-      bisagra: { pos: [-1.02, 1.9, 0.5], tgt: [PX, 1.73, 0.12] },
+      bisagra: { pos: [-0.86, 1.86, 0.62], tgt: [PX - 0.01, 1.735, 0.15] },
+      despiece: { pos: [-1.06, 1.93, 0.84], tgt: [PX + 0.01, 1.75, 0.19] },     // la bisagra separada completa
       empaque: { pos: [1.75, 1.5, 0.95], tgt: [0.15, 1.2, 0.5] },
       chapa: { pos: [LK.x + 0.26, 1.13, 0.86], tgt: [LK.x - 0.01, 1.03, ZF + 0.02] },
       bumper: { pos: [0.72, 0.62, 1.42], tgt: [0.02, 0.5, 0.17] },

@@ -166,3 +166,35 @@ Código: `src/core/thermal.js` (un material para toda la escena, con instancias)
 | Puntos de pieza en las 4 puertas, con y sin movimiento | 36/36 |
 | iPhone Duo (3 formas) y teléfonos | OK |
 | Bumper 150/500/1000 y «Ver el frío» en las 4 puertas, escritorio y celular | sin errores en consola |
+
+---
+
+# Fase 10F · Bisagra igual a la foto, CDS mejor presentada y más vistas especiales
+
+**Pedido:** bisagra de la abatible idéntica a la foto del componente; potenciar más todo, con más cosas del nivel de «Ver el frío»; presentar mejor las puertas CDS.
+
+## Bisagra de la abatible (`src/viewers/abatible.js`)
+
+Rehecha según `ABATIBLE_30_Bisagra_reversible_de_68_mm` (con las proporciones medidas sobre la foto): dos placas redondeadas una junto a otra, cuerpo en "C" con brazo superior grueso y brazo inferior delgado, perno a la vista, barril y collarín. La placa de la hoja va sobre el frente de la hoja; la del marco, sobre un suplemento que la sube al mismo plano (la hoja está 108 mm por delante del marco). La hoja gira sobre el eje del barril: barril y collarín se mantienen concéntricos en todo el recorrido.
+
+**Despiece:** paso nuevo "Así está armada la bisagra". Al llegar, las piezas de la bisagra de arriba se separan hacia la cámara, una tras otra; al salir se arman. Botón "Separar piezas / Armar".
+
+## CDS mejor presentada (`src/ui/cdsPage.js`, `src/viewers/cds.js`)
+
+- **Comparador:** pestañas Advanced, Plus y LT. A la izquierda, el corte del vidrio animado: los vidrios entran y salen al cambiar de modelo, el argón se mueve entre ellos y la resistencia brilla en el vidrio de afuera. A la derecha: aplicación, vidrios, resistencia, argón, protección contra la humedad (la cifra y la barra suben hasta 65, 100 u 89 %) y garantía. Sigue al modelo elegido en el 3D y lleva a él.
+- **Prueba de humedad:** paso nuevo del recorrido. Subes la humedad del lugar (30 a 100 %) y el vidrio de afuera se empaña si pasa la protección del modelo: el vaho aparece primero en las orillas, abajo y en gotas, y avanza hacia el centro.
+- **Luces KeyLED:** botón "Apagar luces / Encender luces" en el paso de la iluminación; sin luces, el interior se oscurece.
+- **«Ver el frío» en la CDS:** la escala dice la aplicación del modelo elegido (por ejemplo "LT: congelación, −20 °C").
+
+Fuentes: vidrios, resistencia, argón y protección, del catálogo Legacy. Temperaturas de aplicación, de strefrigeracion.com/reachin.php. Donde la página de ST dice "2 vidrios con gas argón" para la Plus, se respetó el catálogo (dos vidrios con resistencia).
+
+## Más vistas especiales
+
+- **Rayos X (las 4 puertas):** junto a "Ver el frío". La puerta se vuelve transparente y se ven sus piezas de adentro (ejes, rodajas, refuerzos, parrillas). Las dos vistas van como un par de botones pequeños, una a la vez, con barrido de escáner al cambiar.
+- **Inicio:** mientras las hojas de la vaivén abren con el scroll, la escena pasa a la vista térmica y se ve salir el frío por el piso; al seguir bajando regresa a la vista normal.
+
+## Pruebas (10F)
+
+Inicio 29/29 · encuadre de la entrada en todos los tamaños · abatible, corrediza 19/19, vaivén 23/23, CDS 20/20 · puntos de pieza 36/36 · componentes, industriales y sitio completos · iPhone Duo (3 formas y 9 páginas) · teléfonos · accesibilidad (axe) 0 fallas en las 9 páginas, escritorio y celular. Las pruebas de la CDS se ajustaron al comparador nuevo (pestañas, corte y protección 65/100/89 %).
+
+Corrección que salió en las pruebas: el vaho y la capa de "luces apagadas" de la CDS estorbaban al tomar la puerta o un producto con el puntero; ya no se pueden tocar.

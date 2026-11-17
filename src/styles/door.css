@@ -130,3 +130,17 @@
 .door.is-thermal .readout { color: #fff; }
 .door.is-thermal .readout span { color: rgba(255, 255, 255, .78); }
 @media (prefers-reduced-motion: reduce) { .viewer__scan, .viewer__scanline { display: none; } }
+
+/* en celular la tarjeta no tiene relleno: la línea del paso actual va en su propio margen */
+@media (max-width: 900px) {
+  .door__step .door__card { padding-left: 16px; }
+  .door__step .door__card::before { top: 2px; bottom: 2px; }
+}
+
+/* Rayos X: lectura y aviso en claro sobre el fondo oscuro */
+.door.is-xray .readout { color: #fff; }
+.door.is-xray .readout span { color: rgba(255, 255, 255, .78); }
+
+/* vistas especiales: «Ver el frío» y «Rayos X» como un par de botones pequeños */
+.door__views { display: flex; gap: 6px; flex-wrap: wrap; }
+.door__views .chip[aria-pressed=true] { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }

@@ -49,6 +49,50 @@ export function createCDS(stage) {
   const setModel = (id) => { if (!MODELS[id]) throw new Error(`Modelo CDS desconocido: ${id}`); model = id; doors.forEach((d) => { d.panes.middle.visible = MODELS[id].panes === 3; }); };
   setModel(model);
 
+  // ---------- Fase 10F · «Prueba de humedad»: vaho sobre el vidrio exterior de cada puerta ----------
+  // Una capa delante del vidrio de afuera (el lado tibio y húmedo). Su mapa marca dónde se empaña primero: orillas,
+  // parte baja y gotas sueltas; al subir la humedad el vaho avanza de ahí hacia el centro. Es una ilustración.
+  const fogMap = (() => {
+    const w = 128, h = 320, c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'), img = g.createImageData(w, h);
+    const hash = (x, y) => { const s0 = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s0 - Math.floor(s0); };
+    const vnoise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+      return (hash(xi, yi) * (1 - u) + hash(xi + 1, yi) * u) * (1 - v) + (hash(xi, yi + 1) * (1 - u) + hash(xi + 1, yi + 1) * u) * v; };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const u = x / (w - 1), v = y / (h - 1), edge = Math.min(u, 1 - u, v * 0.6, 1 - v);
+      const n = 0.6 * vnoise(u * 6, v * 15) + 0.4 * vnoise(u * 17, v * 41);
+      const m = Math.max(0, Math.min(1, 0.95 - edge * 3.2 + v * 0.22 + (n - 0.5) * 0.55));
+      const i = (y * w + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = m * 255; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    for (let k = 0; k < 140; k++) {                                   // gotas: se marcan antes que el resto
+      const x = hash(k, 3) * w, y = hash(k, 7) * h, r = 0.8 + hash(k, 11) * 2.2;
+      g.fillStyle = `rgba(255,255,255,${0.55 + hash(k, 13) * 0.45})`; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; return t;
+  })();
+  const fogMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f7, roughness: 0.92, metalness: 0, transparent: true, opacity: 0.94, alphaMap: fogMap, depthWrite: false, side: THREE.DoubleSide });
+  fogMat.name = 'Vaho';
+  const fogU = { value: 0 };
+  fogMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uFog = fogU;
+    sh.fragmentShader = 'uniform float uFog;\n' + sh.fragmentShader.replace('#include <alphamap_fragment>',
+      'float fogM = texture2D( alphaMap, vAlphaMapUv ).g; diffuseColor.a *= smoothstep( 1.0 - uFog - 0.12, 1.0 - uFog + 0.06, fogM ) * step( 0.001, uFog );');
+  };
+  doors.forEach((d) => {
+    const f = d.panes.front, p = f.geometry.parameters;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(p.width - 0.004, p.height - 0.004), fogMat);
+    m.position.z = p.depth / 2 + 0.0008; m.renderOrder = 12; m.name = 'Vaho'; m.raycast = () => {}; f.add(m);   // no estorba al tomar la jaladera
+  });
+  let fogNow = 0, fogGoal = 0;
+  stage.onFrame.add((dt) => {
+    if (fogNow === fogGoal) return;
+    const k = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1, dt * (fogGoal > fogNow ? 0.9 : 1.4));
+    fogNow += (fogGoal - fogNow) * k; if (Math.abs(fogGoal - fogNow) < 0.002) fogNow = fogGoal;
+    fogU.value = fogNow; if (stage.invalidate) stage.invalidate(2);
+  });
+  const fog = { set: (v) => { fogGoal = Math.max(0, Math.min(1, v)); if (stage.invalidate) stage.invalidate(2); }, get value() { return fogGoal; } };
+
   // Encuadres: cada uno es una caja que debe quedar completa en el visor, vista desde un ángulo. Así se adaptan a la
   // proporción del visor (escritorio, tableta o celular) en vez de usar la distancia fija del original.
   // Los encuadres del lado de la bisagra se escribieron para el eje a la derecha: con la mano izquierda se reflejan
@@ -70,12 +114,25 @@ export function createCDS(stage) {
     mullion: fit([mull - 0.22, 0.95, -0.1, mull + 0.22, 1.55, 0.06], -0.5, 0.05),
     sello: fit(side(span(b1.x0 - 0.12, b1.x1), 0.6, -0.12, 1.55, 0.45), -0.38 * sy, 0.05),
     frio: fit([-W / 2, 0, -0.1, W / 2, H, 1.9], -0.3 * sy, 0.3),          // las tres puertas y el piso de enfrente
+    humedad: fit([BAYS[0].x0, 0.25, -0.1, BAYS[2].x1, H - 0.08, 0.12], -0.12 * sy, 0.04, 1.03),   // las tres puertas de frente
     keyled: fit([-W / 2 + 0.05, 0.12, -DIM.CAB_DEPTH, W / 2 - 0.05, H - 0.1, 0.05], -0.22 * sy, 0.05, 1.0),
   };
 
   // KeyLED: tiras en los perfiles verticales, del lado interior
   let led = true;
-  const setLED = (on) => { led = !!on; M.ledStrip.emissiveIntensity = led ? 2.2 : 0; M.ledStrip.color.set(led ? 0xffffff : 0x9aa1a6); frame.parts.ledLights.forEach((l) => { l.intensity = led ? 0.9 : 0; }); };
+  // con las luces apagadas el interior se oscurece: una capa oscura justo detrás de los vidrios (se ve también por la
+  // puerta abierta) que entra y sale en 0.4 s
+  const darkMat = new THREE.MeshBasicMaterial({ color: 0x03080d, transparent: true, opacity: 0, depthWrite: false });
+  const dark = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.03, H - 0.06), darkMat); dark.name = 'InteriorSinLuz';
+  dark.position.set(0, H / 2, -0.035); dark.visible = false; dark.renderOrder = 10; dark.raycast = () => {}; root.add(dark);   // después de los productos: los cubre parejo
+  let darkGoal = 0;
+  stage.onFrame.add((dt) => {
+    if (darkMat.opacity === darkGoal) return;
+    const k = matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : Math.min(1, dt / 0.4);
+    darkMat.opacity += (darkGoal - darkMat.opacity) * Math.max(k, 0.12); if (Math.abs(darkGoal - darkMat.opacity) < 0.004) darkMat.opacity = darkGoal;
+    dark.visible = darkMat.opacity > 0.001; if (stage.invalidate) stage.invalidate(2);
+  });
+  const setLED = (on) => { led = !!on; M.ledStrip.emissiveIntensity = led ? 2.2 : 0; M.ledStrip.color.set(led ? 0xffffff : 0x9aa1a6); frame.parts.ledLights.forEach((l) => { l.intensity = led ? 0.9 : 0; }); darkGoal = led ? 0 : 0.7; if (stage.invalidate) stage.invalidate(3); };
 
   // ---------- movimiento para la página ----------
   const listeners = new Set(); let wasOpen = false;
@@ -113,7 +170,12 @@ export function createCDS(stage) {
   return {
     root, M, frame, doors, ctrls, products, shelves, motion,
     // «Ver el frío»: una salida por puerta (cada vano se refleja sobre su propio centro: conserva su ancho)
-    thermal: { wallZ: -0.007, floorY: 0, openings: () => ctrls.map((c, i) => ({ x0: BAYS[i].x0, x1: BAYS[i].x1, top: BAYS[i].leafY1, amount: Math.min(1, c.angle / HOLD.HOLD_ANGLE) })) },
+    thermal: {
+      wallZ: -0.007, floorY: 0, openings: () => ctrls.map((c, i) => ({ x0: BAYS[i].x0, x1: BAYS[i].x1, top: BAYS[i].leafY1, amount: Math.min(1, c.angle / HOLD.HOLD_ANGLE) })),
+      // aplicación de cada modelo según strefrigeracion.com (Plus y Advanced: refrigeración −5 °C; LT: congelación −20 °C)
+      note: () => (model === 'lt' ? 'LT: congelación, −20 °C' : `${MODELS[model].name.replace('Legacy ', '')}: refrigeración, −5 °C`),
+    },
+    fog,
     setInside: backdrop.setInside,
     get led() { return led; }, setLED,
     // el control de "acabado" de la página aquí elige el modelo; por fuera son iguales
