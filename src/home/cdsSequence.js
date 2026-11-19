@@ -35,40 +35,63 @@ export function mountSequence(section, media) {
   };
   const tick = () => { showAngle(); raf = v.paused || v.ended ? 0 : requestAnimationFrame(tick); };
 
+  // Fase 10J · el iPhone no descarga un video por adelantado (ignora «preload»): empezaba a bajarlo al reproducir y se
+  // detenía a cargar a media apertura. Ahora el video completo (~0.4 MB) se descarga antes, en segundo plano, y se
+  // reproduce desde la memoria del teléfono: ya no hay pausas por red. Si la descarga falla, se usa el video normal.
+  const typeOk = (x) => v.canPlayType(x === 'mp4' ? 'video/mp4; codecs="avc1.640020"' : 'video/webm; codecs="vp9"');
+  let ready = false, want = false, blobUrl = '', loading = null;
+  const markReady = () => { ready = true; if (want && !played) play(); };
+  v.addEventListener('canplaythrough', markReady);
+  v.addEventListener('loadeddata', () => { if (blobUrl) markReady(); });
   const setSrc = () => {
     const f = wideQ.matches ? 'ancho' : 'alto';
-    if (f === fmt) return; fmt = f;
+    if (f === fmt) return; fmt = f; ready = false;
     // con movimiento reducido (o antes de reproducir) se ve un cuadro fijo
     v.poster = url(`img/inicio/cds/${f}-${reduce.matches || played ? 'fin' : 'inicio'}.webp`);
-    // H.264 primero (iPhone y casi todos); VP9 para los navegadores sin H.264
-    v.replaceChildren(...['mp4', 'webm'].map((x) => Object.assign(document.createElement('source'), { src: url(`video/cds-${f}.${x}`), type: `video/${x}` })));
-    if (near) { v.preload = 'auto'; v.load(); }
+    const ext = typeOk('mp4') ? 'mp4' : typeOk('webm') ? 'webm' : 'mp4';
+    const file = url(`video/cds-${f}.${ext}`), mine = f;
+    loading = fetch(file).then((r) => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then((b) => {
+      if (fmt !== mine) return;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(b.type ? b : new Blob([b], { type: `video/${ext}` }));
+      v.src = blobUrl; v.preload = 'auto'; v.load();
+    }).catch(() => {
+      if (fmt !== mine) return;
+      // respaldo: el navegador lo pide como siempre (H.264 primero; VP9 para los navegadores sin H.264)
+      v.removeAttribute('src');
+      v.replaceChildren(...['mp4', 'webm'].map((x) => Object.assign(document.createElement('source'), { src: url(`video/cds-${f}.${x}`), type: `video/${x}` })));
+      v.preload = 'auto'; v.load();
+    });
     if (played) v.addEventListener('loadedmetadata', () => { v.currentTime = Math.max(0, v.duration - 0.05); showAngle(); }, { once: true });
   };
   const play = () => {
-    played = true; again.hidden = true;
+    // si aún no termina de bajar, espera a estar completo (sigue mostrando el primer cuadro, igual al del video)
+    if (!ready) { want = true; return; }
+    want = false; played = true; again.hidden = true;
     if (v.ended || v.currentTime > 0.05) v.currentTime = 0;
     const p = v.play();
-    if (p && p.catch) p.catch(() => { again.hidden = false; again.textContent = 'Ver abrir'; });   // ahorro de batería: se pide un toque
+    if (p && p.catch) p.catch(() => { played = false; again.hidden = false; again.textContent = 'Ver abrir'; });   // ahorro de batería: se pide un toque
     cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
   };
-  const reset = () => { v.pause(); if (v.readyState) v.currentTime = 0; played = false; again.hidden = true; showAngle(); };
+  const reset = () => { v.pause(); if (v.readyState) v.currentTime = 0; played = false; want = false; again.hidden = true; showAngle(); };
 
   v.addEventListener('ended', () => { showAngle(); again.hidden = false; again.textContent = 'Ver abrir otra vez'; });
   v.addEventListener('play', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); });
-  again.addEventListener('click', play);
+  again.addEventListener('click', () => { if (!ready) { setSrc(); } want = true; play(); });
   wideQ.addEventListener('change', setSrc);
 
-  // se descarga cuando la sección se acerca
-  new IntersectionObserver(([e]) => {
-    if (!e.isIntersecting || near) return;
-    near = true; setSrc();
-  }, { rootMargin: '120% 0px' }).observe(section);
+  // se descarga en segundo plano poco después de abrir el Inicio (o antes, si la sección se acerca); con «ahorro de
+  // datos» solo cuando ya está cerca
+  const start = () => { if (near) return; near = true; setSrc(); };
+  const saveData = navigator.connection && navigator.connection.saveData;
+  if (!saveData) addEventListener('load', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(start, { timeout: 3000 }), 2500), { once: true });
+  new IntersectionObserver(([e]) => { if (e.isIntersecting) start(); }, { rootMargin: saveData ? '100% 0px' : '250% 0px' }).observe(section);
 
   // arranca con la imagen bien visible; si vuelves a subir por encima de la sección, queda lista para repetir
   new IntersectionObserver(([e]) => {
     if (reduce.matches) { if (!played) { played = true; v.poster = url(`img/inicio/cds/${fmt || 'alto'}-fin.webp`); roVal.textContent = '90°'; roTxt.textContent = 'Se queda abierta'; ro.classList.add('is-on'); again.hidden = false; again.textContent = 'Ver abrir'; } return; }
     if (e.intersectionRatio >= 0.55 && !played) play();
+    else if (e.intersectionRatio < 0.55 && want && !played) want = false;
     else if (!e.isIntersecting && e.boundingClientRect.top > 0 && played) reset();
   }, { threshold: [0, 0.55] }).observe(media);
 

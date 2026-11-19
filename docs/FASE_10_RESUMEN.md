@@ -326,3 +326,55 @@ Sobre la puerta solo van puntos con número; abajo, en una línea, la pieza que 
 Inicio 31/31 · encuadre de la entrada en todos los tamaños · CDS con jaladera 4/4 · abatible (giro, despiece, pasos) · corrediza 21/21 (manija como la foto, opción de palanca, 119 mallas y los mismos 43 394 triángulos, modelo comprimido; si no descarga, imagen fija) · vaivén 23/23 · CDS 20/20 · componentes 22/22 · cotizar e industriales 14/14 (menú nuevo, tocables ≥ 44 px) · sitio 11/11 · puntos de pieza 36/36 · Duo 7/7 y 9 páginas en sus 3 tamaños · teléfonos 10/10 · accesibilidad (axe) 0 fallas en las 9 páginas y también con el menú abierto, la ficha de pieza y el cambio de puerta.
 
 Correcciones que salieron en las pruebas: los toques (tapa de la corrediza, piezas flotantes) ahora se miden con la hora del evento, así un cuadro pesado no convierte un toque en arrastre; los números del escáner en celular se dibujan a 12 px.
+
+# Fase 10J · A la medida en todo el sitio, verla con la cámara, encuentra tu pieza y WhatsApp
+
+**Pedido:** que en celular la página sea todavía más ágil; la CDS del Inicio se sigue trabando; innovar más con llamadas a la acción sobre la medida e integrar lo que propusimos (ver la puerta con la cámara a la medida del vano, encontrar la pieza tocando la puerta, WhatsApp con el mensaje ya escrito) y dejar la página más completa.
+
+## CDS en el Inicio
+
+En iPhone el video se trababa porque Safari no lo descarga antes de tiempo (ignora `preload`): empezaba a reproducirse con lo que iba llegando. Ahora el video completo se baja por adelantado (cuando la página termina de cargar y queda libre, o cuando la sección está a dos pantallas y media) y se reproduce desde la memoria del teléfono; si no se puede, usa el video normal. Con "ahorro de datos" se baja solo al acercarse. Medido con red 4G lenta y desplazamiento rápido y lento: ni una espera ni un corte.
+
+## Celular más ágil
+
+- **El 3D quieto ya no se redibuja:** la red de seguridad del dibujo (un cuadro por segundo) ahora solo corre los 8 s después de cada cambio y nunca sobre el cuadro nítido. Con la puerta quieta, cero cuadros: sin tirones periódicos y menos batería.
+- **Las páginas siguientes se adelantan:** al tocar o pasar por un enlace del sitio, el navegador ya va pidiendo la página (reglas de especulación) y, con el teléfono libre, se bajan los modelos de corrediza y vaivén, que quedan guardados.
+- Lo nuevo (cámara, buscador de piezas, medida) se carga solo cuando se usa o se acerca; el Inicio pesa lo mismo que antes.
+
+## La medida, en todo el sitio
+
+Una sola medida para todo el sitio: se escribe una vez y la recuerdan el Inicio, Industriales, la página de cada puerta y Cotizar.
+
+- **Inicio, «Hecha a la medida de tu vano»:** eliges la puerta, escribes ancho y alto y la ves a escala junto a una persona de 1.70 m, con su área. Desde ahí: agregar a la solicitud, verla con la cámara o mandar la medida por WhatsApp.
+- **Cada puerta, «Tu puerta X, a la medida de tu vano»:** lo mismo, con el acabado y las opciones que elegiste en la página. En la CDS, el juego: cuántas puertas, ancho y alto.
+- **Industriales:** la misma tarjeta al final.
+- **«¿Cómo mido mi vano?»:** tres pasos ilustrados (ancho en tres alturas, alto en los dos lados, lo que estorba alrededor y el muro libre para la corrediza).
+- **Barra fija en celular:** al bajar por una puerta aparece «Cotizar a la medida» (o «Cotizar el juego») con un botón de cámara al lado; se esconde al llegar a la sección.
+- **Cotizar:** la puerta rápida ya trae la medida escrita.
+
+## Verla en tu espacio (cámara)
+
+La puerta a tamaño real con la cámara del teléfono, escalada a la medida escrita (si no hay medida, a una medida típica). En Android abre la realidad aumentada de Chrome y en iPhone la de Safari (Quick Look). En computadora muestra un código QR para abrirla en el teléfono con la misma medida. Botón «En tu espacio» junto a los rayos X, en la barra fija y en cada tarjeta de medida.
+
+Modelos para la cámara: `scripts/build-ar.py` con `lab/ar.html` (solo en desarrollo, `VITE_LAB=1`) exporta las cuatro puertas a `public/ar/*.glbz` y sus medidas a `src/data/ar.json`; al abrir, el modelo se reescala en el teléfono a la medida (sin descargar otro archivo).
+
+## Encuentra tu pieza
+
+En Componentes, «¿No sabes cómo se llama? Toca dónde está»: eliges tu puerta y tocas la zona (bisagras, chapa, riel, poleas, manija, guía de abajo, empaques, marco, resistencia, bumper, ventanilla…) sobre la misma imagen del escáner; aparecen las piezas de esa zona con su número y foto, y cada una abre su ficha. Las zonas también están en una fila de botones arriba de los resultados. «¿No la reconoces?»: tomarle una foto y mandarla por WhatsApp. Se llega desde el menú («¿Qué pieza es?»), desde cada puerta (debajo de sus piezas) y desde el Inicio (debajo de la lista de piezas).
+
+## WhatsApp con el mensaje escrito
+
+Cada botón arma el mensaje según dónde estás: la medida y la puerta, la pieza con su número y cantidad, o la foto de la pieza (en el teléfono se comparte la foto directamente). En Cotizar, «Mandar por WhatsApp» siempre a la vista. **Falta el número de ST:** mientras no esté en `src/data/contacto.json` (`"whatsapp"`), WhatsApp se abre con el mensaje listo para elegir a quién mandarlo.
+
+## Cuadros azules en algunos teléfonos (reporte de ST)
+
+En el teléfono de una persona aparecían paneles azules al pasar del Inicio a las puertas; en otros no. Eran las dos hojas azul marino de la animación del plegable (Duo): se disparaban con cualquier cambio grande del ancho de la ventana, y en Android ese cambio también ocurre sin plegar nada: cuando algo de la página se sale por un lado, Chrome agranda la ventana para mostrarlo. Con la letra del teléfono más grande de lo normal pasaba en el Inicio (las cifras «5 años», el termómetro, las fichas de cada puerta), en las páginas de puerta (el aviso «Arrastra una hoja…»), en CDS (termómetro y pestañas de modelo) y en Cotizar (botón «Abrir correo con la solicitud»).
+
+- La animación ahora solo sale si cambia la pantalla misma (plegar o desplegar), sin girar el teléfono, sin zoom y no en el primer segundo de la página. Probado: algo más ancho que la pantalla, girar y hacer zoom no la disparan; desplegar y plegar sí (`f10j/foldtest.py`).
+- Nada se sale de lo ancho con la letra al 100 %, 130 % y 150 % en 360 px (Inicio, Industriales, las tres puertas, CDS, Componentes y Cotizar): los botones largos pasan a dos renglones en pantallas angostas, los títulos parten una palabra solo si no cabe sola, las cifras se ajustan a su columna y los termómetros recortan su texto con «…».
+- Era un iPhone 17 con Safari: ahí el ancho de la pantalla nunca cambia, así que la animación del plegable ya no puede salir (antes la podía disparar, por ejemplo, el zoom con dos dedos). Además, por si era Safari dibujando el reverso de las hojas azules que se abren entre el Inicio y las puertas (y las de la entrada y el final): ahora cada hoja se desvanece en cuanto queda de canto, así no puede quedarse a la vista. No hay iPhone en este entorno para confirmarlo en real.
+- Llegar con un enlace a una sección (p. ej. `/cds/#ficha`) va ahí de inmediato; antes, en un teléfono lento, la página se quedaba arriba mientras se preparaba el 3D.
+
+## Pruebas (10J)
+
+`f10j/flow10j.py` (nueva, 47 comprobaciones en celular 390 y 360 y escritorio): cada zona de las tres puertas muestra piezas; la manija de la corrediza lleva a la 39 y la 64; la ficha trae WhatsApp; la medida escrita en el Inicio aparece en la corrediza, en Industriales y en Cotizar; la cámara carga la corrediza a la escala del vano; barra fija con botones de 44 px; sin desborde; axe sin fallas en Componentes, Inicio con «Cómo medir», cámara e Industriales. Se corrigió en el camino: al pasar de «Ancho» a «Alto» la tarjeta se rehacía y borraba el alto (y en el teléfono cerraba el teclado). Pruebas anteriores actualizadas al botón nuevo de agregar, a WhatsApp siempre visible, al video CDS descargado por adelantado y a la intro (espera a que termine en vez de un tiempo fijo). Cadena completa: todo correcto; los dos gestos con un dedo (corrediza y vaivén) fallaron solo dentro de la cadena por lentitud del render por software y pasan solos (21/21 y 23/23), igual que la versión 10I en las mismas condiciones.

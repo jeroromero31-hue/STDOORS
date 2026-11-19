@@ -6,6 +6,7 @@ import data from '../data/components.json';
 import en3d from '../data/piezas-3d.json';
 import flot from '../data/flotantes.json';
 import escaner from '../data/escaner.json';
+import { waButton, waUpdate } from './whatsapp.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -90,6 +91,7 @@ export function mountCatalog() {
     list = base.filter((p) => !state.tipo || p.tipo === state.tipo);
     if (searching) list.sort((a, b) => exactNumber(b, state.q) - exactNumber(a, state.q));
     const showing = state.fam || searching || state.tipo;
+    const fh = $('#encuentra'); if (fh) fh.hidden = !!showing;
     start.hidden = !!showing; grid.hidden = !showing || !list.length; empty.hidden = !showing || !!list.length;
     count.textContent = !showing ? 'Elige una puerta o busca una pieza.'
       : `${list.length} ${list.length === 1 ? 'pieza' : 'piezas'}${state.fam ? ' de la puerta ' + FAM[state.fam].nombre.toLowerCase() : ''}${state.tipo ? ` de ${TIPO[state.tipo].nombre.toLowerCase()}` : ''}${searching ? ` para «${state.q.trim()}»` : ''}`;
@@ -147,7 +149,10 @@ export function mountCatalog() {
     const cur = () => solicitud.all().find((x) => x.id === p.id);
     if (cur()) qty.value = cur().cantidad || 1;
     const paint = () => { const has = !!cur(); add.textContent = has ? 'Quitar de tu solicitud' : 'Agregar a tu solicitud'; add.classList.toggle('btn--line', has); };
-    const setQ = (v) => { v = Math.max(1, Math.min(99, Math.round(+v) || 1)); qty.value = v; if (cur()) solicitud.update(p.id, { cantidad: v }); };
+    // pedirla por WhatsApp con número, nombre, puerta y cantidad
+    const waCtx = () => ({ tipo: 'pieza', pieza: p, cantidad: +qty.value || 1, puerta: p.familias.map((f) => FAM[f].nombre.toLowerCase()).join(' y ') });
+    $('.pz__act', sheet.body).append(waButton(waCtx(), { label: 'Pedir por WhatsApp' }));
+    const setQ = (v) => { v = Math.max(1, Math.min(99, Math.round(+v) || 1)); qty.value = v; if (cur()) solicitud.update(p.id, { cantidad: v }); waUpdate($('.pz__act .wa-btn', sheet.body), waCtx()); };
     $$('[data-q]', sheet.body).forEach((b) => { b.onclick = () => setQ(+qty.value + +b.dataset.q); });
     qty.onchange = () => setQ(qty.value);
     add.onclick = () => {
@@ -195,7 +200,12 @@ export function mountCatalog() {
     })), { size: (w) => (narrow() ? w * 0.85 : w), edge: 0.15, tag: false, onPick: (it) => openSheet(it.pieza) })).catch((e) => console.error(e));
   }
 
+  // ---------- Fase 10J · encuentra tu pieza tocando la puerta ----------
+  const findHost = $('#encuentra');
+  if (findHost) import('./finder.js').then(({ mountFinder }) => mountFinder(findHost, { onPick: (p) => openSheet(p), start: qs.get('puerta') || state.fam || 'abatible' })).catch((e) => console.error(e));
+
   render();
+  if (location.hash === '#encuentra' && findHost) setTimeout(() => findHost.scrollIntoView({ block: 'start' }), 300);
   const want = piezas.find((p) => p.id === qs.get('id'));
   if (want) openSheet(want);
   window.__catalog = { state, list: () => list, open: openSheet };

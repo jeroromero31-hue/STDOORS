@@ -3,6 +3,7 @@
 import { solicitud, contacto, toast, url } from './site.js';
 import catalog from '../data/components.json';
 import { FAM_NAME, famOf, defaults, toCm, describe, plano, CDS_W, CDS_H, CDS_MOD } from './medida.js';
+import { vano } from './vano.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -10,11 +11,12 @@ const MAX = 99;
 
 export function mountQuote() {
   const list = $('#qItems'), form = $('#qForm');
+  // Fase 10J · WhatsApp siempre: directo al chat de ST cuando su número esté confirmado; mientras, con el mensaje listo
   const wa = $('[data-via=whatsapp]', form);
-  wa.hidden = !contacto.whatsapp;
+  wa.hidden = false; wa.textContent = contacto.whatsapp ? 'Enviar por WhatsApp' : 'Mandar por WhatsApp';
   $('#qHow').textContent = contacto.whatsapp
     ? 'Elige cómo enviarla. Se abre tu correo o WhatsApp con todo escrito; la envías tú desde ahí.'
-    : `Se abre tu programa de correo con todo escrito, dirigido a ${contacto.correo}; la envías tú desde ahí. También puedes copiar el texto.`;
+    : `Elige cómo enviarla: por correo (dirigido a ${contacto.correo}) o por WhatsApp, con todo escrito; la envías tú desde ahí. También puedes copiar el texto.`;
 
   // miniatura de una pieza: su foto del catálogo
   function thumb(x) {
@@ -141,7 +143,9 @@ export function mountQuote() {
   // agregar una puerta a la medida desde aquí mismo
   $$('#qAdd [data-add]').forEach((b) => { b.onclick = () => {
     const fam = b.dataset.add, nid = `puerta-${fam}-m${Date.now().toString(36)}`;
-    own(() => solicitud.add({ id: nid, nombre: FAM_NAME[fam], tipo: 'Puerta', cantidad: 1, cfg: defaults(fam) }));
+    // con la medida que ya escribiste en el sitio (si la hay)
+    const v = vano.get(), pre = fam === 'cds' ? (v.cds || {}) : { ancho: v.ancho || '', alto: v.alto || '' };
+    own(() => solicitud.add({ id: nid, nombre: FAM_NAME[fam], tipo: 'Puerta', cantidad: 1, cfg: { ...defaults(fam), ...pre } }));
     renderList(); toast('Se agregó a tu solicitud');
     const el = $(`[data-id="${nid}"]`, list); el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     ($('input[data-k=ancho]', el) || $('.chip', el)).focus({ preventScroll: true });
@@ -200,8 +204,8 @@ export function mountQuote() {
       catch { $('.q-preview').open = true; const r = document.createRange(); r.selectNodeContents($('#qText')); getSelection().removeAllRanges(); getSelection().addRange(r); status.textContent = 'No se pudo copiar solo: el texto quedó seleccionado abajo para que lo copies.'; }
       return;
     }
-    if (via === 'whatsapp' && contacto.whatsapp) {
-      api.open(`https://wa.me/${contacto.whatsapp}?text=${encodeURIComponent(t)}`);
+    if (via === 'whatsapp') {
+      api.open(`https://wa.me/${contacto.whatsapp || ''}?text=${encodeURIComponent(t)}`);
       status.textContent = 'Se abrió WhatsApp con tu solicitud. Envíala desde ahí; tu lista se queda aquí por si la necesitas.';
       return;
     }

@@ -87,3 +87,6 @@ const ROWS = [
 $('#indCmp').innerHTML = `
   <div class="cmpx__h" aria-hidden="true"><span></span>${PUERTAS.map((d) => `<b>${d.nombre}</b>`).join('')}</div>
   <dl class="cmpx__rows">${ROWS.map(([l, v]) => `<div class="cmpx__r"><dt>${l}</dt>${v.map((x, i) => `<dd><span class="cmpx__m">${PUERTAS[i].nombre}</span>${x}</dd>`).join('')}</div>`).join('')}</dl>`;
+
+// ---------- Fase 10J · a la medida ----------
+import('../ui/vano.js').then(({ mountVano }) => mountVano($('#indVano'))).catch((e) => console.error(e));

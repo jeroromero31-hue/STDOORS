@@ -331,6 +331,11 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       xray = createXray(stage);
       coldBtn.insertAdjacentHTML('afterend', '<button class="chip" id="xrayBtn" aria-pressed="false" data-cur="Rayos X">Rayos X</button>');
       xrayBtn = $('#xrayBtn'); xrayBtn.onclick = () => { setXray(!xray.on); hint.classList.add('is-off'); };
+      // Fase 10J · la puerta en tu espacio, con la cámara y a la medida de tu vano (si ya la escribiste)
+      xrayBtn.insertAdjacentHTML('afterend', '<button class="chip chip--ar" id="arBtn" data-cur="Cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>En tu espacio</button>');
+      $('#arBtn').onclick = () => Promise.all([import('./ar.js'), import('./vano.js')]).then(([{ openAR }, { vano }]) => {
+        const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto });
+      }).catch(() => toast('No se pudo abrir la vista con cámara'));
       coldBtn.onclick = () => {
         const on = !thermal.on; setCold(on, false); hint.classList.add('is-off');
         if (on && !state.inside) {
@@ -418,7 +423,35 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     $('#parts').innerHTML = (featured.length ? featured : parts.slice(0, 12)).map((p) => `<a class="part" href="${url('componentes/')}?id=${p.id}">${partPicture(p)}<span class="part__t">${p.nombre}<small>${p.numero ? 'Pieza ' + p.numero : 'Sin número'}</small></span></a>`).join('');
     $('#specCount').textContent = parts.length;
   }
-  const add = $('#addDoor');
+  // Fase 10J · cotizar a la medida desde la misma página: medida del vano, plano a escala, cámara y WhatsApp
+  const vanoHost = $('#cotizar .wrap');
+  if (vanoHost) {
+    const box = document.createElement('div'); box.className = 'vano--door';
+    $('#addDoor').closest('.row').replaceWith(box);
+    import('./vano.js').then(({ mountVano }) => mountVano(box, {
+      fam: familia,
+      addItem: () => {
+        const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';
+        const key = state.finish || (state.option && state.option.id);
+        const cfg = Object.entries(state.cfg || {});
+        const cfgId = cfg.map(([k, v]) => `-${k}${v.id}`).join(''), cfgName = cfg.map(([, v]) => `, ${v.detail.toLowerCase()}`).join('');
+        return { id: `puerta-${familia}${key ? '-' + key : ''}${cfgId}`, nombre: `${nombre}${f ? ', ' + f : ''}${cfgName}`, tipo: 'Puerta', ...(familia === 'cds' && state.option ? { cfg: { modelo: state.option.id } } : {}) };
+      },
+    })).catch((e) => console.error(e));
+    // celular: botón fijo abajo hasta llegar a la sección de cotizar
+    const bar = document.createElement('div'); bar.className = 'cta-bar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Cotizar');
+    bar.innerHTML = `<a class="btn" href="#cotizar">${familia === 'cds' ? 'Cotizar el juego' : 'Cotizar a la medida'}</a>${$('#arBtn') ? `<button type="button" class="cta-bar__ar" aria-label="Verla en tu espacio con la cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>` : ''}`;
+    document.body.append(bar);
+    const barAr = bar.querySelector('.cta-bar__ar'); if (barAr) barAr.onclick = () => $('#arBtn').click();
+    bar.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); $('#cotizar').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); setTimeout(() => $('#cotizar input, #cotizar .chip')?.focus({ preventScroll: true }), 700); });
+    const showBar = () => bar.classList.toggle('is-on', scrollY > innerHeight * 0.6);
+    new IntersectionObserver(([e]) => bar.classList.toggle('is-away', e.isIntersecting), { threshold: 0.05 }).observe($('#cotizar'));
+    addEventListener('scroll', showBar, { passive: true }); showBar();
+  }
+  // Fase 10J · ¿se descompuso una pieza? encontrarla tocando la puerta
+  const partsEl = $('#parts');
+  if (partsEl && familia !== 'cds') partsEl.insertAdjacentHTML('afterend', `<a class="find-cta" href="${url('componentes/')}?puerta=${familia}#encuentra"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Se descompuso una pieza y no sabes cómo se llama?</b><span>Toca la zona de la puerta donde está y te mostramos cuál es.</span></span></a>`);
+  const add = $('#addDoor') || document.createElement('button');
   add.onclick = () => {
     const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';
     const key = state.finish || (state.option && state.option.id);

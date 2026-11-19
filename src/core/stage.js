@@ -119,10 +119,10 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
 
   // Bucle por tiempo; se pausa fuera de pantalla. Fase 8: solo se dibuja cuando algo cambió (cámara, posiciones,
   // materiales, luces, tamaño). Con la puerta quieta el celular deja de dibujar 60 veces por segundo; aun así se
-  // dibuja una vez por segundo por si algo cambió sin que se note en la firma (red de seguridad).
+  // dibuja una vez por segundo, durante 8 s después de cada cambio, por si algo cambió sin que se note en la firma (red de seguridad).
   let visible = true, last = performance.now(), sig = NaN, lastDraw = 0, warm = 40, warmUntil = performance.now() + 4000;   // al empezar: 40 cuadros seguidos (máx. 4 s) para medir la fluidez
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; last = performance.now(); if (visible) stage.invalidate(); }).observe(container);
-  stage.invalidate = (frames = 2) => { warm = Math.max(warm, frames); warmUntil = Math.max(warmUntil, performance.now() + 4000); };
+  stage.invalidate = (frames = 2) => { warm = Math.max(warm, frames); warmUntil = Math.max(warmUntil, performance.now() + 4000); lastChange = performance.now(); };
   stage.frames = 0; stage.whyDrawn = {};                     // cuadros dibujados y por qué (para medir)
   // Matrices de instancias: hay código que las marca como cambiadas en cada cuadro aunque sean iguales (CDS), así que
   // se compara su contenido, y solo se recalcula cuando cambia su versión.
@@ -173,7 +173,10 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
     if (s2 !== sig && sharp) { stage.setSharp(false); s2 = signature(); }
     if (s2 === sig && !sharp && warm <= 0 && t - lastChange > 450 && stage.setSharp(true)) { s2 = signature(); sig = NaN; stage.whyDrawn.nitidez = (stage.whyDrawn.nitidez || 0) + 1; }
     if (s2 !== sig) lastChange = t;
-    const why = warm > 0 && t < warmUntil ? 'inicio' : s2 !== sig ? 'cambio' : t - lastDraw > 1000 && skipped >= 3 ? 'seguridad' : '', draw = !!why;
+    // Fase 10J · la red de seguridad solo corre los 8 s siguientes a un cambio y nunca sobre el cuadro nítido: con la escena
+    // quieta ya no se vuelve a dibujar cada segundo (en el teléfono eran tirones periódicos y batería)
+    const safety = !sharp && t - lastChange < 8000 && t - lastDraw > 1000 && skipped >= 3;
+    const why = warm > 0 && t < warmUntil ? 'inicio' : s2 !== sig ? 'cambio' : safety ? 'seguridad' : '', draw = !!why;
     if (draw) stage.whyDrawn[why] = (stage.whyDrawn[why] || 0) + 1;
     if (warm > 0) warm--;
     if (draw) {

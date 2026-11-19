@@ -339,3 +339,9 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Abatible:** el marco rodea la hoja hasta el plano de su perfil de aluminio (por fuera de la hoja), para que la bisagra vaya pegada al marco y a la hoja sin suplemento (indicación de ST). La bisagra vuelve a gris.
 - **Corrediza:** la manija externa fija (39) se modeló según la foto de ST y va sobre la cara de la hoja; la palanca de 68 mm (64) del modelo base es una opción. La barra de acero de la palanca, que el modelo base traía dentro de la malla de la lámina de la hoja, se separó en `door/steel/8-palanca` (mismos triángulos).
 - **Modelos:** además del `.bin` original se publica una copia gzip (`.binz`) que el navegador descomprime y verifica contra el manifiesto; los datos no cambian.
+
+## Fase 10J
+
+- **Cámara (realidad aumentada):** las cuatro puertas se exportan a GLB (`public/ar/*.glbz`, gzip) desde los mismos modelos 3D, con sus materiales; en el teléfono se reescalan a la medida del vano agregando un nodo raíz con la escala (la geometría no cambia). Se usa `@google/model-viewer` 4.0.0 (fijo, compatible con three r169) y `qrcode-generator` para el código QR en computadora.
+- **Encuentra tu pieza:** las zonas se marcaron sobre las imágenes del escáner del Inicio (`img/inicio/escaner/*-alto-normal.webp`); las piezas de cada zona salen del catálogo por número (`src/ui/finder.js`). El visor eléctrico y su caja (74, 75) no están en el modelo de la corrediza: van en la zona «Resistencia y visor», marcada en el canto de arriba de la hoja.
+- **WhatsApp:** sin número confirmado de ST (`"whatsapp": null`); el enlace abre WhatsApp con el mensaje escrito para elegir el contacto.

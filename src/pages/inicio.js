@@ -185,3 +185,12 @@ import('../home/scanner.js').then(({ mountScanner }) => mountScanner($('#escaner
 // ---------- salida ----------
 $('#homeMail').href = `mailto:${contacto.correo}?subject=${encodeURIComponent('Consulta desde el sitio')}`;
 $('#homeMail').textContent = `Escribir a ${contacto.correo}`;
+
+// ---------- Fase 10J · a la medida de tu vano (se arma al acercarse) ----------
+{
+  const box = document.getElementById('medidaBox');
+  if (box) new IntersectionObserver(([e], io) => {
+    if (!e.isIntersecting) return; io.disconnect();
+    import('../ui/vano.js').then(({ mountVano }) => mountVano(box)).catch((err) => console.error(err));
+  }, { rootMargin: '60% 0px' }).observe(box);
+}

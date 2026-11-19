@@ -87,14 +87,47 @@ export function createSheet(label) {
   return api;
 }
 
+// ---------- Fase 10J · navegar más rápido en el celular ----------
+// 1) Reglas de especulación: Chrome y Android traen la página siguiente en cuanto el dedo toca el enlace (o el puntero
+//    se detiene sobre él); al soltar ya está. 2) Con el sitio quieto, se bajan en segundo plano los modelos 3D de las
+//    puertas para que la primera visita a cada una abra rápido (no con «ahorro de datos» ni en conexiones lentas).
+function fastNav() {
+  if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules') && !document.querySelector('script[type=speculationrules]')) {
+    const sr = document.createElement('script'); sr.type = 'speculationrules';
+    sr.textContent = JSON.stringify({ prefetch: [{ where: { and: [{ href_matches: `${url('')}*` }, { not: { href_matches: '*.pdf' } }, { not: { selector_matches: '[download]' } }] }, eagerness: 'moderate' }] });
+    document.head.append(sr);
+  }
+  const c = navigator.connection || {};
+  if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;
+  addEventListener('load', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(() => {
+    import('../core/models.js').then(({ MODEL_URLS }) => MODEL_URLS.forEach((h) => {
+      if (document.querySelector(`link[href="${h}"]`)) return;
+      const l = document.createElement('link'); l.rel = 'prefetch'; l.as = 'fetch'; l.href = h; l.crossOrigin = 'anonymous'; document.head.append(l);
+    })).catch(() => {});
+  }, { timeout: 4000 }), 3500), { once: true });
+}
+
 // ---------- Fase 10I · plegables (Duo): al plegar o desplegar, la pantalla se cierra y se abre como una puerta vaivén ----------
 // Un cambio brusco de ancho (más de 22 % de una vez: plegar, desplegar o girar el teléfono) tapa el reacomodo con dos hojas
 // azul marino que se juntan en la bisagra y vuelven a abrir. Cambiar el tamaño de una ventana arrastrando no lo dispara.
 function foldWatch() {
-  let lastW = innerWidth, t = 0;
+  // Fase 10J · solo con un plegado de verdad. Antes bastaba con que cambiara el ancho de la ventana, y en Android eso pasa
+  // también cuando algo de la página se sale por un lado (Chrome agranda la ventana para mostrarlo), al hacer zoom o al
+  // abrir desde otra app: aparecían los paneles azules sin plegar nada. Ahora tiene que cambiar la pantalla misma, sin
+  // girar el teléfono, sin zoom y no en los primeros segundos de la página.
+  const scr = () => [screen.width, screen.height];
+  const ori = () => (screen.orientation && screen.orientation.type) || (matchMedia('(orientation: landscape)').matches ? 'landscape' : 'portrait');
+  let lastW = innerWidth, lastS = scr(), lastO = ori(), t = 0;
+  const t0 = performance.now();
   addEventListener('resize', () => {
-    const w = innerWidth, jump = Math.abs(w - lastW) / Math.max(1, lastW); lastW = w;
-    if (jump < 0.22 || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const w = innerWidth, s = scr(), o = ori();
+    const jump = Math.abs(w - lastW) / Math.max(1, lastW);
+    const screenJump = Math.abs(s[0] - lastS[0]) / Math.max(1, lastS[0]);
+    const rotated = o.split('-')[0] !== lastO.split('-')[0];
+    const zoomed = window.visualViewport && Math.abs(visualViewport.scale - 1) > 0.05;
+    lastW = w; lastS = s; lastO = o;
+    if (jump < 0.22 || screenJump < 0.22 || rotated || zoomed || performance.now() - t0 < 1200 || document.hidden) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     let fx = document.querySelector('.foldfx');
     if (!fx) {
       fx = document.createElement('div'); fx.className = 'foldfx'; fx.setAttribute('aria-hidden', 'true');
@@ -133,6 +166,7 @@ export function mountSite(page) {
       <ul class="menu__rows">
         <li><a href="${url('industriales/')}"${page === 'industriales' ? ' aria-current="page"' : ''}><b>Industriales</b> <span>Compara las tres y elige</span></a></li>
         <li><a href="${url('componentes/')}"${page === 'componentes' ? ' aria-current="page"' : ''}><b>Componentes</b> <span>Piezas de repuesto con su número</span></a></li>
+        <li><a href="${url('componentes/')}#encuentra"><b>¿Qué pieza es?</b> <span>Toca la puerta y encuéntrala</span></a></li>
         <li><a href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}><b>Cotizar</b> <span data-menu-count>Tu solicitud</span></a></li>
         <li><a href="${url('')}"${page === 'inicio' ? ' aria-current="page"' : ''}><b>Inicio</b> <span>El recorrido completo</span></a></li>
       </ul>
@@ -179,6 +213,15 @@ export function mountSite(page) {
   });
   addEventListener('storage', (e) => { if (e.key === KEY) emit(); });
   foldWatch();
+  fastNav();
+  // Fase 10J · al llegar con #sección (p. ej. /cds/#ficha) se va ahí de inmediato, antes de que el 3D ocupe al teléfono;
+  // si no, el navegador esperaba a que terminara de prepararse el modelo y la página se quedaba arriba unos segundos
+  if (location.hash.length > 1) {
+    let t = null; try { t = document.getElementById(decodeURIComponent(location.hash.slice(1))); } catch { /* nombre inválido */ }
+    if (t && scrollY < 40 && t.getBoundingClientRect().top > innerHeight * 0.5) t.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+  // enlace del código QR de «Verla en tu espacio»: abre la vista en el celular
+  if (/[?&]ar=/.test(location.search)) import('./ar.js').then((m) => m.arFromUrl()).catch(() => {});
   // Fase 10I · caché en el teléfono (solo en el sitio publicado; en pruebas automáticas, con ?sw=1)
   if (import.meta.env.PROD && 'serviceWorker' in navigator && (!navigator.webdriver || /[?&]sw=1/.test(location.search))) {
     addEventListener('load', () => navigator.serviceWorker.register(url('sw.js'), { scope: url('') }).catch(() => {}));

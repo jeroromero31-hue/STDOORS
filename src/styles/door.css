@@ -49,7 +49,7 @@
 .hotcard { position: absolute; left: var(--s-4); bottom: var(--s-4); max-width: min(340px, calc(100% - 32px)); padding: var(--s-4); border-radius: var(--r-field); background: var(--c-white); color: var(--c-ink); display: flex; gap: var(--s-3); align-items: center; box-shadow: 0 12px 32px rgba(0, 0, 0, .25); }
 .hotcard img { width: 84px; height: 63px; object-fit: contain; flex: none; }
 .hotcard b { display: block; line-height: 1.25; }
-.viewer__hint { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); pointer-events: none; transition: opacity var(--d-panel); white-space: nowrap; }
+.viewer__hint { position: absolute; left: 50%; bottom: var(--s-4); transform: translateX(-50%); pointer-events: none; transition: opacity var(--d-panel); width: max-content; max-width: calc(100% - 24px); text-align: center; }
 .viewer__hint.is-off { opacity: 0; }
 .door__viewer .viewer__reframe { position: absolute; top: var(--s-4); right: var(--s-4); background: var(--c-white); }
 .door__viewer .viewer__reframe:hover { background: var(--c-ice); }
@@ -130,12 +130,15 @@
   box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: scan-line 900ms cubic-bezier(.6, 0, .25, 1) forwards; }
 @keyframes scan-wipe { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
 @keyframes scan-line { from { top: 0; } to { top: 100%; } }
-.thermo { position: absolute; z-index: 4; left: calc(var(--free, 0px) + var(--s-4)); right: var(--s-4); bottom: 10px; display: grid; gap: 4px;
+.thermo { position: absolute; z-index: 4; left: calc(var(--free, 0px) + var(--s-4)); right: var(--s-4); bottom: 10px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px;
   color: #fff; pointer-events: none; text-shadow: 0 1px 6px rgba(4, 12, 40, .7);
   opacity: 0; transform: translateY(6px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
 .door.is-thermal .thermo { opacity: 1; transform: none; }
 .thermo__bar { display: block; height: 4px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .18); }
 .thermo__l { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); font-size: var(--t-xs); line-height: 1.2; }
+.thermo > * { min-width: 0; }
+.thermo__l > * { flex: none; }
+.thermo__l b, .thermo__l .thermo__note { flex: 0 1 auto; min-width: 0; }
 .thermo__l b, .thermo__note { font-weight: var(--w-medium); color: rgba(255, 255, 255, .86); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .door.is-thermal .viewer__hint { opacity: 0; }
 .door.is-thermal .readout { color: #fff; bottom: calc(var(--s-5) + 24px); }

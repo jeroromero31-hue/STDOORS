@@ -59,6 +59,7 @@ python3 scripts/render-cds-video.py --nuevo                  # → public/video/
 node scripts/comprimir-modelos.mjs                          # → src/models/*.binz (gzip de cada .bin; se descarga 4 a 6 veces menos)
 python3 scripts/build-flotantes.py                          # → public/img/flotantes/ (recortes de piezas) y src/data/flotantes.json
 python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
+python3 scripts/build-ar.py                                 # → public/ar/*.glbz y src/data/ar.json: modelos para «Verla en tu espacio» (lab/ar.html)
 ```
 
 Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.

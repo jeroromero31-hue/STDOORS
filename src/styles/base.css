@@ -10,7 +10,11 @@
 /* Base: reset, tipografía y superficies */
 *, *::before, *::after { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; }
+/* Fase 10J · nada puede ensanchar la página hacia un lado: en Android, si algo se sale, Chrome agranda la ventana (la
+   página se ve alejada y antes disparaba la animación de plegado con paneles azules). «clip» no crea una caja con
+   scroll, así las secciones fijas (sticky) siguen funcionando. */
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px; overflow-x: clip; }
+@supports not (overflow: clip) { html { overflow-x: hidden; } }
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
   /* Fase 10: al pasar de una página a otra el contenido se funde y el menú se queda quieto (navegadores que lo
@@ -30,7 +34,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--c-cyan); outline-offset: 3px; border-radius: 2px; }
 ::selection { background: var(--c-cyan); color: var(--c-navy); }
 
-h1, h2, h3, h4 { margin: 0; font-weight: var(--w-heavy); line-height: var(--lh-tight); letter-spacing: var(--track-tight); text-wrap: balance; }
+h1, h2, h3, h4 { margin: 0; font-weight: var(--w-heavy); line-height: var(--lh-tight); letter-spacing: var(--track-tight); text-wrap: balance; overflow-wrap: break-word; }
 .t-display, .t-h1, .t-h2 { font-weight: var(--w-heavy); line-height: var(--lh-tight); letter-spacing: var(--track-tight); }
 .t-display { font-size: var(--t-5xl); }
 h1, .t-h1 { font-size: var(--t-4xl); }
