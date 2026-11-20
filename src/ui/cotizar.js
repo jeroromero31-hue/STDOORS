@@ -4,6 +4,7 @@ import { solicitud, contacto, toast, url } from './site.js';
 import catalog from '../data/components.json';
 import { FAM_NAME, famOf, defaults, toCm, describe, plano, CDS_W, CDS_H, CDS_MOD } from './medida.js';
 import { vano } from './vano.js';
+import { doorArt, ACABADOS_DE, ACABADO_NOMBRE } from './preview.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -50,14 +51,18 @@ export function mountQuote() {
   const chips = (k, label, opts, cur) => `<div class="q-f"><span class="q-f__l" id="l-${k}-${uid}">${label}</span><div class="chips" role="group" aria-labelledby="l-${k}-${uid}">${opts.map(([v, t]) => `<button type="button" class="chip chip--sm" data-k="${k}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${t}</button>`).join('')}</div></div>`;
   let uid = 0, mine = false;
   const own = (fn) => { mine = true; try { fn(); } finally { mine = false; } };
+  const finOf = (fam, x) => (ACABADOS_DE[fam] || []).find((f) => x.id.includes(`-${f}`)) || (ACABADOS_DE[fam] || [])[0] || '';
   function doorCard(x) {
-    const fam = famOf(x.id), c = { ...defaults(fam, x), ...(x.cfg || {}) }; uid++;
+    const fam = famOf(x.id), c = { ...defaults(fam, x), acabado: finOf(fam, x), ...(x.cfg || {}) }; uid++;
+    const fins = ACABADOS_DE[fam] || [];
+    const finChips = fins.length ? `<div class="q-f"><span class="q-f__l" id="l-acabado-${uid}">Acabado</span><div class="chips q-fin" role="group" aria-labelledby="l-acabado-${uid}">${fins.map((f) => `<button type="button" class="chip chip--sm" data-k="acabado" data-v="${f}" aria-pressed="${c.acabado === f}"><i aria-hidden="true"></i>${ACABADO_NOMBRE[f]}</button>`).join('')}</div></div>` : '';
     const body = fam === 'cds' ? `
         <div class="q-f"><span class="q-f__l" id="l-n-${uid}">Puertas en el juego</span>
           <div class="q-qty" role="group" aria-labelledby="l-n-${uid}"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out="puertas">${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
         ${chips('ancho', 'Ancho de cada puerta', CDS_W.map((w) => [w, `${w}"`]), c.ancho)}
         ${chips('alto', 'Alto', CDS_H.map((h) => [h, `${h}"`]), c.alto)}
         ${chips('modelo', 'Modelo', Object.entries(CDS_MOD), c.modelo)}` : `
+        ${finChips}
         <fieldset class="q-f q-dim">
           <legend class="q-f__l">Medida del vano</legend>
           <div class="q-dim__in">
@@ -73,10 +78,11 @@ export function mountQuote() {
         ${fam === 'abatible' ? chips('mano', 'Bisagras a la', [['izquierda', 'Izquierda'], ['derecha', 'Derecha']], c.mano) : ''}
         ${fam === 'corrediza' ? chips('mano', 'Abre corriendo hacia la', [['izquierda', 'Izquierda'], ['derecha', 'Derecha']], c.mano) : ''}`;
     return `<li class="q-door" data-id="${x.id}" data-fam="${fam}">
-        <div class="q-door__plan">${plano(fam, c)}</div>
+        <div class="q-door__plan">${doorArt(fam, c)}</div>
         <div class="q-door__b">
           <div class="q-door__t"><b>${x.nombre}</b><span class="t-small t-soft">${fam === 'cds' ? 'Por juego, en medidas estándar' : 'Se fabrica a la medida de tu vano'}</span></div>
           ${body}
+          <button type="button" class="btn btn--line btn--sm q-door__3d" data-3d>Mírala en 3D, a esta medida</button>
           <div class="q-door__foot">
             <div class="q-f"><span class="q-f__l">${fam === 'cds' ? 'Juegos' : 'Puertas iguales'}</span>${qty(x, fam === 'cds' ? 'Juegos' : 'Cantidad')}</div>
             <div class="row"><button type="button" class="q-item__x" data-dup>Agregar otra con otra medida</button><button type="button" class="q-item__x" data-del>Quitar</button></div>
@@ -108,10 +114,10 @@ export function mountQuote() {
       };
       if (!fam) return;
       // ---- ficha a la medida ----
-      const cur = () => ({ ...defaults(fam, solicitud.all().find((y) => y.id === id) || {}), ...((solicitud.all().find((y) => y.id === id) || {}).cfg || {}) });
+      const cur = () => { const it = solicitud.all().find((y) => y.id === id) || { id }; return { ...defaults(fam, it), acabado: finOf(fam, it), ...(it.cfg || {}) }; };
       const save = (patch, redraw = true) => {
         const c = { ...cur(), ...patch }; own(() => solicitud.update(id, { cfg: c }));
-        if (redraw) $('.q-door__plan', li).innerHTML = plano(fam, c);
+        if (redraw) $('.q-door__plan', li).innerHTML = doorArt(fam, c);
         const area = $('[data-area]', li);
         if (area) area.textContent = c.ancho && c.alto && !c.sinMedida ? `${(c.ancho * c.alto / 10000).toFixed(2)} m² de vano` : 'En centímetros, o en metros: 1.20 × 2.10';
         paintText();
@@ -122,7 +128,7 @@ export function mountQuote() {
       }; });
       $$('input[data-k=ancho], input[data-k=alto]', li).forEach((f) => {
         // mientras escribes, el plano solo cambia con una medida que ya tiene sentido (30 cm o más)
-        f.oninput = () => { const v = toCm(f.value); if (v >= 30) $('.q-door__plan', li).innerHTML = plano(fam, { ...cur(), [f.dataset.k]: v }); };
+        f.oninput = () => { const v = toCm(f.value); if (v >= 30) $('.q-door__plan', li).innerHTML = doorArt(fam, { ...cur(), [f.dataset.k]: v }); };
         f.onchange = () => { const v = toCm(f.value); f.value = v; save({ [f.dataset.k]: v }); };
       });
       const no = $('input[data-k=sinMedida]', li);
@@ -130,6 +136,8 @@ export function mountQuote() {
       $$('[data-n]', li).forEach((b) => { b.onclick = () => {
         const n = Math.max(1, Math.min(12, cur().puertas + +b.dataset.n)); $('[data-out=puertas]', li).textContent = n; save({ puertas: n });
       }; });
+      $('[data-3d]', li).onclick = () => import('./ar.js').then(({ openAR }) => { const c = cur(); openAR(fam, fam === 'cds' ? {} : { ancho: c.sinMedida ? '' : c.ancho, alto: c.sinMedida ? '' : c.alto, acabado: c.acabado || finOf(fam, solicitud.all().find((y) => y.id === id) || { id }) }); })
+        .catch((e) => { console.error(e); toast('No se pudo abrir el 3D'); });
       const dup = $('[data-dup]', li);
       if (dup) dup.onclick = () => {
         const src = solicitud.all().find((y) => y.id === id);

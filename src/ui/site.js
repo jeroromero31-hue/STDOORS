@@ -160,16 +160,19 @@ export function mountSite(page) {
   // con lo que llevas y el contacto. En computadora, al pasar por «Industriales» se despliegan las tres puertas.
   const here = document.body.dataset.door || page;
   const menu = document.createElement('div'); menu.className = 'menu'; menu.id = 'menu'; menu.hidden = true;
+  // Fase 11 · menú «adentro de la cámara»: azul marino, la ruta de un minuto arriba, las cuatro puertas en una tira que
+  // se desliza con el dedo, y lo demás en renglones grandes
+  const RUTA = { abatible: 'Cámara de frío', corrediza: 'Vanos anchos', vaiven: 'Cocinas y pasillos', cds: 'Exhibición en tienda' };
   menu.innerHTML = `<div class="wrap menu__in">
-      <p class="menu__l">Puertas</p>
-      ${doorCards(here, { cls: 'dcards dcards--menu' })}
+      <a class="menu__route" href="${url('')}#elige"><span class="menu__rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Tu puerta en un minuto</b><span>Elígela, mírala por dentro, ponle tu medida y cotízala</span></a>
+      <p class="menu__l" id="menuDoors">Puertas</p>
+      <ul class="menu__doors" aria-labelledby="menuDoors">${DOORS.map((d, i) => `<li style="--i:${i}"><a href="${url(d.href)}"${d.id === here ? ' aria-current="page"' : ''}><img src="${url(`img/inicio/ruta/${d.id}.webp`)}" alt="" width="420" height="560" loading="lazy" decoding="async"><b>${d.nombre}</b><span>${d.id === here ? 'Estás aquí' : RUTA[d.id]}</span></a></li>`).join('')}</ul>
       <ul class="menu__rows">
         <li><a href="${url('industriales/')}"${page === 'industriales' ? ' aria-current="page"' : ''}><b>Industriales</b> <span>Compara las tres y elige</span></a></li>
         <li><a href="${url('componentes/')}"${page === 'componentes' ? ' aria-current="page"' : ''}><b>Componentes</b> <span>Piezas de repuesto con su número</span></a></li>
         <li><a href="${url('componentes/')}#encuentra"><b>¿Qué pieza es?</b> <span>Toca la puerta y encuéntrala</span></a></li>
-        <li><a href="${url('fuga-de-frio/')}"${page === 'fuga' ? ' aria-current="page"' : ''}><b>¿Cuánto frío se escapa?</b> <span>Lo que te cuesta cada apertura</span></a></li>
+        <li><a href="${url('fuga-de-frio/')}"${page === 'fuga' ? ' aria-current="page"' : ''}><b>Calcula tu ahorro</b> <span>Cuánto ahorras en luz con la puerta cerrada</span></a></li>
         <li><a href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}><b>Cotizar</b> <span data-menu-count>Tu solicitud</span></a></li>
-        <li><a href="${url('')}"${page === 'inicio' ? ' aria-current="page"' : ''}><b>Inicio</b> <span>El recorrido completo</span></a></li>
       </ul>
       <p class="menu__c"><a href="mailto:${contacto.correo}">${contacto.correo}</a><a href="tel:${contacto.telefono.replace(/[^+\d]/g, '')}">${contacto.telefono}</a></p>
     </div>`;

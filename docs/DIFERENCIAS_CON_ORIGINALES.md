@@ -357,3 +357,11 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **iPhone (`src/ui/usdzAnim.js`):** copia del exportador USDZ de three.js r169 (MIT) con línea de tiempo (traslación, giro y escala por cuadro, a 12 cuadros por segundo). Los materiales sin sombreado pasan a estándar con brillo propio.
 - **Calculadora de fuga de frío:** método de Gosney y Olama (ASHRAE) con supuestos explícitos (COP y protección); no son datos de ST.
 
+
+## Fase 11
+- **Chapa de la abatible:** remedida de frente sobre la foto obligatoria (proporción 0.44, esquinas de arriba con radio
+  de 0.16 del ancho, gris mate `#8b8f93`, cilindro europeo más chico, placa negra de 0.05 a 0.54 del ancho desde 0.59 del
+  alto, jaladera con lóbulo de 23.5 mm y punta de 11.5 mm). Comparación lado a lado: `docs/capturas/fase11-chapa.png`.
+- **Acabados:** negro satinado (metal 0.3, rugosidad 0.5) e inoxidable cepillado mate (rugosidad 0.45), como el
+  configurador original; antes el negro parecía vidrio y el inoxidable un espejo.
+- **USDZ del iPhone:** sin película en ciclo; se abre y se cierra al tocarla (comportamientos de Quick Look).

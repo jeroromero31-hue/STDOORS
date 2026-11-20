@@ -47,15 +47,16 @@ export function createFinishRegistry(renderer) {
   Object.values(tex).flatMap((t) => (t.isTexture ? [t] : Object.values(t))).forEach((t) => { t.anisotropy = maxAniso; });
 
   const m = {
-    // Negro metálico: aluminio/lámina metalizada negra satinada. Neutro (sin tinte azul), no espejo.
+    // Negro metálico: lámina negra satinada (pintura en polvo). Neutro (sin tinte azul), no espejo ni vidrio (Fase 11).
     blackMetal: new THREE.MeshPhysicalMaterial({
-      name: 'blackMetal', color: new THREE.Color('#18191b'), metalness: 0.62, roughness: 0.36, roughnessMap: tex.satinBlack,
-      clearcoat: 0.22, clearcoatRoughness: 0.32, envMapIntensity: 1.0,
+      name: 'blackMetal', color: new THREE.Color('#1c1d1f'), metalness: 0.3, roughness: 0.5, roughnessMap: tex.satinBlack,
+      clearcoat: 0.1, clearcoatRoughness: 0.55, envMapIntensity: 0.85,
     }),
     // Acero inoxidable cepillado: metal pleno, vetas anisotrópicas que cambian al mover la cámara.
+    // Fase 11: más mate (como el configurador original): ya no refleja el cuarto como espejo, se ve gris satinado parejo.
     stainless: new THREE.MeshPhysicalMaterial({
-      name: 'stainless', color: new THREE.Color('#d6d9db'), metalness: 1, roughness: 0.24, roughnessMap: tex.brushed,
-      anisotropy: 0.65, anisotropyRotation: 0, envMapIntensity: 1.45,
+      name: 'stainless', color: new THREE.Color('#c3c7ca'), metalness: 1, roughness: 0.45, roughnessMap: tex.brushed,
+      anisotropy: 0.4, anisotropyRotation: 0, envMapIntensity: 0.95,
     }),
     // Blanco sanitario: lámina pintada/laminada, reflejo suave, piel de naranja apenas perceptible.
     hygienicWhite: new THREE.MeshPhysicalMaterial({
@@ -88,8 +89,8 @@ export function createFinishRegistry(renderer) {
     // Ajuste de calidad: en "baja" se quitan clearcoat y anisotropía (mismo color base, menos costo)
     setQuality(q) {
       const low = q === 'baja';
-      m.stainless.anisotropy = low ? 0 : 0.65;
-      for (const k of ['blackMetal', 'hygienicWhite', 'blackAluminum']) m[k].clearcoat = low ? 0 : { blackMetal: 0.22, hygienicWhite: 0.5, blackAluminum: 0.15 }[k];
+      m.stainless.anisotropy = low ? 0 : 0.4;
+      for (const k of ['blackMetal', 'hygienicWhite', 'blackAluminum']) m[k].clearcoat = low ? 0 : { blackMetal: 0.1, hygienicWhite: 0.5, blackAluminum: 0.15 }[k];
       Object.values(m).forEach((x) => { x.needsUpdate = true; });
     },
     dispose() { Object.values(m).forEach((x) => x.dispose()); registry = null; },

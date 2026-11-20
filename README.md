@@ -132,18 +132,19 @@ src/ui/cotizar.js        solicitud editable y envío por correo / copiar (WhatsA
 src/ui/cdsPage.js        comparador de modelos CDS y galería de instalaciones
 src/ui/motion.js         movimiento de página (fichas, contador) con «reducir movimiento»
 src/pages/               un módulo por página (inicio, industriales, cds, componentes, cotizar, 404…)
-src/home/hero.js         Inicio: la vaivén en 3D que abre con el scroll y la cámara que cruza al interior
-src/home/vapor.js        Inicio: vaho de la cámara frigorífica (partículas) al abrir la puerta
-src/home/scrub.js        Inicio: avance de cada sección con el scroll (sin secuestrar el desplazamiento)
-src/home/cdsSequence.js  Inicio: secuencia CDS cuadro por cuadro
-src/home/look.js         Inicio: luz y materiales de foto de producto (reflector, muro de paneles, piso pulido, luz fría)
+src/pages/inicio.js      Inicio (Fase 11): ruta de cinco paradas que se puede saltar: elige, por dentro (rayos X),
+                         a tu medida (dibujo en vivo), en tu espacio (cámara y ahorro) y cotiza. Sin 3D al entrar.
+src/ui/preview.js        dibujo en vivo de la puerta a escala, con acabado y opciones (Inicio y Cotizar)
+src/ui/usdzTap.js        comportamientos de Quick Look: en iPhone la puerta se abre y se cierra al tocarla
+src/ui/usdzAnim.js       exportador USDZ de three.js con línea de tiempo por tramos y comportamientos
+src/ui/ar.js / arResize.js  vista 3D y cámara: a la medida sin estirar herrajes, con el acabado elegido
+src/home/*               Inicio de las fases 10A–10K (vaivén 3D, vaho, escáner, secuencia CDS): ya no se usan en el
+                         Inicio; scrub.js lo usa cine.js
 src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scroll suave (Lenis) y cursor en todo el sitio
 src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
 src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista
 src/ui/cdsPage.js        CDS: comparador con corte del vidrio, prueba de humedad y luces KeyLED
 src/ui/vaivenPage.js     Vaivén: «Simular paso» (las hojas abren y regresan solas)
-src/home/scanner.js      Inicio: escáner de rayos X de las cuatro puertas (imágenes de scripts/render-escaner.py)
-src/home/cdsSequence.js  Inicio: video de la CDS que abre al llegar a la pantalla, con el ángulo en vivo
 src/ui/floaters.js       piezas flotantes que se agarran y se lanzan (Inicio y Componentes)
 src/ui/medida.js         Cotizar a la medida: medida del vano, juego CDS y plano a escala
 src/styles/home.css      estilos del Inicio (solo se cargan ahí)

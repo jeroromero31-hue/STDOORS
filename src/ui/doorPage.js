@@ -4,6 +4,7 @@ import { Raycaster } from 'three';
 import '../styles/door.css';
 import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS } from './site.js';
 import { partPicture } from './picture.js';
+import { vano } from './vano.js';
 import { createStage } from '../core/stage.js';
 import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
 import { createCameraRig } from '../core/cameraRig.js';
@@ -145,7 +146,10 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     if (finishes.length) {
       sw.innerHTML = finishes.map((f) => `<button class="swatch ${cls[f]}" data-f="${f}" aria-label="${FINISH_LABEL[f]}" aria-pressed="false"></button>`).join('');
       $$('.swatch', sw).forEach((b) => { b.onclick = () => { if (b.dataset.f !== state.finish) crossfade(() => setFinish(b.dataset.f)); }; });
-      setFinish(new URLSearchParams(location.search).get('acabado') in cls ? new URLSearchParams(location.search).get('acabado') : viewer.finish);
+      // Fase 11 · el acabado es uno para todo el sitio: el de la URL, o el que elegiste en la ruta del Inicio o en Cotizar
+      const qa = new URLSearchParams(location.search).get('acabado'), va = (vano.get() || {}).acabado;
+      setFinish(qa in cls ? qa : (va in cls && (!vano.get().fam || vano.get().fam === familia) ? va : viewer.finish));
+      $$('.swatch', sw).forEach((b) => b.addEventListener('click', () => vano.set({ acabado: b.dataset.f, fam: familia }, 'puerta')));
     } else if (viewer.options) {
       const o = viewer.options;
       sw.classList.add('chips'); sw.setAttribute('aria-label', o.label);
@@ -334,7 +338,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       // Fase 10J · la puerta en tu espacio, con la cámara y a la medida de tu vano (si ya la escribiste)
       xrayBtn.insertAdjacentHTML('afterend', '<button class="chip chip--ar" id="arBtn" data-cur="Cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>En tu espacio</button>');
       $('#arBtn').onclick = () => Promise.all([import('./ar.js'), import('./vano.js')]).then(([{ openAR }, { vano }]) => {
-        const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto });
+        const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto, acabado: state.finish });
       }).catch(() => toast('No se pudo abrir la vista con cámara'));
       coldBtn.onclick = () => {
         const on = !thermal.on; setCold(on, false); hint.classList.add('is-off');
@@ -453,7 +457,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   if (partsEl && familia !== 'cds') partsEl.insertAdjacentHTML('afterend', `<a class="find-cta" href="${url('componentes/')}?puerta=${familia}#encuentra"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Se descompuso una pieza y no sabes cómo se llama?</b><span>Toca la zona de la puerta donde está y te mostramos cuál es.</span></span></a>`);
   // Fase 10K · después de ver el frío, cuánto cuesta: la calculadora de fuga de frío
   const frio = $('.door__step--frio');
-  if (frio) frio.insertAdjacentHTML('beforeend', `<a class="find-cta find-cta--frio" href="${url('fuga-de-frio/')}"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Cuánto te cuesta ese frío?</b><span>Calcula, con tus aperturas al día, lo que se va en luz cada mes.</span></span></a>`);
+  if (frio) frio.insertAdjacentHTML('beforeend', `<a class="find-cta find-cta--frio" href="${url('fuga-de-frio/')}"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Cuánto ahorras si se queda adentro?</b><span>Calcula tu ahorro en luz al mes, con tus aperturas al día.</span></span></a>`);
   const add = $('#addDoor') || document.createElement('button');
   add.onclick = () => {
     const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';

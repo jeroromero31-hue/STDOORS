@@ -1,4 +1,6 @@
 // Fase 10K · ¿Cuánto frío se escapa por tu puerta?
+// Fase 11 · ahora en positivo: «¿Cuánto puedes ahorrar en luz?». El número grande es el ahorro al mes entre cómo se usa
+// tu puerta hoy y cómo se usaría con los cambios que marcas (que cierre en 10 s, que no se quede abierta, cortina).
 import { mountSite, url } from '../ui/site.js';
 import '../styles/fuga.css';
 import { fuga, escenarios } from '../ui/fugaCalc.js';
@@ -13,7 +15,8 @@ const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN
 const num = (n, d = 0) => new Intl.NumberFormat('es-MX', { maximumFractionDigits: d }).format(n);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sim = mountFugaSim($('#fugaSim'), { reduced });
-const st = { proteccion: 'ninguna', hrIn: 85 };
+const st = { proteccion: 'ninguna', hrIn: 85, mej: { rapida: true, cerrada: true, tiras: true } };
+const mejor = (i) => ({ ...i, segundos: st.mej.rapida ? Math.min(i.segundos, 10) : i.segundos, minutos: st.mej.cerrada ? 0 : i.minutos, proteccion: st.mej.tiras ? 'tiras' : i.proteccion });
 
 // medida: la del sitio si ya la escribiste
 const v = vano.get();
@@ -39,31 +42,34 @@ function update() {
   $('[data-v="tin"]').textContent = `${i.tIn} °C`; $('[data-v="tout"]').textContent = `${i.tOut} °C`;
   const f = fuga(i);
   if (!f) {
-    r('pesos').textContent = money.format(0); r('year').textContent = 'Afuera tiene que estar más tibio que adentro para que se escape frío.';
+    r('ahorro').textContent = money.format(0); r('vs').textContent = ''; r('year').textContent = 'Afuera tiene que estar más tibio que adentro para que haya algo que ahorrar.';
     ['luz', 'min', 'kw', 'agua'].forEach((k) => { r(k).textContent = '—'; }); r('eq').textContent = ''; $('#fugaSc').innerHTML = '';
     sim.set({ velocidad: 0, alto: i.alto, tIn: i.tIn, tOut: i.tOut }); return;
   }
-  r('pesos').textContent = money.format(f.mes.pesos); r('mini').textContent = money.format(f.mes.pesos);
-  r('year').textContent = `${money.format(f.año.pesos)} al año`;
-  r('luz').textContent = `${num(f.mes.luz)} kWh`;
+  const g = fuga(mejor(i)), ahorro = Math.max(0, f.mes.pesos - g.mes.pesos);
+  r('ahorro').textContent = money.format(ahorro); r('mini').textContent = money.format(ahorro);
+  r('year').textContent = ahorro > 0 ? `${money.format(Math.max(0, f.año.pesos - g.año.pesos))} al año` : 'Marca uno de los cambios de abajo para ver tu ahorro.';
+  r('vs').textContent = `Hoy el frío que sale por la puerta te cuesta unos ${money.format(f.mes.pesos)} al mes; con estos cambios, ${money.format(g.mes.pesos)}.`;
+  r('luz').textContent = `${num(Math.max(0, f.mes.luz - g.mes.luz))} kWh`;
   r('min').textContent = f.abiertaMin >= 90 ? `${num(f.abiertaMin / 60, 1)} h` : `${num(f.abiertaMin)} min`;
   r('kw').textContent = `${num(f.qOpen, f.qOpen < 10 ? 1 : 0)} kW`;
-  r('agua').textContent = `${num(f.mes.hielo)} L al mes`;
+  r('agua').textContent = `${num(Math.max(0, f.mes.hielo - g.mes.hielo))} L al mes`;
   const heaters = f.qOpen / 1.5;
   r('eq').textContent = heaters >= 1
-    ? `Con la puerta abierta es como prender ${num(heaters)} calentadores eléctricos de 1,500 W dentro de la cámara; el equipo tiene que sacar ese calor.`
-    : 'Con la puerta abierta entra poco calor: la diferencia de temperatura es chica.';
+    ? `Cada segundo que la puerta está abierta es como prender ${num(heaters)} calentadores eléctricos de 1,500 W dentro de la cámara: por eso cerrarla pronto ahorra tanto.`
+    : 'Con esta diferencia de temperatura entra poco calor: el ahorro es chico.';
   sim.set({ velocidad: f.velocidad, alto: i.alto, tIn: i.tIn, tOut: i.tOut });
   // escenarios
-  $('#fugaSc').innerHTML = escenarios(i).map((s) => `<li class="fuga__s"><p><b>${s.t}</b><span>${s.d}</span></p><p class="fuga__save"><b>${money.format(s.ahorro)}</b><span>menos al mes (${num(s.pct * 100)} %)</span></p></li>`).join('');
+  $('#fugaSc').innerHTML = escenarios(i).map((s) => `<li class="fuga__s"><p><b>${s.t}</b><span>${s.d}</span></p><p class="fuga__save"><b>${money.format(s.ahorro)}</b><span>de ahorro al mes (${num(s.pct * 100)} %)</span></p></li>`).join('');
   // WhatsApp con el resultado
-  const texto = `Hola, calculé cuánto frío se escapa por mi puerta de ${i.ancho} × ${i.alto} cm (${i.tIn} °C adentro, ${i.tOut} °C afuera, ${i.aperturas} aperturas al día de ${i.segundos} s): unos ${money.format(f.mes.pesos)} al mes en luz. Quiero cotizar una puerta a la medida.`;
+  const texto = `Hola, calculé que puedo ahorrar unos ${money.format(ahorro)} al mes en luz con mi puerta de ${i.ancho} × ${i.alto} cm (${i.tIn} °C adentro, ${i.tOut} °C afuera, ${i.aperturas} aperturas al día). Quiero cotizar una puerta a la medida.`;
   if (!wa) { wa = waButton({ tipo: 'texto', texto }, { label: 'Mandarlo por WhatsApp' }); $('#fugaWA').replaceWith(wa); }
   waUpdate(wa, { tipo: 'texto', texto });
 }
 form.addEventListener('input', update);
 form.addEventListener('submit', (e) => e.preventDefault());
 $$('[data-uso]').forEach((b) => { b.onclick = () => { form.tIn.value = b.dataset.uso; st.hrIn = +b.dataset.uso <= -5 ? 80 : 85; update(); }; });
+$$('[data-mej]').forEach((b) => { b.onclick = () => { const k = b.dataset.mej; st.mej[k] = !st.mej[k]; b.setAttribute('aria-pressed', String(st.mej[k])); update(); }; });
 $$('[data-prot]').forEach((b) => { b.onclick = () => { st.proteccion = b.dataset.prot; $$('[data-prot]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); update(); }; });
 $('#fugaDoor').onclick = (e) => {
   const open = !sim.open; sim.setOpen(open);

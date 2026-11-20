@@ -1,196 +1,166 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
-<meta name="description" content="Puertas abatibles y corredizas para cámaras frigoríficas, vaivén semi aislantes y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ST Doors — Tu puerta para cámara frigorífica, en un minuto</title>
+<meta name="description" content="Elige tu puerta (abatible, corrediza, vaivén o CDS Legacy), mírala por dentro, ponle tu medida y tu acabado, mírala en tu espacio con la cámara y cotízala. En un minuto.">
 <link rel="icon" href="/favicon.png">
-<script>try { if (sessionStorage.getItem('st.intro') || matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('sin-intro'); } catch (e) { document.documentElement.classList.add('sin-intro'); }</script>
+<link rel="preload" as="image" type="image/avif" imagesrcset="/img/inicio/abatible-640.avif 640w, /img/inicio/abatible-1080.avif 1080w, /img/inicio/abatible-1620.avif 1620w" imagesizes="(max-width: 899px) 100vw, 50vw" fetchpriority="high">
 </head>
 <body data-page="inicio">
-<!-- Intro: la marca sobre azul marino; al estar lista la puerta 3D se abre como una vaivén (src/home/cine.js).
-     Si el JavaScript no llega, se quita sola a los 4 s (CSS). Una vez por sesión. -->
-<div class="intro" id="intro" aria-hidden="true">
-  <div class="intro__leaf"></div><div class="intro__leaf"></div>
-  <div class="intro__c"><img src="/img/marca/st-logo-blanco.png" alt="" width="150" height="72"><span class="intro__bar"><i></i></span></div>
-</div>
+<!-- Fase 11 · el Inicio es una ruta de cinco paradas: Elige → Por dentro → A tu medida → En tu espacio → Cotiza.
+     Cada parada se puede saltar (botón «Saltar» y riel de arriba) sin romper nada: lo que no elijas toma un valor típico
+     y lo que elijas llega armado a la cotización. Nada de 3D en esta página: el 3D se abre cuando lo pides. -->
 <main id="main">
-  <!-- Afuera: la puerta vaivén en 3D. Al bajar, abre y la cámara cruza hacia el interior (src/home/hero.js). -->
-  <section class="hx" id="hx" aria-labelledby="hxTitle">
-    <div class="hx__pin">
-      <div class="hx__gl" id="hxGl" aria-hidden="true"></div>
-      <div class="hx__fx" aria-hidden="true"></div>
-      <div class="hx__hud" id="hxHud" aria-hidden="true"></div>
-      <div class="hx__veil" aria-hidden="true"></div>
-      <div class="wrap hx__copy">
-        <h1 id="hxTitle">El frío se queda de su lado.</h1>
-        <p class="hx__lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In. Ábrelas y recórrelas en 3D.</p>
-        <p class="row hx__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
+  <!-- Afuera: la puerta entreabierta. Al bajar, el azul del interior crece desde el vano y entras a la ruta. -->
+  <section class="gate" id="gate" aria-labelledby="gateT">
+    <div class="gate__pin">
+      <picture class="gate__img">
+        <source type="image/avif" srcset="/img/inicio/abatible-640.avif 640w, /img/inicio/abatible-1080.avif 1080w, /img/inicio/abatible-1620.avif 1620w" sizes="(max-width: 899px) 100vw, 50vw">
+        <img src="/img/inicio/abatible-1080.webp" srcset="/img/inicio/abatible-640.webp 640w, /img/inicio/abatible-1080.webp 1080w, /img/inicio/abatible-1620.webp 1620w" sizes="(max-width: 899px) 100vw, 50vw" width="1620" height="2160" alt="Puerta abatible ST entreabierta; detrás, el interior azul de la cámara" fetchpriority="high" decoding="async">
+      </picture>
+      <div class="gate__in" aria-hidden="true"></div>
+      <div class="wrap gate__copy">
+        <h1 id="gateT" class="gate__t">Tu puerta para el frío, lista en un minuto.</h1>
+        <p class="gate__lead">Elígela, mírala por dentro, ponle tu medida y tu acabado, y mírala en tu espacio. Si ya sabes lo que quieres, sáltate lo que no necesites.</p>
+        <p class="gate__cta"><a class="btn" href="#elige" data-go="elige">Empezar</a><a class="gate__skip" href="/cotizar/">Ir directo a cotizar</a></p>
       </div>
-      <p class="hx__load" id="hxLoad" aria-hidden="true"><span class="hx__bar"><i></i></span><span>Cargando la puerta en 3D <b>0 %</b></span></p>
-      <p class="hx__read" id="hxRead" aria-hidden="true"><span>Apertura de hoja</span><b>0°</b></p>
-      <div class="hx__thermo" id="hxThermo" aria-hidden="true"><span class="hx__thermo-l"><span>Frío</span><b>Así se ve el frío · vista ilustrativa</b><span>Ambiente</span></span><span class="hx__thermo-bar"></span></div>
-      <p class="hx__cue" aria-hidden="true">Baja para abrir la puerta</p>
+      <p class="gate__cue" aria-hidden="true">Baja para entrar</p>
     </div>
   </section>
 
-  <!-- Adentro: lo que sigue es el interior de la cámara -->
-  <div class="inside surface-navy">
-    <!-- Una frase que se ilumina palabra por palabra con el scroll -->
-    <section class="say" id="say" aria-labelledby="sayText">
-      <div class="say__pin">
-        <div class="wrap">
-          <h2 class="say__text" id="sayText">Una puerta de cámara frigorífica tiene un solo trabajo: que el frío no se escape. Hay tres maneras de lograrlo.</h2>
-          <p class="say__lead">Cada una se puede abrir, girar y ver por dentro en 3D, pieza por pieza.</p>
+  <!-- La ruta -->
+  <div class="route" id="route">
+    <nav class="rail" id="rail" aria-label="Tu ruta">
+      <div class="wrap rail__in">
+        <ol class="rail__steps">
+          <li><a href="#elige" data-step="elige"><i></i><span>Elige</span></a></li>
+          <li><a href="#dentro" data-step="dentro"><i></i><span>Por dentro</span></a></li>
+          <li><a href="#medida" data-step="medida"><i></i><span>A tu medida</span></a></li>
+          <li><a href="#espacio" data-step="espacio"><i></i><span>En tu espacio</span></a></li>
+          <li><a href="#cotiza" data-step="cotiza"><i></i><span>Cotiza</span></a></li>
+        </ol>
+        <p class="rail__now" aria-live="polite"><b data-rail-n>1</b><span>de 5</span><span data-rail-name>Elige</span></p>
+        <button type="button" class="rail__skip" data-skip>Saltar</button>
+      </div>
+    </nav>
+
+    <!-- 1 · Elige -->
+    <section class="stop stop--navy" id="elige" data-stop="elige" aria-labelledby="eligeT">
+      <div class="wrap stop__in">
+        <header class="stop__head">
+          <h2 id="eligeT">¿Dónde va tu puerta?</h2>
+          <p>Toca una. Si no estás seguro, empieza con la abatible: es la más común.</p>
+        </header>
+        <div class="pick" role="radiogroup" aria-labelledby="eligeT">
+          <button type="button" class="pick__o" role="radio" data-fam="abatible" aria-checked="false">
+            <img src="/img/inicio/ruta/abatible.webp" alt="" width="420" height="560" loading="lazy" decoding="async">
+            <b>Abatible</b><span>Cámara de refrigeración o congelación</span>
+          </button>
+          <button type="button" class="pick__o" role="radio" data-fam="corrediza" aria-checked="false">
+            <img src="/img/inicio/ruta/corrediza.webp" alt="" width="420" height="560" loading="lazy" decoding="async">
+            <b>Corrediza</b><span>Vanos anchos y paso de montacargas</span>
+          </button>
+          <button type="button" class="pick__o" role="radio" data-fam="vaiven" aria-checked="false">
+            <img src="/img/inicio/ruta/vaiven.webp" alt="" width="420" height="560" loading="lazy" decoding="async">
+            <b>Vaivén</b><span>Cocinas y pasillos: abre a los dos lados</span>
+          </button>
+          <button type="button" class="pick__o" role="radio" data-fam="cds" aria-checked="false">
+            <img src="/img/inicio/ruta/cds.webp" alt="" width="420" height="560" loading="lazy" decoding="async">
+            <b>CDS Legacy</b><span>Exhibición en tienda, Reach-In</span>
+          </button>
         </div>
       </div>
     </section>
 
-    <!-- Una puerta por capítulo. La foto se descubre abriéndose como esa puerta: gira, corre o se separa al centro. -->
-    <section class="ch" data-door="abatible" aria-labelledby="chAbatible">
-      <div class="ch__pin">
-        <div class="wrap ch__in">
-          <figure class="ch__door" data-foto="abatible" data-sizes="(max-width: 899px) 92vw, 30vw">
-            <div class="ch__leaf" aria-hidden="true"></div>
-          </figure>
-          <div class="ch__t">
-            <p class="ch__kind">Una hoja que gira sobre bisagras</p>
-            <h2 id="chAbatible">Abatible</h2>
-            <p class="ch__lead">Gira sobre bisagras reversibles y cierra con chapa de palanca.</p>
-            <dl class="ch__spec">
-              <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
-              <div><dt>Herrajes</dt><dd>Bisagra reversible y kit de cerrojo de 68, 92 y 121 mm</dd></div>
-              <div><dt>Empaque</dt><dd>Perimetral e inferior, de refrigeración o de congelación</dd></div>
-            </dl>
-            <p class="row"><a class="btn" href="/industriales/abatible/" data-cur="Abrir">Abrir la abatible en 3D</a></p>
+    <!-- 2 · Por dentro: la misma puerta en rayos X, con sus piezas -->
+    <section class="stop stop--navy stop--xray" id="dentro" data-stop="dentro" aria-labelledby="dentroT">
+      <div class="wrap stop__in stop__in--two">
+        <div class="xr" id="xr">
+          <div class="xr__img" data-xr-n></div>
+          <div class="xr__img xr__img--x" data-xr-x></div>
+          <ol class="xr__tags" data-xr-tags></ol>
+          <div class="xr__line" data-xr-line><span>Rayos X</span></div>
+          <input class="xr__range" type="range" min="0" max="100" value="0" step="1" aria-label="Qué tanto ver en rayos X" data-xr-range>
+        </div>
+        <div class="stop__side">
+          <header class="stop__head">
+            <h2 id="dentroT">Mírala por dentro</h2>
+            <p data-xr-lead>Desliza la línea: cada pieza aparece con su número de catálogo.</p>
+          </header>
+          <ol class="xr__list" data-xr-list></ol>
+          <p class="stop__act"><a class="btn btn--light" href="/industriales/abatible/" data-open3d>Ábrela en 3D</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · A tu medida: acabado, medida y opciones, con la puerta que cambia al momento -->
+    <section class="stop" id="medida" data-stop="medida" aria-labelledby="medidaT">
+      <div class="wrap stop__in stop__in--two">
+        <figure class="cfg__art" data-art aria-live="polite"></figure>
+        <div class="stop__side">
+          <header class="stop__head">
+            <h2 id="medidaT">Hazla a tu medida</h2>
+            <p data-cfg-lead>Cambia el acabado y la medida: la puerta cambia contigo.</p>
+          </header>
+          <div class="cfg" data-cfg></div>
+          <p class="stop__act"><button type="button" class="btn btn--line" data-3d>Mírala en 3D</button></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · En tu espacio: la cámara, y lo que ahorras -->
+    <section class="stop stop--navy" id="espacio" data-stop="espacio" aria-labelledby="espacioT">
+      <div class="wrap stop__in stop__in--two">
+        <div class="cam" aria-hidden="true">
+          <div class="cam__phone"><div class="cam__scene"><div class="cam__floor"></div><div class="cam__door" data-cam-door></div><span class="cam__reticle"></span></div></div>
+        </div>
+        <div class="stop__side">
+          <header class="stop__head">
+            <h2 id="espacioT">Ponla en tu espacio</h2>
+            <p data-cam-lead>Con la cámara de tu celular, a tamaño real. Tócala y se abre.</p>
+          </header>
+          <p class="stop__act"><button type="button" class="btn btn--light" data-cam>Abrir la cámara</button></p>
+          <a class="save" href="/fuga-de-frio/" data-save>
+            <span class="save__k">Lo que ahorras</span>
+            <b class="save__n" data-save-n>—</b>
+            <span class="save__d" data-save-d>al mes en luz con una puerta que cierra rápido y bien sellada.</span>
+            <span class="save__go">Calcula el tuyo</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · Cotiza: tu puerta, armada con lo que elegiste -->
+    <section class="stop" id="cotiza" data-stop="cotiza" aria-labelledby="cotizaT">
+      <div class="wrap stop__in stop__in--two">
+        <figure class="sum__art" data-sum-art></figure>
+        <div class="stop__side">
+          <header class="stop__head">
+            <h2 id="cotizaT">Listo: esta es tu puerta</h2>
+            <p>Con esto te cotizamos. Lo que no elegiste lo vemos contigo.</p>
+          </header>
+          <dl class="sum" data-sum></dl>
+          <div class="stop__acts">
+            <button type="button" class="btn" data-quote>Cotizar esta puerta</button>
+            <span data-wa></span>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="ch" data-door="corrediza" aria-labelledby="chCorrediza">
-      <div class="ch__pin">
-        <div class="wrap ch__in">
-          <figure class="ch__door" data-foto="corrediza" data-sizes="(max-width: 899px) 92vw, 52vw">
-            <div class="ch__leaf" aria-hidden="true"></div>
-          </figure>
-          <div class="ch__t">
-            <p class="ch__kind">Una hoja que corre colgada de un riel</p>
-            <h2 id="chCorrediza">Corrediza</h2>
-            <p class="ch__lead">Corre colgada de poleas sobre el riel de aluminio y, al cerrar, baja para sellar contra el marco.</p>
-            <dl class="ch__spec">
-              <div><dt>Riel</dt><dd>Aluminio, modelo Mirror, con cubre riel</dd></div>
-              <div><dt>Rodadura</dt><dd>Dos poleas plásticas</dd></div>
-              <div><dt>Guía inferior</dt><dd>Riel guía de aluminio</dd></div>
-            </dl>
-            <p class="row"><a class="btn" href="/industriales/corrediza/" data-cur="Abrir">Abrir la corrediza en 3D</a></p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="ch" data-door="vaiven" aria-labelledby="chVaiven">
-      <div class="ch__pin">
-        <div class="wrap ch__in">
-          <figure class="ch__door" data-foto="vaiven-abierta" data-sizes="(max-width: 899px) 92vw, 56vw">
-            <div class="ch__leaf" aria-hidden="true"></div><div class="ch__leaf" aria-hidden="true"></div>
-          </figure>
-          <div class="ch__t">
-            <p class="ch__kind">Dos hojas que abren hacia los dos lados</p>
-            <h2 id="chVaiven">Vaivén</h2>
-            <p class="ch__lead">Semi aislante, de dos hojas independientes, con ventanilla para ver quién viene y bumper.</p>
-            <dl class="ch__spec">
-              <div><dt>Tipo</dt><dd>Semi aislante</dd></div>
-              <div><dt>Bumper</dt><dd>150, 500 o 1000 mm</dd></div>
-              <div><dt>Acabados</dt><dd>Negro, inoxidable o blanco sanitario</dd></div>
-            </dl>
-            <p class="row"><a class="btn" href="/industriales/vaiven/" data-cur="Abrir">Abrir la vaivén en 3D</a></p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Cifras: solo datos del catálogo y de la ficha CDS -->
-    <!-- Fase 10G · Escáner: cada puerta pasa bajo una línea de escaneo y se ve por dentro (src/home/scanner.js) -->
-    <section class="scan" id="escaner" aria-labelledby="scanTitle">
-      <div class="scan__pin">
-        <div class="scan__grid" aria-hidden="true"></div>
-        <div class="wrap scan__head">
-          <p class="scan__kicker"><span class="scan__dot" aria-hidden="true"></span>Escáner <b class="scan__count" aria-hidden="true">1 de 4</b></p>
-          <h2 id="scanTitle">Míralas por dentro</h2>
-          <p class="scan__name" aria-live="polite"></p>
-        </div>
-        <div class="scan__stage" id="scanStage"></div>
-        <div class="wrap scan__foot"><a class="btn btn--line scan__go" href="/industriales/abatible/" data-cur="Abrir">Abrir en 3D</a></div>
-      </div>
-    </section>
-
-    <section class="stats" aria-label="ST Doors en cifras">
-      <div class="wrap">
-        <dl class="stats__list">
-          <div><dt>formas de abrir una cámara: abatible, corrediza y vaivén</dt><dd><span data-count="3">3</span></dd></div>
-          <div><dt>piezas de repuesto con fotografía y número de catálogo</dt><dd><span data-count="76" id="statPiezas">76</span></dd></div>
-          <div><dt>abierta se queda la puerta CDS, sin brazo, para surtir con las dos manos</dt><dd><span data-count="90">90</span>°</dd></div>
-          <div><dt>de garantía en las puertas CDS Legacy, según su ficha</dt><dd><span data-count="5">5</span><span class="stats__u"> años</span></dd></div>
-        </dl>
-      </div>
-    </section>
-
-    <!-- El sistema: piezas reales con su número de catálogo -->
-    <section class="sys" aria-labelledby="sysTitle">
-      <div class="wrap sys__in">
-        <div class="sys__head">
-          <h2 id="sysTitle">Cada pieza tiene su número.</h2>
-          <p class="sys__lead" id="sysLead">Piezas de repuesto con fotografía y número de catálogo.</p>
-          <a class="btn btn--line" href="/componentes/" data-cur="Ver">Ver todas las piezas</a>
-        </div>
-        <figure class="sys__fig" id="sysFig" aria-hidden="true"></figure>
-        <ol class="sys__list" id="sysList"></ol>
-        <a class="find-cta find-cta--dark" href="/componentes/#encuentra"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿No sabes cómo se llama tu pieza?</b><span>Toca la zona de la puerta donde está.</span></span></a>
-      </div>
-    </section>
-
-    <!-- CDS: la puerta de exhibición, desde nuestro propio 3D; un video corto que arranca al llegar a la pantalla -->
-    <section class="cds-seq" id="cdsSeq" aria-labelledby="cdsTitle">
-      <div class="cds-seq__pin">
-        <div class="cds-seq__media" id="cdsMedia" role="img" aria-label="CDS Legacy en 3D: juego de tres puertas; la central abre y se queda a 90°"></div>
-        <div class="wrap cds-seq__t">
-          <p class="ch__kind">Para la tienda</p>
-          <h2 id="cdsTitle">CDS Legacy</h2>
-          <p class="cds-seq__lead">Puertas de exhibición Reach-In, en juego de tres. Se quedan abiertas a 90° para surtir con las dos manos y, si las sueltas antes, regresan solas al marco.</p>
-          <ul class="cds-seq__models">
-            <li><a href="/cds/?modelo=advanced#modelos"><b>Advanced</b><span>Dos vidrios con argón</span></a></li>
-            <li><a href="/cds/?modelo=plus#modelos"><b>Plus</b><span>Dos vidrios con resistencia</span></a></li>
-            <li><a href="/cds/?modelo=lt#modelos"><b>LT</b><span>Tres vidrios con resistencia</span></a></li>
-          </ul>
-          <p class="row"><a class="btn" href="/cds/" data-cur="Abrir">Abrir CDS en 3D</a></p>
+          <p class="t-small sum__alt"><a href="/componentes/#encuentra">¿Buscas una pieza de repuesto? Tócala en la puerta y encuéntrala.</a></p>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- Afuera otra vez: cotizar -->
-  <!-- Salida: la puerta se abre desde adentro y se vuelve al blanco de afuera -->
-  <!-- Fase 10J · a la medida: escribe tu vano, mírala a escala o en tu espacio, agrégala o mándala por WhatsApp -->
-  <section class="medida" id="medida" aria-labelledby="medidaT">
-    <div class="wrap medida__in">
-      <div class="medida__t">
-        <h2 id="medidaT">Hecha a la medida de tu vano</h2>
-        <p>Cada puerta industrial se fabrica para el hueco donde va. Escribe cuánto mide tu vano y mírala a escala, junto a una persona de 1.70 m, o con la cámara del celular en tu espacio.</p>
-      </div>
-      <div id="medidaBox"></div>
-      <a class="find-cta medida__fuga" href="/fuga-de-frio/"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Cuánto frío se escapa hoy por tu puerta?</b><span>Calcula lo que te cuesta en luz cada mes, con tus aperturas al día.</span></span></a>
-    </div>
-  </section>
-
-  <section class="out" id="out" aria-labelledby="outTitle">
-    <div class="out__pin">
-      <div class="wrap out__in">
-        <h2 id="outTitle">¿Ya sabes qué necesitas?</h2>
-        <p class="out__lead">Agrega puertas y piezas a tu solicitud mientras navegas, o escríbenos con las medidas de tu vano.</p>
-        <p class="row"><a class="btn" href="/cotizar/" data-cur="Cotizar">Ir a cotizar</a><a class="btn btn--line" id="homeMail" href="#" data-cur="Escribir">Escribir un correo</a></p>
-      </div>
-      <div class="out__leaf out__leaf--l" aria-hidden="true"></div><div class="out__leaf out__leaf--r" aria-hidden="true"></div>
+  <!-- Para quien quiere ver más -->
+  <section class="more" aria-labelledby="moreT">
+    <div class="wrap">
+      <h2 id="moreT" class="more__t">También puedes</h2>
+      <ul class="more__list">
+        <li><a href="/industriales/"><b>Comparar las tres industriales</b><span>Abatible, corrediza y vaivén, lado a lado</span></a></li>
+        <li><a href="/cds/"><b>Tomar un producto de la CDS</b><span>Ábrela en 3D y saca una bebida de la parrilla</span></a></li>
+        <li><a href="/componentes/"><b>Encontrar tu pieza</b><span>Repuestos con foto y número de catálogo</span></a></li>
+        <li><a href="/fuga-de-frio/"><b>Calcular tu ahorro</b><span>Cuánto ahorras en luz con la puerta cerrada</span></a></li>
+      </ul>
     </div>
   </section>
 </main>

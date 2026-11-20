@@ -103,11 +103,12 @@ function view(json, bin, ai) {
 }
 
 // GLB con la puerta a la medida (bytes nuevos; el original no se toca)
-export function resizeGlb(buf, meta, fam, size) {
+export function resizeGlb(buf, meta, fam, size, acabado = null) {
   const m = mapperFor(meta, fam, size);
   const src = parseGlb(buf);
   const bin = new Uint8Array(src.bin);            // copia
   const json = JSON.parse(JSON.stringify(src.json));
+  if (acabado) finishGlb(json, fam, acabado);
   if (!m) return { bytes: buildGlb(json, bin), map: null };
   const scene = json.scenes[json.scene || 0];
   for (const ni of scene.nodes) {
@@ -161,4 +162,38 @@ export function resizeGlb(buf, meta, fam, size) {
     }
   }
   return { bytes: buildGlb(json, bin), map: m };
+}
+
+// ---------- acabado (Fase 11) ----------
+// La cámara y el visor reciben la puerta con el acabado elegido. Se cambia el material de la hoja dentro del GLB (y,
+// en la abatible con inoxidable, también el marco, como en la página de la puerta). Como el USDZ del iPhone se arma de
+// estos mismos bytes, Quick Look también lo lleva.
+const lin = (hex) => [1, 3, 5].map((i) => { const c = parseInt(hex.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+export const FINISH_PBR = {
+  hygienicWhite: { color: '#eceeea', metal: 0, rough: 0.46, keepNormal: true },
+  blackMetal: { color: '#1c1d1f', metal: 0.3, rough: 0.5 },
+  stainless: { color: '#c3c7ca', metal: 1, rough: 0.45 },
+};
+const FINISH_MAT = { abatible: 'hygienicWhite', vaiven: 'blackMetal' };
+export function finishGlb(json, fam, acabado) {
+  const base = FINISH_MAT[fam], look = FINISH_PBR[acabado];
+  if (!base || !look) return;
+  const idx = (json.materials || []).findIndex((x) => x.name === base);
+  if (idx < 0) return;
+  const paint = (mat) => {
+    const pbr = mat.pbrMetallicRoughness || (mat.pbrMetallicRoughness = {});
+    pbr.baseColorFactor = [...lin(look.color), 1]; pbr.metallicFactor = look.metal; pbr.roughnessFactor = look.rough;
+    delete pbr.metallicRoughnessTexture;
+    if (!look.keepNormal) delete mat.normalTexture;
+    if (mat.extensions) { delete mat.extensions.KHR_materials_clearcoat; if (!Object.keys(mat.extensions).length) delete mat.extensions; }
+    if (acabado === 'blackMetal') (mat.extensions ||= {}).KHR_materials_clearcoat = { clearcoatFactor: 0.1, clearcoatRoughnessFactor: 0.55 };
+  };
+  // abatible: el marco cambia solo con inoxidable; si no, la hoja lleva su propio material
+  const leafOnly = fam === 'abatible' && acabado !== 'stainless';
+  if (!leafOnly) { paint(json.materials[idx]); return; }
+  const copy = JSON.parse(JSON.stringify(json.materials[idx])); copy.name = `${base}-hoja`; paint(copy);
+  const ni = json.materials.push(copy) - 1;
+  const scene = json.scenes[json.scene || 0];
+  const walk = (n) => { const node = json.nodes[n]; if (node.mesh !== undefined) json.meshes[node.mesh].primitives.forEach((p) => { if (p.material === idx) p.material = ni; }); (node.children || []).forEach(walk); };
+  scene.nodes.filter((n) => /^mov/.test(json.nodes[n].name || '')).forEach(walk);
 }

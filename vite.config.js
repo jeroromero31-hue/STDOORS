@@ -40,7 +40,7 @@ function seo() {
       if (SITE && !internal) {
         const abs = SITE + BASE + route;
         tags.push({ tag: 'link', attrs: { rel: 'canonical', href: abs } }, { tag: 'meta', attrs: { property: 'og:url', content: abs } },
-          { tag: 'meta', attrs: { property: 'og:image', content: SITE + BASE + 'img/inicio/vaiven-frente-1280.webp' } });
+          { tag: 'meta', attrs: { property: 'og:image', content: SITE + BASE + 'img/inicio/abatible-1280.webp' } });
       }
       // enlaces escritos como "/ruta/" en el HTML: con VITE_BASE se les antepone la subcarpeta
       if (BASE !== '/') html = html.replace(/(<a\b[^>]*\shref=")\/(?!\/)/g, `$1${BASE}`);
@@ -56,7 +56,8 @@ function seo() {
 
 // Fase 10I · el modelo 3D empieza a bajar junto con el JavaScript: <link rel="preload"> al .binz de cada puerta
 // (y al de la vaivén en el Inicio). Solo en el build, cuando ya se conoce el nombre con su huella.
-const PRELOAD = { 'industriales/corrediza/': 'corrediza', 'industriales/vaiven/': 'vaiven', '': 'vaiven' };
+// Fase 11: el Inicio ya no tiene 3D: no se precarga ningún modelo ahí
+const PRELOAD = { 'industriales/corrediza/': 'corrediza', 'industriales/vaiven/': 'vaiven' };
 function preloadModels() {
   return {
     name: 'st-preload-models',

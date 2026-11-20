@@ -12,12 +12,20 @@
 // - CDS: los productos se pueden tomar. Cada punto sobre un producto abre la puerta, lo saca, lo trae hacia ti y lo
 //   regresa a su lugar.
 // - iPhone: Quick Look recibe la puerta como esté en la vista (abierta o cerrada, a la medida).
+//
+// Fase 11 · se abre cuando la tocas, no sola:
+// - iPhone: Quick Look ya no repite la película; tocar la puerta la abre, tocarla otra vez la cierra; en la CDS, tocar
+//   un producto lo saca (./usdzTap.js). Lleva el acabado elegido.
+// - Android y vista previa: tocar la puerta misma (no solo el punto) la abre o la cierra.
 import ar from '../data/ar.json';
 import { createSheet, url, toast } from './site.js';
 import { describe, defaults } from './medida.js';
 import { resizeGlb, mapPoint } from './arResize.js';
 
 const NOMBRE = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' };
+// acabados que se pueden ver en la cámara (los mismos de la página de cada puerta)
+export const ACABADOS = { abatible: ['hygienicWhite', 'stainless', 'blackMetal'], vaiven: ['blackMetal', 'stainless', 'hygienicWhite'] };
+const ACABADO_LABEL = { hygienicWhite: 'Blanco sanitario', stainless: 'Inoxidable', blackMetal: 'Negro' };
 // medidas que se pueden ver (cm); fuera de esto se ajusta a lo más cercano
 export const RANGO = { abatible: { w: [70, 180], h: [180, 300] }, corrediza: { w: [100, 400], h: [200, 450] }, vaiven: { w: [140, 320], h: [200, 350] } };
 const ICON = {
@@ -44,12 +52,13 @@ async function readGlb(fam) {
   cache.set(fam, buf);
   return buf;
 }
-// iPhone: Quick Look no deja tocar la puerta, así que recibe un USDZ con su propia película: cerrada, se abre, se queda
-// abierta, (en la CDS salen dos productos y regresan), se cierra; y vuelve a empezar. Se arma aquí, del mismo GLB a la
-// medida, con ./usdzAnim.js (el exportador de three.js con línea de tiempo).
+// iPhone: Quick Look recibe un USDZ que se abre y se cierra cuando tocas la puerta (y, en la CDS, saca el producto que
+// tocas). Nada se repite solo. Se arma aquí, del mismo GLB a la medida y con el acabado elegido, con ./usdzAnim.js (el
+// exportador de three.js con línea de tiempo) y ./usdzTap.js (los comportamientos).
 export const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-export async function buildUSDZ(bytes, meta, fam) {
-  const [THREE, { GLTFLoader }, { USDZAnimExporter }] = await Promise.all([import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'), import('./usdzAnim.js')]);
+export async function buildUSDZ(bytes, meta, fam, opts = {}) {
+  const [THREE, { GLTFLoader }, { USDZAnimExporter }, { tapBehaviors }] = await Promise.all([
+    import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'), import('./usdzAnim.js'), import('./usdzTap.js')]);
   const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const gltf = await new GLTFLoader().parseAsync(buf, '');
   const scene = gltf.scene, mixer = new THREE.AnimationMixer(scene);
@@ -57,14 +66,16 @@ export async function buildUSDZ(bytes, meta, fam) {
   scene.traverse((o) => {
     if (!o.isMesh || !o.material || !o.material.isMeshBasicMaterial) return;
     const m = o.material;
-    o.material = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: m.color, emissiveMap: m.map || null, map: m.map || null, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaTest: m.alphaTest });
+    o.material = new THREE.MeshStandardMaterial({ name: m.name, color: 0x000000, emissive: m.color, emissiveMap: m.map || null, map: m.map || null, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaTest: m.alphaTest });
   });
+  if (opts.look) opts.look(scene, THREE);                        // acabado elegido
   const clip = (n) => gltf.animations.find((c) => c.name === n);
-  const FPS = 12, plan = [[null, 1.0], ['abrir'], ['abrir', 1.4, 'fin']];
-  if (fam === 'cds') (meta.productos || []).filter((p, k) => k === 1 || k === 4).forEach((p) => plan.push([p.clip]));
-  plan.push(['cerrar'], [null, 0.8]);
-  const moving = []; scene.traverse((o) => { if (o.isMesh) { let n = o; while (n.parent && n.parent !== scene) n = n.parent; if (/^(mov|prod)/.test(n.name)) moving.push(o); } });
+  const top = (o) => { let n = o; while (n.parent && n.parent !== scene) n = n.parent; return n.name || ''; };
+  const meshes = []; scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  const moving = meshes.filter((m) => /^(mov|prod)/.test(top(m)));
   const matrices = new Map(moving.map((m) => [m, []]));
+  // ---------- línea de tiempo por tramos ----------
+  const FPS = 24, segs = {};
   let frames = 0;
   const pose = (name, t) => {
     mixer.stopAllAction(); mixer.update(0);
@@ -72,13 +83,30 @@ export async function buildUSDZ(bytes, meta, fam) {
     scene.updateMatrixWorld(true);
     moving.forEach((m) => matrices.get(m).push(m.matrixWorld.clone())); frames++;
   };
-  for (const [name, hold, fin] of plan) {
-    const c = name && clip(name); if (name && !c) continue;
-    const dur = hold != null ? hold : c.duration, n = Math.max(1, Math.round(dur * FPS));
-    for (let k = 0; k < n; k++) pose(name, hold != null ? (fin ? c.duration : 0) : (k / (n - 1 || 1)) * c.duration);
-  }
+  const segment = (key, name, mode) => {
+    const c = name && clip(name); if (name && !c) return;
+    const dur = mode === 'play' ? c.duration : 1, n = Math.max(2, Math.round(dur * FPS) + 1), f0 = frames;
+    const at = (k) => (mode === 'play' ? (k / (n - 1)) * c.duration : mode === 'end' ? c.duration : 0);
+    for (let k = 0; k < n; k++) pose(name, at(k));
+    pose(name, at(n - 1));                                       // un cuadro de margen antes del siguiente tramo
+    segs[key] = { start: f0 / FPS, dur: (n - 1) / FPS };
+  };
+  segment('cerrada', null, 'hold');
+  segment('abrir', 'abrir', 'play');
+  segment('abierta', 'abrir', 'end');
+  segment('cerrar', 'cerrar', 'play');
+  const prods = fam === 'cds' ? (meta.productos || []) : [];
+  prods.forEach((p) => segment(p.clip, p.clip, 'play'));
   mixer.stopAllAction(); mixer.update(0); scene.updateMatrixWorld(true);
-  const usdz = await new USDZAnimExporter().parseAsync(scene, { quickLookCompatible: true, maxTextureSize: 512, animation: { fps: FPS, frames, matrices } });
+  // ---------- la puerta dos veces: A (cerrada) y B (abierta) ----------
+  const A = meshes.filter((m) => (fam === 'cds' ? /^mov/.test(top(m)) : !/^prod/.test(top(m))));
+  const B = A.map((m) => { const c = m.clone(); c.name = `${m.name}_b`; m.parent.add(c); if (matrices.has(m)) matrices.set(c, matrices.get(m)); return c; });
+  const ROOT = '/Root/Scenes/Scene/Puerta', path = (o) => `${ROOT}/Object_${o.id}`;
+  const behaviors = tapBehaviors({
+    root: ROOT, A: A.map(path), B: B.map(path), segs,
+    prods: prods.map((p) => ({ clip: p.clip, paths: meshes.filter((m) => top(m) === `prod${p.clip.split('-')[1]}`).map(path) })),
+  });
+  const usdz = await new USDZAnimExporter().parseAsync(scene, { quickLookCompatible: true, maxTextureSize: 512, animation: { fps: FPS, frames, matrices }, behaviors });
   return new Blob([usdz], { type: 'model/vnd.usdz+zip' });
 }
 
@@ -104,6 +132,9 @@ export async function openAR(fam, cfg0 = {}) {
   const R = RANGO[fam], v = meta.vano;
   const cmW = size.cm ? size.cm.w : Math.round(v.w * 100), cmH = size.cm ? size.cm.h : Math.round(v.h * 100);
   const prods = meta.productos || [];
+  const fins = ACABADOS[fam] || [];
+  let acabado = fins.includes(cfg0.acabado) ? cfg0.acabado : null;
+  if (!acabado && fins.length) { try { const { vano } = await import('./vano.js'); const a = vano.get().acabado; acabado = fins.includes(a) ? a : null; } catch { /* sin almacenamiento */ } }
   sheet.meta.textContent = 'Verla en tu espacio';
   sheet.body.innerHTML = `
     <div class="arv" data-fam="${fam}">
@@ -114,6 +145,7 @@ export async function openAR(fam, cfg0 = {}) {
           <button type="button" class="btn btn--line arv__toggle" data-toggle aria-pressed="false">${ICON.open}<span>Ábrela</span></button>
           <label class="arv__scrub"><span class="sr-only">Qué tanto se abre</span><input type="range" min="0" max="100" step="1" value="0" data-scrub aria-label="Qué tanto se abre la puerta"></label>
         </div>
+        ${fins.length ? `<div class="arv__fin" role="group" aria-label="Acabado">${fins.map((f) => `<button type="button" class="arv__sw arv__sw--${f}" data-fin="${f}" aria-pressed="${f === (acabado || fins[0])}"><i aria-hidden="true"></i><span>${ACABADO_LABEL[f]}</span></button>`).join('')}</div>` : ''}
         ${fam === 'cds' ? `<p class="arv__hint t-small">Toca un <b>+</b> sobre un producto para tomarlo: la puerta se abre, el producto viene hacia ti y regresa a su parrilla.</p>` : `
         <fieldset class="arv__size">
           <legend>Medida del vano</legend>
@@ -198,7 +230,7 @@ export async function openAR(fam, cfg0 = {}) {
       }, 700);
     };
     const build = () => {
-      const { bytes, map } = resizeGlb(buf, meta, fam, { w: size.w, h: size.h });
+      const { bytes, map } = resizeGlb(buf, meta, fam, { w: size.w, h: size.h }, acabado);
       state.map = map; prepIOS(bytes);
       const old = lastUrl;
       lastUrl = URL.createObjectURL(new Blob([bytes], { type: 'model/gltf-binary' }));
@@ -236,6 +268,16 @@ export async function openAR(fam, cfg0 = {}) {
     sheet.body.querySelectorAll('[data-toggle]').forEach((b) => { b.onclick = () => animateTo(state.open > 0.5 ? 0 : 1); });
     el.querySelector('[data-tap]').onclick = (e) => { e.stopPropagation(); animateTo(state.open > 0.5 ? 0 : 1); };
     sheet.body.querySelectorAll('[data-scrub]').forEach((r) => { r.oninput = () => { if (!state.busy) pose(+r.value / 100); }; });
+    // tocar la puerta misma (no solo el punto) la abre o la cierra; arrastrar para girarla no cuenta como toque
+    let down = null;
+    el.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    el.addEventListener('click', (e) => {
+      if (!down || e.target.closest('[slot^="hotspot-"], .arv__xr')) return;
+      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), quick = performance.now() - down.t < 450; down = null;
+      if (moved > 10 || !quick || state.busy) return;
+      const r = el.getBoundingClientRect(), hit = el.positionAndNormalFromPoint && el.positionAndNormalFromPoint(e.clientX - r.left, e.clientY - r.top);
+      if (hit) animateTo(state.open > 0.5 ? 0 : 1);
+    });
 
     // ---------- CDS: tomar un producto ----------
     const took = el.querySelector('[data-took]');
@@ -288,6 +330,16 @@ export async function openAR(fam, cfg0 = {}) {
       };
     });
 
+    // ---------- acabado: la puerta cambia al momento (y la cámara la recibe igual) ----------
+    sheet.body.querySelectorAll('[data-fin]').forEach((b) => {
+      b.onclick = async () => {
+        if (b.dataset.fin === acabado) return;
+        acabado = b.dataset.fin; sheet.body.querySelectorAll('[data-fin]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        rebuild(); toast(`Acabado: ${ACABADO_LABEL[acabado]}`);
+        try { const { vano } = await import('./vano.js'); vano.set({ acabado }); } catch { /* sin almacenamiento */ }
+      };
+    });
+
     // ---------- opciones de cámara ----------
     const seg = (attr, key, apply) => sheet.body.querySelectorAll(`[data-${attr}]`).forEach((b) => {
       b.onclick = () => { state[key] = b.dataset[attr]; sheet.body.querySelectorAll(`[data-${attr}]`).forEach((x) => x.setAttribute('aria-pressed', String(x === b))); apply(); };
@@ -309,8 +361,8 @@ export async function openAR(fam, cfg0 = {}) {
       $('[data-place-group]').hidden = !webxr;
       $('[data-go]').onclick = () => { try { el.activateAR(); } catch (e) { console.error(e); toast('No se pudo abrir la cámara'); } };
       note.textContent = webxr
-        ? 'Apunta el teléfono al piso (o a la pared) donde va la puerta y tócalo para ponerla. Con un dedo la mueves, con dos la giras; los botones de abajo la abren. La medida es aproximada: la puerta se fabrica a la medida exacta de tu vano.'
-        : 'Apunta el teléfono al piso frente a tu vano: la puerta aparece a tu medida y se abre y se cierra sola. Con un dedo la mueves, con dos la giras. La medida es aproximada: la puerta se fabrica a la medida exacta de tu vano.';
+        ? 'Apunta el teléfono al piso (o a la pared) donde va la puerta y tócalo para ponerla. Con un dedo la mueves, con dos la giras; tócala o usa el botón de abajo para abrirla. La medida es aproximada: la puerta se fabrica a la medida exacta de tu vano.'
+        : `Apunta el teléfono al piso frente a tu vano: la puerta aparece a tu medida. ${fam === 'cds' ? 'Toca una puerta para abrirla y toca un producto para tomarlo.' : 'Tócala para abrirla y otra vez para cerrarla.'} Con un dedo la mueves, con dos la giras. La medida es aproximada: la puerta se fabrica a la medida exacta de tu vano.`;
     } else if (matchMedia('(pointer: coarse)').matches) {
       note.textContent = 'Este teléfono no tiene la vista con cámara; aquí puedes girarla, acercarla con los dedos, abrirla y cambiarle la medida.';
     } else {

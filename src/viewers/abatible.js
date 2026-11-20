@@ -9,6 +9,7 @@ import { frameBox } from '../core/cameraRig.js';
 import { rbox, scaleUV, swapUV } from '../core/stage.js';
 import { Hinge } from '../core/hinge.js';
 import { createBackdrop } from '../core/backdrop.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // ---------- medidas (m), iguales al modelo base ----------
 const OW = 0.90, OH = 1.95;              // paso libre
@@ -28,7 +29,7 @@ const BUMPER_TOP = 0.92;                 // altura del bumper del modelo base
 export const ABATIBLE = { W, H, T, PX, PZ, ZF, ZB, OW, OH, FD, MAX_OPEN: 95 };
 
 // chapa: proporciones medidas sobre la fotografía de referencia
-const LK = { W: 0.084, H: 0.172, D: 0.050, x: W / 2 - PW - 0.020 - 0.042, y0: 1.012 };
+const LK = { W: 0.080, H: 0.180, D: 0.050, x: W / 2 - PW - 0.020 - 0.042, y0: 1.004 };
 
 export function createAbatible(stage, reg, { logoUrl } = {}) {
   const R = reg.materials;
@@ -129,40 +130,56 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   });
 
   // ---------- chapa exterior (según la fotografía de referencia) ----------
+  // Fase 11, medida otra vez sobre ABATIBLE_CHAPA_REAL_REFERENCIA_OBLIGATORIA.png (vista de frente):
+  // - cuerpo gris mate, más oscuro, con las esquinas de arriba muy redondeadas (radio ≈ 0.16 del ancho) y la parte alta
+  //   que se curva hacia la hoja;
+  // - cilindro europeo a 0.29 del ancho desde la izquierda y a 0.72 de la altura;
+  // - placa negra plana de la mitad del ancho (0.05 → 0.54), desde 0.59 de la altura hasta abajo, con un borde arriba;
+  // - jaladera negra: lóbulo grande a la izquierda, a la altura del fondo del cuerpo, que se afina hacia la derecha
+  //   hasta 0.75 del ancho y baja 0.18 de la altura por debajo del cuerpo.
   const lock = new THREE.Group(); lock.name = 'Chapa'; lock.position.set(LK.x, LK.y0, ZF); leaf.add(lock);
   {
     const { W: w, H: h, D: d } = LK;
-    // cuerpo gris: perfil lateral con la parte alta inclinada hacia la hoja, extruido a lo ancho con cantos redondeados
-    const s = new THREE.Shape();
-    s.moveTo(0, 0); s.lineTo(-(d - 0.007), 0); s.quadraticCurveTo(-d, 0, -d, 0.007);
-    s.lineTo(-d, h - 0.036); s.quadraticCurveTo(-d, h - 0.026, -d + 0.006, h - 0.019);
-    s.lineTo(-d * 0.52, h - 0.003); s.quadraticCurveTo(-d * 0.44, h, -d * 0.34, h); s.lineTo(0, h); s.closePath();
-    const bev = 0.010;
-    const body = new THREE.ExtrudeGeometry(s, { depth: w - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: 0.006, bevelOffset: -0.006, bevelSegments: 5, curveSegments: 10 });
-    body.rotateY(Math.PI / 2); body.translate(-w / 2 + bev, 0, 0);
-    grab(add(lock, body, R.plasticGray));
-    // cilindro de llave (perfil europeo), arriba y hacia la izquierda
-    const cx = -w / 2 + 0.32 * w, cy = h * 0.71, cr = 0.0082, sw = 0.0042;
+    const lockGray = new THREE.MeshPhysicalMaterial({ name: 'lockGray', color: new THREE.Color('#8b8f93'), roughness: 0.74, metalness: 0, clearcoat: 0.04, clearcoatRoughness: 0.8 });
+    // cuerpo: contorno de frente (arriba redondo, abajo casi recto), extruido hacia afuera y con cantos suaves
+    const rt = 0.16 * w, rb = 0.004, bev = 0.006;
+    const f = new THREE.Shape();
+    f.moveTo(-w / 2 + rb, 0); f.lineTo(w / 2 - rb, 0); f.quadraticCurveTo(w / 2, 0, w / 2, rb);
+    f.lineTo(w / 2, h - rt); f.quadraticCurveTo(w / 2, h, w / 2 - rt, h);
+    f.lineTo(-w / 2 + rt, h); f.quadraticCurveTo(-w / 2, h, -w / 2, h - rt);
+    f.lineTo(-w / 2, rb); f.quadraticCurveTo(-w / 2, 0, -w / 2 + rb, 0);
+    const body = new THREE.ExtrudeGeometry(f, { depth: d - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelOffset: -bev, bevelSegments: 6, curveSegments: 14 });
+    body.translate(0, 0, bev);
+    // la parte alta se curva hacia la hoja (como la foto: la tapa de arriba recibe la luz)
+    { const P = body.attributes.position, y1 = h - 0.040;
+      for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > y1) { const t = (y - y1) / (h - y1); P.setZ(i, P.getZ(i) * (1 - 0.42 * t * t)); } }
+      body.computeVertexNormals(); }
+    grab(add(lock, toCreasedNormals(body, 0.6), lockGray));
+    // cilindro de llave (perfil europeo), arriba a la izquierda
+    const cx = -w / 2 + 0.29 * w, cy = h * 0.72, cr = 0.0054, sw = 0.0029, cl = 0.0125;
     const k = new THREE.Shape();
     const a = Math.asin(sw / cr);
     k.absarc(cx, cy, cr, -Math.PI / 2 + a, -Math.PI / 2 - a + Math.PI * 2, false);
-    k.lineTo(cx - sw, cy - 0.019); k.absarc(cx, cy - 0.019, sw, Math.PI, Math.PI * 2, false); k.closePath();
-    add(lock, new THREE.ExtrudeGeometry(k, { depth: 0.0022, bevelEnabled: true, bevelThickness: 0.0008, bevelSize: 0.0008, bevelSegments: 2, curveSegments: 20 }), R.steelHardware, 0, 0, d - 0.0006, { shadow: false });
-    add(lock, new THREE.CylinderGeometry(0.0052, 0.0052, 0.0012, 24).rotateX(Math.PI / 2), R.steelHardware, cx, cy, d + 0.0032, { shadow: false });
-    add(lock, new THREE.BoxGeometry(0.0016, 0.0072, 0.0008), R.rubber, cx, cy, d + 0.0040, { shadow: false });
-    // palanca negra: tira plana sobre la mitad izquierda del cuerpo, baja y termina en la jaladera
+    k.lineTo(cx - sw, cy - cl); k.absarc(cx, cy - cl, sw, Math.PI, Math.PI * 2, false); k.closePath();
+    const brass = new THREE.MeshPhysicalMaterial({ name: 'lockCylinder', color: new THREE.Color('#aaa699'), metalness: 0.85, roughness: 0.34 });
+    add(lock, new THREE.ExtrudeGeometry(k, { depth: 0.0022, bevelEnabled: true, bevelThickness: 0.0008, bevelSize: 0.0008, bevelSegments: 2, curveSegments: 20 }), brass, 0, 0, d - 0.0012, { shadow: false });
+    add(lock, new THREE.CylinderGeometry(0.0040, 0.0040, 0.0012, 24).rotateX(Math.PI / 2), brass, cx, cy, d + 0.0026, { shadow: false });
+    add(lock, new THREE.BoxGeometry(0.0012, 0.0056, 0.0008), R.plasticBlack, cx, cy, d + 0.0034, { shadow: false });
+    // placa negra: plana, sobre el frente, de 0.05 a 0.54 del ancho y de 0.59 de la altura hacia abajo
     const lever = new THREE.Group(); lever.name = 'Palanca'; lock.add(lever);
-    const sx = -w / 2 + 0.06 * w + 0.022, sTop = h * 0.57, sBot = -0.016;
-    grab(add(lever, rbox(0.044, sTop - sBot, 0.013, 0.0035), R.plasticBlack, sx, (sTop + sBot) / 2, d - 0.0025));
-    add(lever, rbox(0.046, 0.007, 0.006, 0.002), R.plasticBlack, sx, sTop - 0.0035, d + 0.0030);
-    // jaladera: lóbulo grande a la izquierda que se afina hacia la derecha
-    const c1 = [-0.0205, -0.020], r1 = 0.0250, c2 = [0.0215, -0.034], r2 = 0.0110;
+    const pl = -w / 2 + 0.05 * w, pr = -w / 2 + 0.54 * w, pw = pr - pl, sx = (pl + pr) / 2, sTop = h * 0.59, sBot = 0.004;
+    grab(add(lever, rbox(pw, sTop - sBot, 0.008, 0.0022), R.plasticBlack, sx, (sTop + sBot) / 2, d + 0.0025));
+    add(lever, rbox(pw + 0.002, 0.008, 0.004, 0.0016), R.plasticBlack, sx, sTop - 0.004, d + 0.0072);
+    // jaladera: lóbulo grande a la izquierda que se afina hacia la derecha, sale hacia adelante
+    const c1 = [-w / 2 + 0.28 * w, -0.002], r1 = 0.0235, c2 = [-w / 2 + 0.68 * w, -0.0150], r2 = 0.0115;
     const ang = Math.atan2(c2[1] - c1[1], c2[0] - c1[0]), dd = Math.hypot(c2[0] - c1[0], c2[1] - c1[1]), b = Math.acos((r1 - r2) / dd);
     const p = new THREE.Shape();
     p.absarc(c1[0], c1[1], r1, ang + b, ang - b + Math.PI * 2, false);
     p.absarc(c2[0], c2[1], r2, ang - b, ang + b, false); p.closePath();
-    const paddle = new THREE.ExtrudeGeometry(p, { depth: 0.038, bevelEnabled: true, bevelThickness: 0.007, bevelSize: 0.005, bevelOffset: -0.005, bevelSegments: 5, curveSegments: 24 });
-    const pm = grab(add(lever, paddle, R.plasticBlack, 0, 0, 0.010)); pm.rotation.x = 0.10;
+    const paddle = new THREE.ExtrudeGeometry(p, { depth: 0.032, bevelEnabled: true, bevelThickness: 0.009, bevelSize: 0.0065, bevelOffset: -0.0065, bevelSegments: 7, curveSegments: 32 });
+    const pm = grab(add(lever, toCreasedNormals(paddle, 0.6), R.plasticBlack, 0, 0, d - 0.032)); pm.rotation.x = -0.06;
+    // cuello: une la placa con la jaladera
+    add(lever, rbox(pw * 0.86, 0.020, 0.016, 0.004), R.plasticBlack, sx, 0.010, d - 0.002);
   }
 
   // ---------- bisagras reversibles, como la foto del componente (pieza 30) ----------
@@ -263,7 +280,7 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       bisagra: { pos: [-0.86, 1.86, 0.62], tgt: [PX - 0.01, 1.735, 0.15] },
       despiece: { pos: [-1.06, 1.93, 0.84], tgt: [PX + 0.01, 1.75, 0.19] },     // la bisagra separada completa
       empaque: { pos: [1.75, 1.5, 0.95], tgt: [0.15, 1.2, 0.5] },
-      chapa: { pos: [LK.x + 0.26, 1.13, 0.86], tgt: [LK.x - 0.01, 1.03, ZF + 0.02] },
+      chapa: { pos: [LK.x - 0.10, 1.15, ZF + 0.44], tgt: [LK.x + 0.004, 1.088, ZF + 0.03] },
       bumper: { pos: [0.72, 0.62, 1.42], tgt: [0.02, 0.5, 0.17] },
       frio: (st) => frameBox(st, [-1.0, 0, -0.2, 1.6, 2.3, 2.2], 0.32, 0.3),            // hueco, hoja abierta y el piso de enfrente
     },

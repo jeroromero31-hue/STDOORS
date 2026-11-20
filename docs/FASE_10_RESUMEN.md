@@ -430,3 +430,71 @@ Una calculadora con una vista que imita a una cámara térmica: el corte de una 
 Los archivos de iPhone se revisan con `f10k/usdz.py` y `f10k/usdcheck.py`, que usan las herramientas de USD.
 
 La calculadora entró a las revisiones de toda la página: en los tres tamaños del Duo no se desborda, todo lo que se toca mide al menos 44 px y no hay texto de menos de 12 px; pasa axe en celular y escritorio y no se desborda con la letra del teléfono al 130 % y al 150 %. En la cadena completa todo pasa, salvo el gesto con un dedo de la corrediza, que solo falla dentro de la cadena por lo lento del render por software (igual que en 10J).
+
+# Fase 11 · «Tu puerta en un minuto»: ruta guiada, configurador en vivo, chapa real y RA que se abre al tocarla
+
+Pedido de ST: chapa idéntica a la real; la calculadora con otro enfoque (que no se sienta como un gasto); un Inicio de
+otro nivel; que el acabado se vea bien y se previsualice mientras se configura; que en la cámara la puerta se abra al
+tocarla (no en un ciclo sin fin); y todo el sitio más digerible: una ruta que se recorra en menos de un minuto y que
+deje saltar cualquier paso.
+
+## El Inicio es una ruta de cinco paradas (`index.html`, `src/pages/inicio.js`, `src/styles/home.css`)
+- **Entrada:** la foto de la abatible entreabierta. Al bajar, la foto se acerca al vano y el azul del interior crece
+  desde él hasta llenar la pantalla: entras a la cámara. Es el único momento animado de la página.
+- **Riel:** arriba, cinco segmentos (Elige · Por dentro · A tu medida · En tu espacio · Cotiza), la parada actual y
+  **Saltar**. Cada segmento lleva directo a su parada.
+- **1 Elige:** cuatro puertas, un toque; la ruta sigue sola. Si no eliges, se usa la abatible.
+- **2 Por dentro:** la puerta elegida en rayos X (las imágenes del escáner); deslizas la línea y aparecen sus piezas con
+  su número. «Ábrela en 3D» lleva a su página.
+- **3 A tu medida:** acabado, medida (−/+ de 5 cm o escrita), bisagras u hojas y uso; en CDS, modelo, puertas y medidas
+  estándar. **La puerta dibujada cambia al momento** (`src/ui/preview.js`: frente a escala, con su acabado, bumper,
+  chapa, ventanillas, riel o productos, junto a una persona de 1.70 m). «Mírala en 3D» abre el visor a esa medida y con
+  ese acabado.
+- **4 En tu espacio:** la cámara (se abre al tocarla) y **lo que ahorras** al mes en luz con esa puerta.
+- **5 Cotiza:** el resumen de lo elegido; «Cotizar esta puerta» la agrega con su configuración y abre Cotizar; o por
+  WhatsApp con el mensaje escrito.
+- Lo elegido se guarda en la medida compartida del sitio: la página de cada puerta abre con ese acabado y Cotizar lo trae.
+- **Más ligero:** el Inicio ya no carga 3D ni precarga modelos (antes: three.js, el modelo de la vaivén y la secuencia
+  CDS). Solo fotos; el 3D se descarga cuando lo pides.
+
+## Chapa de la abatible, otra vez sobre la foto obligatoria (`src/viewers/abatible.js`)
+Medida de frente sobre `ABATIBLE_CHAPA_REAL_REFERENCIA_OBLIGATORIA.png`: cuerpo gris mate más oscuro con las esquinas de
+arriba muy redondeadas y la parte alta curvada hacia la hoja; cilindro europeo a 0.29 del ancho y 0.72 del alto; placa
+negra plana de la mitad izquierda desde 0.59 del alto; jaladera con lóbulo grande a la izquierda que se afina hacia la
+derecha y baja bajo el cuerpo. Sombreado suave (sin facetas). Comparación: `docs/capturas/fase11-chapa.png`.
+Se rehicieron con la chapa nueva el modelo de la cámara, las imágenes del escáner y la foto de estudio del Inicio.
+
+## Acabados que se ven bien (`src/materials/FinishRegistry.js`)
+- **Negro:** pintura satinada (antes parecía vidrio negro): metal 0.3, rugosidad 0.5, barniz ligero.
+- **Inoxidable:** cepillado satinado parejo, como el configurador original (antes reflejaba el cuarto como espejo):
+  rugosidad 0.45, reflejo 0.95, anisotropía 0.4.
+- El marco sigue la regla del configurador original: blanco con hoja blanca o negra; inoxidable con hoja inoxidable.
+
+## Configurador en vivo, también en la cámara y en Cotizar
+- La vista 3D/cámara trae los acabados de la abatible y de la vaivén; al tocar uno, la puerta cambia al momento
+  (`finishGlb` en `src/ui/arResize.js` cambia el material dentro del GLB; en la abatible negra la hoja lleva su propio
+  material para que el marco siga blanco). El iPhone recibe el mismo acabado (su USDZ se arma de esos bytes).
+- Cotizar: cada puerta muestra el mismo dibujo en vivo, con chips de acabado y «Mírala en 3D, a esta medida».
+
+## Realidad aumentada: se abre cuando la tocas
+- **iPhone (Quick Look):** el USDZ ya no repite una película. Lleva comportamientos de Apple (`src/ui/usdzTap.js`):
+  tocar la puerta la abre; tocarla otra vez la cierra; en la CDS, tocar un producto lo saca y lo regresa. Cómo:
+  línea de tiempo por tramos (cerrada, abrir, abierta, cerrar, tomar-N), nada se reproduce solo, la puerta va dos veces
+  (A cerrada / B abierta, misma geometría) y cada toque cambia cuál se ve; al final de cada tramo, su pose quieta en
+  bucle (Quick Look regresa al primer cuadro si no). Validado con las herramientas de USD (rutas completas, tramos y
+  poses correctas). **Falta probarlo en un iPhone real.**
+- **Android y vista previa:** tocar la puerta misma (no solo el punto) la abre o la cierra; arrastrar sigue girándola.
+
+## Ahorro en vez de fuga (`/fuga-de-frio/`)
+Ahora es «¿Cuánto puedes ahorrar en luz?». El número grande (en verde) es el ahorro al mes entre cómo se usa tu puerta
+hoy y con los cambios que marcas: que cierre en 10 s, que no se quede abierta, cortina hawaiana. Cada cambio se puede
+quitar. El costo de hoy queda como dato chico. En el menú y en las puertas: «Calcula tu ahorro».
+
+## Menú y Cotizar
+- Menú del celular azul marino («adentro de la cámara»): la ruta de un minuto arriba, las cuatro puertas en una tira
+  que se desliza, y Industriales, Componentes, ¿Qué pieza es?, Calcula tu ahorro y Cotizar.
+- Cotizar vacío invita a armar la puerta en un minuto; el texto de arriba es más corto.
+
+## Pruebas (11)
+`/home/claude/f11/flow11.py` (ruta completa en 390, 360 y escritorio, letra grande, axe, cámara con acabados y toque,
+chapa, acabado compartido, Cotizar) y la cadena de regresión (`f11/chain11.sh`). USDZ: `f11/usdz.py` + `f11/usdtap.py`.

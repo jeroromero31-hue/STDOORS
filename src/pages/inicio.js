@@ -1,196 +1,278 @@
-// Inicio: un recorrido que cruza la puerta. Afuera (blanco) la vaivén en 3D; al bajar abre y la cámara entra al
-// interior (azul marino), donde están las tres puertas, las piezas y CDS; al final se sale otra vez a cotizar.
-// Solo un visor 3D (brief §8: no cargar todos los visores en Inicio); se descarga después del texto.
+// Fase 11 · Inicio: «Tu puerta, en un minuto». Una ruta de cinco paradas que se recorre en menos de un minuto y que se
+// puede saltar en cualquier punto:
+//   1. Elige        — cuatro puertas, un toque (la abatible si no eliges)
+//   2. Por dentro   — la puerta elegida en rayos X: deslizas la línea y aparecen sus piezas con su número
+//   3. A tu medida  — acabado, medida y opciones; la puerta dibujada cambia al momento; «Mírala en 3D» abre el visor
+//   4. En tu espacio— la cámara (realidad aumentada, se abre al tocarla) y lo que ahorras en luz
+//   5. Cotiza       — tu puerta armada con lo que elegiste: a Cotizar o por WhatsApp
+// Lo que eliges se guarda en la medida compartida del sitio (vano): Cotizar, las páginas de puerta y la cámara la ven.
+// Nada de 3D aquí: primero se pinta la foto; el 3D se descarga solo cuando lo pides.
 import '../styles/home.css';
-import { mountSite, url, contacto } from '../ui/site.js';
-import { partPicture } from '../ui/picture.js';
-import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
-import { intro, splitLines, revealOnView, playLines } from '../ui/cine.js';
-import vaivenBin from '../models/vaiven.bin?url';
-import vaivenBinz from '../models/vaiven.binz?url';
-import { modelRequest } from '../core/modelLoad.js';
-import fotos from '../data/inicio-fotos.json';
-import catalog from '../data/components.json';
+import { mountSite, url, solicitud, toast } from '../ui/site.js';
+import { vano } from '../ui/vano.js';
+import { doorArt, ACABADOS_DE, ACABADO_NOMBRE, MEDIDA_TIPICA } from '../ui/preview.js';
+import { describe, toCm, FAM_NAME, CDS_W, CDS_H, CDS_MOD } from '../ui/medida.js';
+import { fuga } from '../ui/fugaCalc.js';
+import { waButton, waUpdate } from '../ui/whatsapp.js';
+import escaner from '../data/escaner.json';
 
 mountSite('inicio');
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const F = Object.fromEntries(fotos.fotos.map((f) => [f.id, f]));
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const money = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+const FAMS = ['abatible', 'corrediza', 'vaiven', 'cds'];
+const PAGE = { abatible: 'industriales/abatible/', corrediza: 'industriales/corrediza/', vaiven: 'industriales/vaiven/', cds: 'cds/' };
+const MODELO_D = { advanced: 'Dos vidrios con argón', plus: 'Dos vidrios con resistencia', lt: 'Tres vidrios con resistencia' };
 
-// <picture> AVIF/WebP de una foto del Inicio
-function pic(f, sizes, { eager = false, alt = f.alt } = {}) {
-  const set = (fmt) => Object.entries(f.imagen).map(([w, x]) => `${url('img/inicio/' + x[fmt])} ${w}w`).join(', ');
-  const ws = Object.keys(f.imagen).map(Number), mid = f.imagen[ws.find((w) => w >= 960) || ws[ws.length - 1]];
-  return `<picture><source type="image/avif" srcset="${set('avif')}" sizes="${sizes}"><img src="${url('img/inicio/' + mid.webp)}" srcset="${set('webp')}" sizes="${sizes}" width="${f.ancho}" height="${f.alto}" alt="${alt}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></picture>`;
-}
-
-// ---------- intro y entrada del título ----------
-const hx = $('#hx'), gl = $('#hxGl'), loadEl = $('#hxLoad');
-const firstVisit = !document.documentElement.classList.contains('sin-intro');
-if (firstVisit) splitLines($('#hxTitle'));     // en visitas siguientes el título se ve de inmediato, sin animarlo
-const curtain = intro(firstVisit ? $('#intro') : null, { onOpen: () => { if (firstVisit) playLines($('#hxTitle')); hx.classList.add('is-shown'); } });
-// grano fino de película sobre la escena (se genera aquí: no se descarga nada)
-try {
-  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), img = g.createImageData(160, 160);
-  for (let i = 0; i < img.data.length; i += 4) { const v = 96 + Math.random() * 64; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
-  g.putImageData(img, 0, 0); hx.style.setProperty('--grain', `url(${c.toDataURL()})`);
-} catch { /* sin grano */ }
-
-// ---------- entrada 3D ----------
-const glOk = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
-const poster = () => {
-  // sin 3D: la foto de la vaivén ocupa el lugar de la escena y la entrada es una pantalla normal
-  curtain.ready();
-  hx.classList.remove('hx--live'); hx.classList.add('hx--still'); loadEl.hidden = true;
-  gl.innerHTML = pic(F['vaiven-frente'], '100vw', { eager: true });
+// ---------- estado de la ruta (compartido con el resto del sitio) ----------
+const saved = vano.get();
+const st = {
+  fam: FAMS.includes(saved.fam) ? saved.fam : 'abatible',
+  picked: FAMS.includes(saved.fam),
+  ancho: saved.ancho || '', alto: saved.alto || '',
+  acabado: saved.acabado || '', mano: saved.mano || 'derecha', hojas: saved.hojas || 2, uso: saved.uso || 'refrigeracion',
+  cds: { puertas: 3, ancho: 30, alto: 79, modelo: 'advanced', ...(saved.cds || {}) },
 };
-const load = {
-  set(k) { loadEl.style.setProperty('--k', k.toFixed(3)); loadEl.querySelector('b').textContent = `${Math.round(k * 100)} %`; curtain.progress(k); },
-  done() { loadEl.classList.add('is-done'); curtain.ready(); },
-};
-if (glOk) {
-  // el modelo (1.2 MB) empieza a bajar ya, junto con el JavaScript del 3D, no cuando este termina de llegar
-  const response = modelRequest({ z: vaivenBinz, raw: vaivenBin });
-  if (!reducedMotion()) hx.classList.add('hx--live');           // la sección se alarga: el scroll abre la puerta
-  // el texto se reparte con el avance: el título se va, el velo azul marino llega al cruzar
-  if (!reducedMotion()) track(hx, (p) => {
-    const title = 1 - seg(p, 0.02, 0.13);
-    hx.style.setProperty('--title', title.toFixed(3)); hx.classList.toggle('is-past', title < 0.02);
-    hx.style.setProperty('--cue', (1 - seg(p, 0, 0.03)).toFixed(3));
-    hx.style.setProperty('--veil', easeInOut(seg(p, 0.78, 0.92)).toFixed(3));
-  }, { mode: 'pin', smooth: 12 });
-  import('../home/hero.js').then(({ mountHero }) => mountHero({
-    section: hx, gl, hud: $('#hxHud'), load, response,
-    readout: { el: $('#hxRead'), value: $('#hxRead b') },
-    onFail: poster,
-  })).catch((e) => { console.error(e); poster(); });
-} else poster();
+const ME = 'inicio';
+const acabadoOf = () => { const list = ACABADOS_DE[st.fam] || []; return list.includes(st.acabado) ? st.acabado : list[0] || ''; };
+const cfgOf = () => (st.fam === 'cds' ? { ...st.cds } : { ancho: st.ancho, alto: st.alto, acabado: acabadoOf(), mano: st.mano, hojas: st.hojas, uso: st.uso, sinMedida: false });
+const keep = (p) => { Object.assign(st, p); vano.set({ fam: st.fam, ancho: st.ancho, alto: st.alto, acabado: st.acabado, mano: st.mano, hojas: st.hojas, cds: st.cds }, ME); };
 
-// ---------- frase: las palabras se encienden en orden de lectura ----------
-{
-  const say = $('#say'), text = $('#sayText'), pin = $('.say__pin', say);
-  const words = text.textContent.trim().split(/\s+/);
-  text.innerHTML = words.map((w) => `<span class="w">${w}</span> `).join('');
-  const ws = $$('.w', text), n = ws.length;
-  const pinned = () => getComputedStyle(pin).position === 'sticky';
-  track(say, (p) => {
-    const L = (pinned() ? seg(p, 0.06, 0.66) : seg(p, 0.15, 0.95)) * n;
-    ws.forEach((w, i) => w.style.setProperty('--on', Math.min(1, Math.max(0, L - i)).toFixed(2)));
-    say.style.setProperty('--lead', (pinned() ? seg(p, 0.62, 0.78) : 1).toFixed(2));
-  }, { mode: () => (pinned() ? 'pin' : 'enter'), smooth: 12 });
+// ---------- la entrada: el azul del interior crece desde el vano de la puerta ----------
+const gate = $('#gate'), gImg = $('.gate__img img'), gIn = $('.gate__in');
+const OPEN = { x0: 0.53, x1: 0.80, y0: 0.145, y1: 0.882 };            // vano azul en la foto (proporción de la imagen)
+function gateFrame() {
+  const span = Math.max(1, gate.offsetHeight - innerHeight), p = Math.min(1, Math.max(0, -gate.getBoundingClientRect().top / span));
+  const e = reduced() ? (p > 0.5 ? 1 : 0) : p * p * (3 - 2 * p);
+  // la foto se acerca al vano (como si caminaras hacia la puerta) mientras el azul crece desde él
+  const nw = 1620, nh = 2160, box = gImg.parentElement.getBoundingClientRect();
+  const s0 = Math.max(box.width / nw, box.height / nh), dw0 = nw * s0, dh0 = nh * s0;
+  const [px, py] = getComputedStyle(gImg).objectPosition.split(' ').map((v) => parseFloat(v) / 100);
+  const ox0 = (box.width - dw0) * (isFinite(px) ? px : 0.5), oy0 = (box.height - dh0) * (isFinite(py) ? py : 0.5);
+  const cx = ox0 + ((OPEN.x0 + OPEN.x1) / 2) * dw0, cy = oy0 + ((OPEN.y0 + OPEN.y1) / 2) * dh0;
+  gImg.style.transformOrigin = `${cx.toFixed(1)}px ${cy.toFixed(1)}px`; gImg.style.transform = e > 0 ? `scale(${(1 + 0.45 * e).toFixed(4)})` : '';
+  const pin = gate.firstElementChild.getBoundingClientRect(), r = gImg.getBoundingClientRect();
+  const s = Math.max(r.width / nw, r.height / nh), dw = nw * s, dh = nh * s;
+  const ox = r.left - pin.left + (r.width - dw) * (isFinite(px) ? px : 0.5), oy = r.top - pin.top + (r.height - dh) * (isFinite(py) ? py : 0.5);
+  const k = Math.max(0, (e - 0.12) / 0.88), lerp = (a, b) => a + (b - a) * k;     // el azul empieza a crecer un poco después
+  const L = ox + OPEN.x0 * dw, R = pin.width - (ox + OPEN.x1 * dw), T = oy + OPEN.y0 * dh, B = pin.height - (oy + OPEN.y1 * dh);
+  gIn.style.clipPath = `inset(${lerp(T, 0).toFixed(1)}px ${lerp(R, 0).toFixed(1)}px ${lerp(B, 0).toFixed(1)}px ${lerp(L, 0).toFixed(1)}px round ${(lerp(4, 0)).toFixed(1)}px)`;
+  gate.style.setProperty('--p', e.toFixed(3));
 }
+let gRaf = 0;
+const gateTick = () => { if (!gRaf) gRaf = requestAnimationFrame(() => { gRaf = 0; gateFrame(); }); };
+addEventListener('scroll', gateTick, { passive: true }); addEventListener('resize', gateTick);
+if (gImg.complete) gateFrame(); else gImg.addEventListener('load', gateFrame, { once: true });
+gateFrame();
 
-// ---------- cifras: cuentan hasta su valor al entrar ----------
-$('#statPiezas').dataset.count = catalog.piezas.length;
-$$('[data-count]').forEach((el) => {
-  const to = +el.dataset.count;
-  el.insertAdjacentHTML('beforebegin', `<span class="vh">${to}</span>`); el.setAttribute('aria-hidden', 'true');
-  track(el.closest('div'), (p) => { el.textContent = Math.round(to * easeOut(seg(p, 0.1, 0.55))); }, { mode: 'enter', smooth: 10 });
-});
+// ---------- el riel: dónde vas, ir a cualquier parada y saltar ----------
+const STOPS = $$('[data-stop]'), rail = $('#rail');
+const NAMES = { elige: 'Elige', dentro: 'Por dentro', medida: 'A tu medida', espacio: 'En tu espacio', cotiza: 'Cotiza' };
+let cur = 0;
+const go = (i) => { const el = STOPS[Math.max(0, Math.min(STOPS.length - 1, i))]; el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); };
+function setCur(i) {
+  cur = i; const id = STOPS[i].dataset.stop;
+  $$('[data-step]', rail).forEach((a, k) => { a.classList.toggle('is-done', k < i); if (k === i) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current'); });
+  $('[data-rail-n]', rail).textContent = i + 1; $('[data-rail-name]', rail).textContent = NAMES[id];
+  rail.style.setProperty('--k', i / (STOPS.length - 1));
+  $('[data-skip]', rail).hidden = i === STOPS.length - 1;
+  if (id === 'dentro') xray.play();
+}
+const seen = new Map();
+const io = new IntersectionObserver((es) => {
+  es.forEach((e) => seen.set(e.target, e.intersectionRatio));
+  let best = 0, bi = cur; STOPS.forEach((s, i) => { const v = seen.get(s) || 0; if (v > best + 0.01) { best = v; bi = i; } });
+  if (best > 0 && bi !== cur) setCur(bi);
+}, { threshold: [0, 0.2, 0.4, 0.6, 0.8, 1], rootMargin: '-25% 0px -25% 0px' });
+STOPS.forEach((s) => io.observe(s));
+// el riel aparece al entrar a la ruta y se va al salir de ella
+const route = $('#route');
+addEventListener('scroll', () => { const r = route.getBoundingClientRect(); rail.classList.toggle('is-on', r.top < innerHeight * 0.45 && r.bottom > innerHeight * 0.55); }, { passive: true });
+$$('[data-step]', rail).forEach((a, i) => { a.onclick = (e) => { e.preventDefault(); go(i); }; });
+$('[data-skip]', rail).onclick = () => go(cur + 1);
+$$('[data-go]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); go(STOPS.findIndex((s) => s.dataset.stop === a.dataset.go)); }; });
 
-// ---------- capítulos: la foto se descubre abriéndose como su puerta ----------
-$$('[data-foto]').forEach((el) => el.insertAdjacentHTML('afterbegin', pic(F[el.dataset.foto], el.dataset.sizes)));
-$$('.ch').forEach((ch) => {
-  const pin = $('.ch__pin', ch), fig = $('.ch__door', ch), h2 = splitLines($('h2', ch));
-  if (!reducedMotion()) h2.classList.add('is-pre');
-  // En escritorio la foto empieza grande, al centro de la pantalla; ahí abre su puerta y después se hace a un lado
-  // para dejar entrar el texto. Se mide su lugar final (sin transformar) y desde ahí se calcula el recorrido.
-  let pinned = false, m0 = { dx: 0, dy: 0, s: 1 };
-  const measure = () => {
-    pinned = getComputedStyle(pin).position === 'sticky';
-    if (!pinned) { ['--dx', '--dy', '--sc'].forEach((k) => ch.style.removeProperty(k)); return; }
-    const W = pin.clientWidth, H = pin.clientHeight, nav = 69, w = fig.offsetWidth, h = fig.offsetHeight;
-    m0 = { dx: W / 2 - (fig.offsetLeft + w / 2), dy: nav + (H - nav) / 2 - (fig.offsetTop + h / 2), s: Math.max(1, Math.min((H - nav - 56) / h, (W * 0.84) / w)) };
+// ---------- 1 · Elige ----------
+const picks = $$('.pick__o');
+function markPick() { picks.forEach((b) => b.setAttribute('aria-checked', String(st.picked && b.dataset.fam === st.fam))); }
+picks.forEach((b) => {
+  b.onclick = () => {
+    const fam = b.dataset.fam, changed = fam !== st.fam;
+    st.picked = true; keep({ fam }); markPick(); if (changed) renderAll();
+    b.classList.add('is-chosen'); setTimeout(() => b.classList.remove('is-chosen'), 700);
+    setTimeout(() => go(1), reduced() ? 0 : 420);                         // la ruta sigue sola
   };
-  measure(); new ResizeObserver(measure).observe(pin);
-  track(ch, (p) => {
-    const o = pinned ? easeInOut(seg(p, 0.04, 0.34)) : easeInOut(seg(p, 0.2, 0.8));
-    const mv = pinned ? easeInOut(seg(p, 0.36, 0.6)) : 1;
-    const t = pinned ? easeOut(seg(p, 0.46, 0.66)) : 1;
-    ch.style.setProperty('--o', o.toFixed(4)); ch.style.setProperty('--t', t.toFixed(4));
-    h2.classList.toggle('is-in', t > 0.2);
-    if (pinned) {
-      ch.style.setProperty('--dx', `${(m0.dx * (1 - mv)).toFixed(1)}px`); ch.style.setProperty('--dy', `${(m0.dy * (1 - mv)).toFixed(1)}px`);
-      ch.style.setProperty('--sc', (1 + (m0.s - 1) * (1 - mv)).toFixed(4));
-    }
-  }, { mode: () => (pinned ? 'pin' : 'enter'), smooth: 12 });
+});
+// teclado: flechas entre las opciones (grupo de radio)
+$('.pick').addEventListener('keydown', (e) => {
+  const i = picks.indexOf(document.activeElement); if (i < 0) return;
+  const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!d) return;
+  e.preventDefault(); picks[(i + d + picks.length) % picks.length].focus();
 });
 
-// ---------- el sistema: piezas reales con su número de catálogo ----------
-// Fase 10H · la foto fija se volvió una mesa de piezas: flotan, se agarran y se lanzan; tocar una marca su renglón,
-// y pasar por un renglón levanta su pieza. En celular la mesa va arriba de la lista.
-const PIEZAS = [['30', 'abatible'], ['27', 'abatible'], ['21', 'abatible'], ['37', 'corrediza'], ['39', 'corrediza'], ['47', 'corrediza'], ['02', 'vaiven'], ['03', 'vaiven']];
-const PUERTA = { abatible: 'Abatible', corrediza: 'Corrediza', vaiven: 'Vaivén' };
-const piezas = PIEZAS.map(([n, fam]) => ({ fam, p: catalog.piezas.find((x) => x.numero === n && x.familias.includes(fam)) })).filter((x) => x.p);
-$('#sysLead').textContent = `${catalog.piezas.length} piezas de repuesto con fotografía y número de catálogo. Cada una se señala sobre su puerta en 3D.`;
-const fig = $('#sysFig'), list = $('#sysList');
-list.innerHTML = piezas.map(({ p, fam }, i) => `<li><a class="sys__row${i ? '' : ' is-on'}" href="${url('componentes/')}?id=${p.id}" data-i="${i}">
-    <span class="sys__thumb" aria-hidden="true">${partPicture(p, { sizes: '72px' })}</span>
-    <b class="sys__n">${p.numero}</b><span class="sys__name">${p.nombre}</span><span class="sys__fam">${PUERTA[fam]}${p.familias.length > 1 ? ' y ' + PUERTA[p.familias.find((f) => f !== fam)].toLowerCase() : ''}</span></a></li>`).join('');
-const rows = $$('.sys__row', list);
-const keyOf = ({ p, fam }) => `${fam}-${p.numero}`;
-// mesa: dos filas sueltas de cuatro, cada pieza un poco girada
-const MESA = piezas.map((x, i) => ({ key: keyOf(x), x: 0.16 + (i % 4) * 0.23 + (i > 3 ? 0.05 : 0), y: i < 4 ? 0.3 : 0.7, s: 0.26, r: [-12, 8, -4, 14, -8, 10, -14, 6][i], z: [1, 0.9, 0.8, 1, 1.05, 0.85, 1, 0.9][i] }));
-fig.innerHTML = '<p class="sys__hint">Arrastra y lanza las piezas. Toca una para ver cuál es.</p>';
-let mesa = null;
-import('../ui/floaters.js').then(({ mountFloaters }) => {
-  mesa = mountFloaters(fig, MESA, { size: (w) => w, edge: 0.15, onPick: (it) => show(MESA.findIndex((m) => m.key === it.key), false) });
-}).catch((e) => console.error(e));
-const show = (i, lift = true) => { rows.forEach((x, k) => x.classList.toggle('is-on', k === i)); if (mesa && lift) mesa.focus(MESA[i] ? MESA[i].key : null); };
-rows.forEach((r) => { const i = +r.dataset.i; r.addEventListener('pointerenter', () => show(i)); r.addEventListener('focus', () => show(i)); });
-list.addEventListener('pointerleave', () => mesa && mesa.focus(null));
+// ---------- 2 · Por dentro (rayos X) ----------
+const xray = (() => {
+  const box = $('#xr'), n = $('[data-xr-n]', box), x = $('[data-xr-x]', box), tags = $('[data-xr-tags]', box), line = $('[data-xr-line]', box), range = $('[data-xr-range]', box);
+  const list = $('[data-xr-list]'), open3d = $('[data-open3d]');
+  let v = 0, played = false, anim = 0, door = null;
+  const set = (val) => {
+    v = Math.max(0, Math.min(100, val)); box.style.setProperty('--v', v / 100); range.value = Math.round(v);
+    $$('li', tags).forEach((t) => t.classList.toggle('is-on', +t.dataset.x * 100 < v));
+    $$('li', list).forEach((t) => t.classList.toggle('is-on', +t.dataset.x * 100 < v));
+  };
+  const load = () => {
+    door = escaner.puertas.find((d) => d.id === st.fam) || escaner.puertas[0];
+    const img = (modo) => `<img src="${url(`img/inicio/escaner/${door.id}-alto-${modo}.webp`)}" alt="" width="900" height="1200" decoding="async" loading="lazy">`;
+    n.innerHTML = img('normal'); x.innerHTML = img('rayos');
+    box.setAttribute('aria-label', `${door.nombre} en rayos X`);
+    const t = (door.tags.alto || []).slice().sort((a, b) => a.x - b.x);
+    tags.innerHTML = t.map((g, k) => `<li style="--x:${g.x};--y:${g.y}" data-x="${g.x}"><i>${k + 1}</i></li>`).join('');
+    list.innerHTML = t.map((g, k) => `<li data-x="${g.x}"><i>${k + 1}</i><span>${g.nombre}</span>${g.numero ? `<b>Pieza ${g.numero}</b>` : ''}</li>`).join('');
+    open3d.href = url(PAGE[st.fam]); open3d.textContent = st.fam === 'cds' ? 'Ábrela y toma un producto en 3D' : 'Ábrela en 3D';
+    set(played ? 62 : 0);
+  };
+  const play = () => {
+    if (played) return; played = true;
+    if (reduced()) { set(62); return; }
+    const t0 = performance.now(), D = 1700;
+    const step = (t) => { const k = Math.min(1, (t - t0) / D), e = 1 - (1 - k) ** 3; set(e * 62); if (k < 1) anim = requestAnimationFrame(step); };
+    anim = requestAnimationFrame(step);
+  };
+  // arrastrar la línea (horizontal: la página sigue bajando con el dedo en vertical)
+  let drag = false;
+  const at = (e) => { const r = box.getBoundingClientRect(); return ((e.clientX - r.left) / r.width) * 100; };
+  box.addEventListener('pointerdown', (e) => { drag = true; cancelAnimationFrame(anim); played = true; set(at(e)); });
+  addEventListener('pointermove', (e) => { if (drag) set(at(e)); }, { passive: true });
+  addEventListener('pointerup', () => { drag = false; }); addEventListener('pointercancel', () => { drag = false; });
+  range.oninput = () => { cancelAnimationFrame(anim); played = true; set(+range.value); };
+  return { load, play };
+})();
 
-// ---------- piezas sueltas por la página: flotan en las orillas y también se pueden agarrar ----------
-import('../ui/floaters.js').then(({ mountFloaters }) => {
-  const layer = (host, cls = '') => { const d = document.createElement('div'); d.className = `flo-layer ${cls}`; host.prepend(d); return d; };
-  const narrow = () => innerWidth < 700;
-  const sz = (w) => (narrow() ? Math.max(300, w) : Math.min(1100, w) * 0.62);
-  const say = $('.say__pin');
-  if (say) mountFloaters(layer(say), [
-    { key: 'corrediza-39', x: 0.1, y: 0.16, s: 0.25, r: -14, z: 1 }, { key: 'corrediza-37', x: 0.9, y: 0.2, s: 0.22, r: 12, z: 0.8 },
-    { key: 'vaiven-02', x: 0.12, y: 0.86, s: 0.28, r: 8, z: 0.9 }, { key: 'abatible-27', x: 0.88, y: 0.84, s: 0.25, r: -8, z: 1.1 },
-  ], { size: sz, dark: true, parallax: 40, edge: 0.3 });
-  const stats = $('.stats');
-  if (stats) mountFloaters(layer(stats), [
-    { key: 'abatible-35', x: 0.95, y: 0.22, s: 0.25, r: 30, z: 0.9 }, { key: 'abatible-23', x: 0.04, y: 0.8, s: 0.2, r: -10, z: 1 },
-  ], { size: sz, dark: true, parallax: 60, edge: 0.35 });
-  const out = $('.out__pin');
-  if (out) mountFloaters(layer(out), [
-    { key: 'corrediza-40', x: 0.08, y: 0.2, s: 0.19, r: -10, z: 0.9 }, { key: 'vaiven-05', x: 0.92, y: 0.24, s: 0.19, r: 12, z: 1 },
-    { key: 'corrediza-41', x: 0.9, y: 0.82, s: 0.21, r: -6, z: 1.05 },
-  ], { size: sz, parallax: 50, edge: 0.3 });
-}).catch((e) => console.error(e));
+// ---------- 3 · A tu medida ----------
+const cfgBox = $('[data-cfg]'), art = $('[data-art]');
+const chip = (k, v, label, on, extra = '') => `<button type="button" class="chip" data-k="${k}" data-v="${v}" aria-pressed="${on}"${extra}>${label}</button>`;
+function renderCfg() {
+  const f = st.fam, c = cfgOf(), fins = ACABADOS_DE[f] || [];
+  const uid = 'c' + Math.random().toString(36).slice(2, 6);
+  let h = '';
+  if (fins.length) h += `<div class="cfg__f"><span class="cfg__l" id="${uid}a">Acabado</span><div class="cfg__sw" role="group" aria-labelledby="${uid}a">${fins.map((a) => `<button type="button" class="sw sw--${a}" data-k="acabado" data-v="${a}" aria-pressed="${a === c.acabado}"><i aria-hidden="true"></i><span>${ACABADO_NOMBRE[a]}</span></button>`).join('')}</div></div>`;
+  if (f === 'cds') {
+    h += `<div class="cfg__f"><span class="cfg__l" id="${uid}m">Modelo</span><div class="cfg__mods" role="group" aria-labelledby="${uid}m">${Object.entries(CDS_MOD).map(([k, t]) => `<button type="button" class="mod" data-k="modelo" data-v="${k}" aria-pressed="${c.modelo === k}"><b>${t}</b><span>${MODELO_D[k]}</span></button>`).join('')}</div></div>
+      <div class="cfg__f cfg__row"><span class="cfg__l" id="${uid}n">Puertas en el juego</span><div class="step" role="group" aria-labelledby="${uid}n"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out>${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
+      <div class="cfg__f"><span class="cfg__l" id="${uid}w">Ancho de cada puerta</span><div class="chips" role="group" aria-labelledby="${uid}w">${CDS_W.map((w) => chip('ancho', w, `${w}"`, c.ancho === w)).join('')}</div></div>
+      <div class="cfg__f"><span class="cfg__l" id="${uid}h">Alto</span><div class="chips" role="group" aria-labelledby="${uid}h">${CDS_H.map((x) => chip('alto', x, `${x}"`, c.alto === x)).join('')}</div></div>`;
+  } else {
+    const [tw, th] = MEDIDA_TIPICA[f];
+    h += `<fieldset class="cfg__f cfg__dim"><legend class="cfg__l">Medida del vano</legend>
+        <label><span>Ancho</span><span class="step"><button type="button" data-d="ancho" data-s="-5" aria-label="5 cm menos de ancho">−</button><input data-k="ancho" inputmode="numeric" autocomplete="off" placeholder="${tw}" value="${c.ancho}" aria-label="Ancho del vano en centímetros"><button type="button" data-d="ancho" data-s="5" aria-label="5 cm más de ancho">+</button></span><em>cm</em></label>
+        <label><span>Alto</span><span class="step"><button type="button" data-d="alto" data-s="-5" aria-label="5 cm menos de alto">−</button><input data-k="alto" inputmode="numeric" autocomplete="off" placeholder="${th}" value="${c.alto}" aria-label="Alto del vano en centímetros"><button type="button" data-d="alto" data-s="5" aria-label="5 cm más de alto">+</button></span><em>cm</em></label>
+        <p class="cfg__hint">${c.ancho && c.alto ? `${(c.ancho * c.alto / 10000).toFixed(2)} m² de vano` : `Sin medida dibujamos una típica (${tw} × ${th} cm). Si no la tienes, la tomamos en la visita.`}</p>
+      </fieldset>`;
+    if (f === 'abatible') h += `<div class="cfg__f cfg__row"><span class="cfg__l" id="${uid}b">Bisagras</span><div class="chips" role="group" aria-labelledby="${uid}b">${chip('mano', 'izquierda', 'Izquierda', c.mano === 'izquierda')}${chip('mano', 'derecha', 'Derecha', c.mano === 'derecha')}</div></div>`;
+    if (f === 'corrediza') h += `<div class="cfg__f cfg__row"><span class="cfg__l" id="${uid}b">Abre hacia la</span><div class="chips" role="group" aria-labelledby="${uid}b">${chip('mano', 'izquierda', 'Izquierda', c.mano === 'izquierda')}${chip('mano', 'derecha', 'Derecha', c.mano === 'derecha')}</div></div>`;
+    if (f === 'vaiven') h += `<div class="cfg__f cfg__row"><span class="cfg__l" id="${uid}b">Hojas</span><div class="chips" role="group" aria-labelledby="${uid}b">${chip('hojas', 1, 'Una', c.hojas === 1)}${chip('hojas', 2, 'Dos', c.hojas !== 1)}</div></div>`;
+    if (f !== 'vaiven') h += `<div class="cfg__f cfg__row"><span class="cfg__l" id="${uid}u">Uso</span><div class="chips" role="group" aria-labelledby="${uid}u">${chip('uso', 'refrigeracion', 'Refrigeración', c.uso !== 'congelacion')}${chip('uso', 'congelacion', 'Congelación', c.uso === 'congelacion')}</div></div>`;
+  }
+  cfgBox.innerHTML = h;
+  $('[data-cfg-lead]').textContent = f === 'cds' ? 'Elige el modelo y cuántas puertas lleva el juego: el dibujo cambia contigo.'
+    : fins.length ? 'Cambia el acabado y la medida: la puerta cambia contigo.' : 'Escribe la medida de tu vano: la puerta cambia contigo.';
+  // acabado y opciones
+  $$('[data-k][data-v]', cfgBox).forEach((b) => {
+    b.onclick = () => {
+      const k = b.dataset.k, raw = b.dataset.v, v = /^\d+$/.test(raw) ? +raw : raw;
+      $$(`[data-k="${k}"][data-v]`, cfgBox).forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      if (st.fam === 'cds') keep({ cds: { ...st.cds, [k]: v } }); else keep({ [k]: v });
+      if (k === 'acabado') toast(`Acabado: ${ACABADO_NOMBRE[v]}`);
+      draw();
+    };
+  });
+  // medida: se dibuja mientras escribes; −/+ de 5 en 5
+  $$('input[data-k]', cfgBox).forEach((i) => {
+    i.oninput = () => { const v = toCm(i.value); st[i.dataset.k] = v >= 30 ? v : ''; draw(true); };
+    i.onchange = () => { const v = toCm(i.value); i.value = v >= 30 ? v : ''; keep({ [i.dataset.k]: v >= 30 ? v : '' }); draw(); };
+  });
+  $$('[data-d]', cfgBox).forEach((b) => {
+    b.onclick = () => {
+      const k = b.dataset.d, [tw, th] = MEDIDA_TIPICA[st.fam], base = +st[k] || (k === 'ancho' ? tw : th);
+      const v = Math.max(50, Math.min(600, base + +b.dataset.s)); keep({ [k]: v }); $(`input[data-k="${k}"]`, cfgBox).value = v; draw();
+    };
+  });
+  $$('[data-n]', cfgBox).forEach((b) => {
+    b.onclick = () => { const n = Math.max(1, Math.min(12, st.cds.puertas + +b.dataset.n)); keep({ cds: { ...st.cds, puertas: n } }); $('[data-out]', cfgBox).textContent = n; draw(); };
+  });
+  draw();
+}
+function draw(typing = false) {
+  const c = cfgOf();
+  art.innerHTML = doorArt(st.fam, c);
+  const hint = $('.cfg__hint', cfgBox);
+  if (hint && st.fam !== 'cds') { const [tw, th] = MEDIDA_TIPICA[st.fam]; hint.textContent = c.ancho && c.alto ? `${(c.ancho * c.alto / 10000).toFixed(2)} m² de vano` : `Sin medida dibujamos una típica (${tw} × ${th} cm). Si no la tienes, la tomamos en la visita.`; }
+  if (!typing) { summary(); savings(); }
+}
+const open3D = () => import('../ui/ar.js').then(({ openAR }) => {
+  const c = cfgOf();
+  openAR(st.fam, st.fam === 'cds' ? {} : { ancho: c.ancho, alto: c.alto, acabado: c.acabado });
+}).catch((e) => { console.error(e); toast('No se pudo abrir el 3D'); });
+$('[data-3d]').onclick = open3D;
 
-// ---------- CDS ----------
-import('../home/cdsSequence.js').then(({ mountSequence }) => mountSequence($('#cdsSeq'), $('#cdsMedia'))).catch((e) => console.error(e));
-import('../home/scanner.js').then(({ mountScanner }) => mountScanner($('#escaner'))).catch((e) => console.error(e));
-
-// ---------- títulos que entran por líneas al verse ----------
-['.sys__head h2', '#cdsTitle'].forEach((sel) => revealOnView($(sel)));
-
-// ---------- salida: la puerta se abre desde adentro ----------
-{
-  const out = $('#out'), pin = $('.out__pin', out), title = splitLines($('#outTitle'));
-  if (!reducedMotion()) title.classList.add('is-pre');
-  const pinned = () => getComputedStyle(pin).position === 'sticky';
-  if (!pinned()) revealOnView(title);
-  track(out, (p) => {
-    if (!pinned()) return;
-    const o = easeInOut(seg(p, 0.04, 0.55));
-    out.style.setProperty('--o', o.toFixed(4)); out.classList.toggle('is-done', o > 0.995);
-    title.classList.toggle('is-in', o > 0.35);
-  }, { mode: () => (pinned() ? 'pin' : 'enter'), smooth: 12 });
+// ---------- 4 · En tu espacio ----------
+const camDoor = $('[data-cam-door]');
+$('[data-cam]').onclick = open3D;
+function savings() {
+  camDoor.style.backgroundImage = `url(${url(`img/inicio/ruta/${st.fam}.webp`)})`;
+  const card = $('[data-save]');
+  $('[data-cam-lead]').textContent = st.fam === 'cds' ? 'Con la cámara de tu celular, a tamaño real. Toca una puerta para abrirla y un producto para tomarlo.'
+    : 'Con la cámara de tu celular, a tamaño real y con tu acabado. Tócala y se abre; tócala otra vez y se cierra.';
+  if (st.fam === 'cds') { card.hidden = true; return; }
+  card.hidden = false;
+  const c = cfgOf(), [tw, th] = MEDIDA_TIPICA[st.fam];
+  const base = { ancho: +c.ancho || tw, alto: +c.alto || th, tIn: c.uso === 'congelacion' ? -20 : 2, hrIn: c.uso === 'congelacion' ? 80 : 85, tOut: 30, hrOut: 50,
+    aperturas: 100, segundos: 20, minutos: 30, proteccion: 'ninguna', precio: 4, alt: 2240 };
+  const a = fuga(base), b = fuga({ ...base, segundos: 10, minutos: 0 });
+  const ahorro = a && b ? a.mes.pesos - b.mes.pesos : 0;
+  $('[data-save-n]').textContent = `${money.format(Math.round(ahorro / 10) * 10)}`;
+  $('[data-save-d]').textContent = `al mes en luz, si tu puerta ${c.ancho && c.alto ? `de ${c.ancho} × ${c.alto} cm` : ''} cierra en 10 s en vez de 20 y deja de quedarse abierta media hora al día (${c.uso === 'congelacion' ? 'congelación' : 'refrigeración'}, 100 aperturas al día).`;
 }
 
-// ---------- salida ----------
-$('#homeMail').href = `mailto:${contacto.correo}?subject=${encodeURIComponent('Consulta desde el sitio')}`;
-$('#homeMail').textContent = `Escribir a ${contacto.correo}`;
-
-// ---------- Fase 10J · a la medida de tu vano (se arma al acercarse) ----------
-{
-  const box = document.getElementById('medidaBox');
-  if (box) new IntersectionObserver(([e], io) => {
-    if (!e.isIntersecting) return; io.disconnect();
-    import('../ui/vano.js').then(({ mountVano }) => mountVano(box)).catch((err) => console.error(err));
-  }, { rootMargin: '60% 0px' }).observe(box);
+// ---------- 5 · Cotiza ----------
+const sumEl = $('[data-sum]'), sumArt = $('[data-sum-art]');
+let wa = null;
+function summary() {
+  const f = st.fam, c = cfgOf();
+  const rows = [['Puerta', FAM_NAME[f]]];
+  if (f === 'cds') rows.push(['Modelo', `${CDS_MOD[c.modelo]}: ${MODELO_D[c.modelo].toLowerCase()}`], ['Juego', `${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}"`]);
+  else {
+    if (c.acabado) rows.push(['Acabado', ACABADO_NOMBRE[c.acabado]]);
+    rows.push(['Medida', c.ancho && c.alto ? `${c.ancho} × ${c.alto} cm` : 'La tomamos en la visita']);
+    if (f === 'abatible') rows.push(['Bisagras', `A la ${c.mano}`]);
+    if (f === 'corrediza') rows.push(['Abre hacia', `La ${c.mano}`]);
+    if (f === 'vaiven') rows.push(['Hojas', c.hojas === 1 ? 'Una' : 'Dos']);
+    if (f !== 'vaiven') rows.push(['Uso', c.uso === 'congelacion' ? 'Congelación' : 'Refrigeración']);
+  }
+  sumEl.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  sumArt.innerHTML = doorArt(f, c);
+  const ctx = { tipo: 'medida', fam: f, cfg: { ...c, sinMedida: !(c.ancho && c.alto) && f !== 'cds' } };
+  if (!wa) { wa = waButton(ctx, { cls: 'btn btn--line' }); $('[data-wa]').replaceWith(wa); } else waUpdate(wa, ctx);
 }
+$('[data-quote]').onclick = () => {
+  const f = st.fam, c = cfgOf();
+  const nombre = `${FAM_NAME[f]}${c.acabado ? ', ' + ACABADO_NOMBRE[c.acabado].toLowerCase() : ''}${f === 'cds' ? ' ' + CDS_MOD[c.modelo] : ''}`;
+  const id = `puerta-${f}-r${Date.now().toString(36)}`;
+  const cfg = f === 'cds' ? c : { ...c, sinMedida: !(c.ancho && c.alto) };
+  // la misma puerta, con la misma configuración, no se agrega dos veces
+  const same = solicitud.all().find((x) => x.id.startsWith(`puerta-${f}-r`) && JSON.stringify(x.cfg) === JSON.stringify(cfg));
+  if (!same) solicitud.add({ id, nombre, tipo: 'Puerta', cantidad: 1, cfg });
+  toast(`${FAM_NAME[f]}: ${describe(f, cfg)}`);
+  setTimeout(() => { location.href = url('cotizar/'); }, reduced() ? 0 : 350);
+};
+
+// ---------- todo a la vez cuando cambia la puerta ----------
+function renderAll() { xray.load(); renderCfg(); }
+markPick(); renderAll(); setCur(0);
+// si otra pestaña o página cambia la medida, se refleja aquí
+addEventListener('st:vano', (e) => {
+  if (e.detail && e.detail.__from === ME) return;
+  const v = vano.get(); Object.assign(st, { ancho: v.ancho || '', alto: v.alto || '', acabado: v.acabado || st.acabado });
+  if (!cfgBox.contains(document.activeElement)) renderCfg();
+});

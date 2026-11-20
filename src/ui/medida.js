@@ -23,12 +23,14 @@ export function toCm(v) {
   return Math.round(n < 10 ? n * 100 : n);
 }
 const m2 = (a, b) => (a * b / 10000).toFixed(2);
+const ACABADO = { hygienicWhite: 'blanco sanitario', stainless: 'inoxidable', blackMetal: 'negro' };
 
 // una línea de texto para el mensaje de la solicitud
 export function describe(fam, c) {
   if (!c) return '';
   if (fam === 'cds') return `${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}" (${Math.round(c.ancho * IN)} × ${Math.round(c.alto * IN)} cm cada una), modelo ${CDS_MOD[c.modelo]}`;
   const parts = [];
+  if (c.acabado && ACABADO[c.acabado]) parts.push(`acabado ${ACABADO[c.acabado]}`);
   if (c.sinMedida || !c.ancho || !c.alto) parts.push(c.sinMedida ? 'medida del vano por tomar en visita' : 'medida del vano por confirmar');
   else parts.push(`vano de ${c.ancho} × ${c.alto} cm (${m2(c.ancho, c.alto)} m²)`);
   if (fam === 'vaiven') parts.push(c.hojas === 1 ? 'una hoja' : 'dos hojas');

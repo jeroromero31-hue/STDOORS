@@ -1,5 +1,8 @@
-// Copia del USDZExporter de three.js r169 (licencia MIT, © three.js authors), con una línea de tiempo: en el iPhone,
-// Quick Look reproduce la puerta abriéndose y cerrándose (y, en la CDS, los productos que salen y regresan).
+// Copia del USDZExporter de three.js r169 (licencia MIT, © three.js authors), con una línea de tiempo y comportamientos:
+// en el iPhone, Quick Look abre y cierra la puerta cuando la tocas (y, en la CDS, saca el producto que tocas).
+// - Fase 11: las piezas van dentro de un grupo «Puerta» (a él se le pide reproducir un tramo de la línea de tiempo), los
+//   cuadros que no cambian se omiten (el archivo pesa mucho menos) y se agrega el bloque de comportamientos que se pase
+//   en options.behaviors (texto USDA; ver ./usdzTap.js).
 import {
 	NoColorSpace,
 	DoubleSide,
@@ -89,7 +92,7 @@ class USDZAnimExporter {
 		} );
 
 
-		output += buildSceneEnd();
+		output += buildSceneEnd( options );
 
 		output += buildMaterials( materials, textures, options.quickLookCompatible );
 
@@ -220,6 +223,7 @@ function buildSceneStart( options ) {
 	)
 	{
 		def Xform "Scene" (
+			prepend apiSchemas = ["Preliminary_AnchoringAPI"]
 			customData = {
 				bool preliminary_collidesWithEnvironment = 0
 				string sceneName = "Scene"
@@ -227,13 +231,17 @@ function buildSceneStart( options ) {
 			sceneName = "Scene"
 		)
 		{${alignment}
+		def Xform "Puerta"
+		{
 `;
 
 }
 
-function buildSceneEnd() {
+function buildSceneEnd( options = {} ) {
 
 	return `
+		}
+${ options.behaviors || '' }
 		}
 	}
 }
@@ -259,14 +267,22 @@ function buildAnimatedXform( object, geometry, material, samples ) {
 
 	const name = 'Object_' + object.id;
 	const t = [], r = [], sc = [];
-	samples.forEach( ( m, k ) => {
+	const vt = [], vr = [], vs = [];
+	samples.forEach( ( m ) => {
 
 		m.decompose( _p, _q, _s );
-		t.push( `${ k }: (${ fmt( _p.x ) }, ${ fmt( _p.y ) }, ${ fmt( _p.z ) })` );
-		r.push( `${ k }: (${ fmt( _q.w ) }, ${ fmt( _q.x ) }, ${ fmt( _q.y ) }, ${ fmt( _q.z ) })` );
-		sc.push( `${ k }: (${ fmt( _s.x ) }, ${ fmt( _s.y ) }, ${ fmt( _s.z ) })` );
+		vt.push( `(${ fmt( _p.x ) }, ${ fmt( _p.y ) }, ${ fmt( _p.z ) })` );
+		vr.push( `(${ fmt( _q.w ) }, ${ fmt( _q.x ) }, ${ fmt( _q.y ) }, ${ fmt( _q.z ) })` );
+		vs.push( `(${ fmt( _s.x ) }, ${ fmt( _s.y ) }, ${ fmt( _s.z ) })` );
 
 	} );
+	// un cuadro que es igual al anterior y al siguiente no hace falta: USD mantiene el valor entre muestras
+	const keep = ( v, out ) => v.forEach( ( x, k ) => {
+
+		if ( k === 0 || k === v.length - 1 || x !== v[ k - 1 ] || x !== v[ k + 1 ] ) out.push( `${ k }: ${ x }` );
+
+	} );
+	keep( vt, t ); keep( vr, r ); keep( vs, sc );
 	return `def Xform "${ name }" (
 	prepend references = @./geometries/Geometry_${ geometry.id }.usda@</Geometry>
 	prepend apiSchemas = ["MaterialBindingAPI"]
