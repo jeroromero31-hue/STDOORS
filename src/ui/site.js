@@ -167,6 +167,7 @@ export function mountSite(page) {
         <li><a href="${url('industriales/')}"${page === 'industriales' ? ' aria-current="page"' : ''}><b>Industriales</b> <span>Compara las tres y elige</span></a></li>
         <li><a href="${url('componentes/')}"${page === 'componentes' ? ' aria-current="page"' : ''}><b>Componentes</b> <span>Piezas de repuesto con su número</span></a></li>
         <li><a href="${url('componentes/')}#encuentra"><b>¿Qué pieza es?</b> <span>Toca la puerta y encuéntrala</span></a></li>
+        <li><a href="${url('fuga-de-frio/')}"${page === 'fuga' ? ' aria-current="page"' : ''}><b>¿Cuánto frío se escapa?</b> <span>Lo que te cuesta cada apertura</span></a></li>
         <li><a href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}><b>Cotizar</b> <span data-menu-count>Tu solicitud</span></a></li>
         <li><a href="${url('')}"${page === 'inicio' ? ' aria-current="page"' : ''}><b>Inicio</b> <span>El recorrido completo</span></a></li>
       </ul>

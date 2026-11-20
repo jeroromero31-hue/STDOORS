@@ -185,6 +185,26 @@ export function mountCdsExtras({ viewer, live, door }) {
     door.addEventListener('door:step', (e) => { active = !!e.detail.block.dataset.humedad; update(); });
     update();
   }
+  // Fase 10K · «Toma un producto»: un botón lo saca por ti (abre la puerta y la deja retenida), dice cuál es y lo regresa;
+  // los que ya tomaste quedan en una lista. Arrastrar con el dedo o el mouse sigue funcionando igual.
+  const step = $('.door__step[data-view="parrillas"]');
+  if (step && viewer.motion && viewer.motion.takeOne) {
+    const box = document.createElement('div'); box.className = 'take';
+    box.innerHTML = `<div class="row"><button type="button" class="btn" data-take-one>Tomar un producto</button><button type="button" class="btn btn--line" data-give hidden>Regresarlo</button></div>
+      <p class="take__now" aria-live="polite"></p>
+      <div class="take__basket" hidden><span class="t-small t-soft">Ya tomaste</span><ul></ul></div>`;
+    step.append(box);
+    const now = $('.take__now', box), give = $('[data-give]', box), basket = $('.take__basket', box), seen = new Set();
+    viewer.motion.onProduct((i) => {
+      if (i) {
+        now.innerHTML = `<b>${i.name}</b>${i.vol ? ` · ${i.vol}` : ''}<br><span class="t-small t-soft">Gíralo arrastrándolo. Con doble toque, o con «Regresarlo», vuelve a su lugar.</span>`;
+        give.hidden = false;
+        if (!seen.has(i.name)) { seen.add(i.name); const li = document.createElement('li'); li.textContent = i.name; $('ul', basket).append(li); basket.hidden = false; }
+      } else { now.textContent = ''; give.hidden = true; }
+    });
+    $('[data-take-one]', box).onclick = () => { viewer.motion.takeOne(1); live.textContent = 'Abriendo la puerta para tomar un producto'; };
+    give.onclick = () => viewer.motion.giveBack();
+  }
   // luces KeyLED: apagar y encender en el paso de la iluminación
   const led = $('[data-led-btn]');
   if (led && viewer.setLED) {

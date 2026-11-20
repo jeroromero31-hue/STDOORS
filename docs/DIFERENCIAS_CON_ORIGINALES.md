@@ -345,3 +345,15 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Cámara (realidad aumentada):** las cuatro puertas se exportan a GLB (`public/ar/*.glbz`, gzip) desde los mismos modelos 3D, con sus materiales; en el teléfono se reescalan a la medida del vano agregando un nodo raíz con la escala (la geometría no cambia). Se usa `@google/model-viewer` 4.0.0 (fijo, compatible con three r169) y `qrcode-generator` para el código QR en computadora.
 - **Encuentra tu pieza:** las zonas se marcaron sobre las imágenes del escáner del Inicio (`img/inicio/escaner/*-alto-normal.webp`); las piezas de cada zona salen del catálogo por número (`src/ui/finder.js`). El visor eléctrico y su caja (74, 75) no están en el modelo de la corrediza: van en la zona «Resistencia y visor», marcada en el canto de arriba de la hoja.
 - **WhatsApp:** sin número confirmado de ST (`"whatsapp": null`); el enlace abre WhatsApp con el mensaje escrito para elegir el contacto.
+
+## Fase 10K
+
+- **Modelos de la vista con cámara:**
+  - Se exportan con su movimiento (clips «abrir» y «cerrar», y «tomar-N» en la CDS), muestreado de los visores del sitio.
+  - Las puertas de mano izquierda de la CDS se reflejan en la geometría, sin escala negativa.
+  - Los productos dejan de ser instancias y pasan a mallas normales: 2 filas por carril y botellas de 20 caras en vez de 48 (`globalThis.__stLathe`, solo en el exportador).
+  - Se agregan dos cosas que no son de las puertas: una marca invisible en el piso real de la corrediza y las franjas rígidas para el ajuste a la medida.
+- **Ajuste a la medida (`src/ui/arResize.js`):** sustituye la escala uniforme de 10J. Es una aproximación visual: las piezas reales pueden cambiar de cantidad o posición según la medida (p. ej. una tercera bisagra en puertas altas).
+- **iPhone (`src/ui/usdzAnim.js`):** copia del exportador USDZ de three.js r169 (MIT) con línea de tiempo (traslación, giro y escala por cuadro, a 12 cuadros por segundo). Los materiales sin sombreado pasan a estándar con brillo propio.
+- **Calculadora de fuga de frío:** método de Gosney y Olama (ASHRAE) con supuestos explícitos (COP y protección); no son datos de ST.
+

@@ -59,7 +59,7 @@ python3 scripts/render-cds-video.py --nuevo                  # → public/video/
 node scripts/comprimir-modelos.mjs                          # → src/models/*.binz (gzip de cada .bin; se descarga 4 a 6 veces menos)
 python3 scripts/build-flotantes.py                          # → public/img/flotantes/ (recortes de piezas) y src/data/flotantes.json
 python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
-python3 scripts/build-ar.py                                 # → public/ar/*.glbz y src/data/ar.json: modelos para «Verla en tu espacio» (lab/ar.html)
+python3 scripts/build-ar.py                                 # → public/ar/*.glbz y src/data/ar.json: modelos para «Verla en tu espacio» con su movimiento, franjas rígidas y productos (lab/ar.html; servidor de desarrollo en :5199)
 ```
 
 Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.
@@ -119,7 +119,7 @@ ST_PAQUETE=/ruta/al/paquete npm run verificar    # solo verifica las dos
 ## Estructura
 
 ```
-index.html, industriales/…, cds/, componentes/, cotizar/   páginas (cada index.html es una entrada)
+index.html, industriales/…, cds/, componentes/, cotizar/, fuga-de-frio/   páginas (cada index.html es una entrada)
 lab/materiales.html      calibración de materiales (interna, noindex)
 lab/sistema.html         guía del sistema de diseño (interna, noindex)
 src/styles/tokens.css    colores, tipo, espacio, radios y movimiento

@@ -378,3 +378,55 @@ En el teléfono de una persona aparecían paneles azules al pasar del Inicio a l
 ## Pruebas (10J)
 
 `f10j/flow10j.py` (nueva, 47 comprobaciones en celular 390 y 360 y escritorio): cada zona de las tres puertas muestra piezas; la manija de la corrediza lleva a la 39 y la 64; la ficha trae WhatsApp; la medida escrita en el Inicio aparece en la corrediza, en Industriales y en Cotizar; la cámara carga la corrediza a la escala del vano; barra fija con botones de 44 px; sin desborde; axe sin fallas en Componentes, Inicio con «Cómo medir», cámara e Industriales. Se corrigió en el camino: al pasar de «Ancho» a «Alto» la tarjeta se rehacía y borraba el alto (y en el teléfono cerraba el teclado). Pruebas anteriores actualizadas al botón nuevo de agregar, a WhatsApp siempre visible, al video CDS descargado por adelantado y a la intro (espera a que termine en vez de un tiempo fijo). Cadena completa: todo correcto; los dos gestos con un dedo (corrediza y vaivén) fallaron solo dentro de la cadena por lentitud del render por software y pasan solos (21/21 y 23/23), igual que la versión 10I en las mismas condiciones.
+
+# Fase 10K · Realidad aumentada que se abre, a la medida y con productos; calculadora de fuga de frío
+
+**Pedido:** optimizar la parte 3D en realidad aumentada: más inmersiva, que se puedan abrir las puertas, un escalado más manejable y que todo se pueda mover; en la CDS, que tenga productos y se puedan tomar; crear más cosas, subir el nivel de la página y agregar otra cosa innovadora.
+
+## «Verla en tu espacio», nueva
+
+- **Se abre y se cierra.** Cada modelo lleva su movimiento real, tomado de la misma puerta del sitio: bisagra de la abatible, levante y recorrido de la corrediza, las dos hojas del vaivén, las tres puertas de la CDS. Hay un botón «Ábrela / Ciérrala», un punto para tocar sobre la hoja y una barra para dejarla abierta a cualquier ángulo.
+- **Dentro de la cámara (Android).** Los mismos controles aparecen sobre la imagen: abrirla, la barra de apertura y la ayuda «Muévela con un dedo · gírala con dos».
+- **iPhone.** Quick Look no deja tocar la puerta. Por eso recibe una película armada en el teléfono, a la medida: cerrada, se abre, se queda abierta, se cierra y vuelve a empezar; en la CDS además salen dos productos y regresan. Los archivos se revisaron con las herramientas de USD de Pixar: abren bien y las piezas se mueven en el tiempo. No hay iPhone aquí para verlo en Quick Look.
+- **La medida, ahí mismo y sin deformar.** Dos barras (ancho y alto) rehacen la puerta al momento, y la medida queda guardada para todo el sitio. Ya no se estira el modelo completo: solo lo que hay entre bisagras, manijas, chapas, ventanillas, perfiles y rieles, y esas piezas conservan su tamaño. Lo de arriba sube con el vano; la manija, la bisagra de abajo y la ventanilla se quedan a su altura. En la corrediza, el riel y el recorrido de la hoja crecen con el ancho.
+- **Cotas en centímetros** sobre la puerta (ancho y alto), también dentro de la cámara.
+- **Escala en la cámara.** «Tamaño real» la deja fija a 1:1; «Libre» deja agrandarla o achicarla con dos dedos. En Android también se puede poner **en el piso o en la pared**. Siempre se mueve con un dedo y se gira con dos.
+- **CDS con productos para tomar.** Seis productos llevan un «+». Al tocar uno, la puerta se abre, el producto sale de la parrilla, viene hacia ti, gira para enseñar la etiqueta y regresa. En la vista previa la cámara se acerca al producto.
+- **Altura real.** La corrediza llega hasta el piso real (su hoja cuelga sobre la guía): antes, en la cámara, quedaba unos 12 cm más abajo.
+- Modelos: `scripts/build-ar.py` con `lab/ar.html`; el ajuste a la medida está en `src/ui/arResize.js` y el exportador de iPhone con línea de tiempo en `src/ui/usdzAnim.js`. Pesos con gzip: abatible 0.82 MB, corrediza 0.41 MB, vaivén 0.40 MB y CDS 2.3 MB, porque ahora lleva sus productos.
+
+## CDS: «Toma un producto» con un botón
+
+En el paso «Toma un producto» de la página CDS hay un botón «Tomar un producto». Abre la puerta del centro, espera a que quede retenida a 90° y saca un producto. Dice cuál es y su tamaño (p. ej. «Agua purificada · 600 ml»). «Regresarlo» lo devuelve a la parrilla. Los que ya tomaste quedan en una lista. Arrastrar con el dedo sigue funcionando igual.
+
+## Lo innovador: ¿Cuánto frío se escapa por tu puerta? (`/fuga-de-frio/`)
+
+Una calculadora con una vista que imita a una cámara térmica: el corte de una cámara frigorífica con la puerta abierta, donde el aire frío sale por abajo y el tibio entra por arriba, con los mismos colores de «Ver el frío». La puerta se puede cerrar para ver cómo se detiene.
+
+- **Datos:** medida de la puerta (si ya la escribiste en el sitio, la toma), temperatura adentro (refrigeración o congelación), temperatura y humedad afuera, aperturas al día, segundos que dura abierta cada vez, minutos al día que se queda abierta, protección del vano (nada, cortina hawaiana, cortina de aire), precio de la luz por kWh y altura de la ciudad.
+- **Resultado:** pesos al mes y al año, kWh de luz, tiempo abierta al día, el calor que entra con la puerta abierta (comparado con calentadores de 1,500 W) y los litros de agua que el equipo tiene que sacar del aire.
+- **«¿Qué cambia si…?»:** lo que ahorras si cada apertura dura la mitad, si no se queda abierta, con cortina hawaiana o con la mitad de aperturas.
+- **Siguiente paso:** cotizar con esa medida, verla con la cámara o mandar el cálculo por WhatsApp.
+- **En el celular** el resultado te sigue en una barrita mientras mueves los datos.
+- **Método:** el de Gosney y Olama que usa ASHRAE para la puerta de una cámara frigorífica, con factor de flujo 0.8 (si la diferencia pasa de 11 °C; si no, 1.1), protección 0.9 para la cortina de tiras y 0.5 para la de aire, y aire húmedo calculado según la altura de la ciudad. La luz se calcula con un equipo de eficiencia típica (COP 2.5 en refrigeración y 1.5 en congelación) y 30 días al mes. El precio de inicio es de $4.00 por kWh y se cambia por el del recibo. Es una estimación para comparar y la página lo dice.
+- **Se llega desde** el menú («¿Cuánto frío se escapa?»), el Inicio (junto a la medida) y el paso «Mira por dónde se escapa el frío» de cada puerta.
+
+## Pruebas (10K)
+
+`f10k/flow10k.py` (nueva):
+- La vista con cámara, en celular y en escritorio:
+  - La abatible de 120 × 260 se arma con marco de 1.44 × 2.72 m y cotas de 120 y 260 cm.
+  - La barra de ancho la rehace en vivo y guarda la medida.
+  - «Ábrela» y la barra de apertura funcionan; «Libre» cambia la escala.
+  - Sale el QR en computadora y pasa axe.
+  - La corrediza mide 3.26 m de alto total, hasta el piso real.
+  - La CDS trae 6 productos y tomar uno funciona.
+- La calculadora:
+  - Con los datos de inicio da $1,406 al mes; en congelación, $5,144; con cortina hawaiana, $514.
+  - El texto de WhatsApp, la barrita del celular, sin desborde y axe.
+- Las entradas desde el menú, el Inicio y las puertas.
+- «Tomar un producto» en la página CDS.
+
+Los archivos de iPhone se revisan con `f10k/usdz.py` y `f10k/usdcheck.py`, que usan las herramientas de USD.
+
+La calculadora entró a las revisiones de toda la página: en los tres tamaños del Duo no se desborda, todo lo que se toca mide al menos 44 px y no hay texto de menos de 12 px; pasa axe en celular y escritorio y no se desborda con la letra del teléfono al 130 % y al 150 %. En la cadena completa todo pasa, salvo el gesto con un dedo de la corrediza, que solo falla dentro de la cadena por lo lento del render por software (igual que en 10J).

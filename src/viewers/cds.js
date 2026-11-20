@@ -159,6 +159,33 @@ export function createCDS(stage) {
     onOpenChange: (f) => listeners.add(f),
     setOpen: (on) => all(on ? HOLD.HOLD_ANGLE : 0),
     inside: (on) => { if (on) { all(0); open(ctrls[1], HOLD.HOLD_ANGLE); } else all(0); },
+    // Fase 10K · «Tomar un producto» sin saber arrastrar: abre la puerta (si hace falta), espera a que quede retenida a
+    // 90° y saca un producto del frente; el mismo de antes se puede regresar. Los productos tomados se avisan con onProduct.
+    takeOne(bay = 1) {
+      const c = ctrls[bay];
+      const pick = () => {
+        const recs = products.records.filter((r) => r.bay === bay && !r.out && r.row === 0 && r.row < products.maxRows);
+        const r = recs[Math.floor(Math.random() * recs.length)]; if (!r) return;
+        products.extract(r); if (stage.invalidate) stage.invalidate(30);
+      };
+      if (c.state === DoorState.HOLD_OPEN_90 && c.angle >= HOLD.PICK_MIN_ANGLE) { pick(); return; }
+      open(c, HOLD.HOLD_ANGLE);
+      const t0 = performance.now(); let tries = 0;
+      const wait = () => {
+        if (c.angle >= HOLD.PICK_MIN_ANGLE) {
+          stage.onFrame.delete(wait);
+          if (c.state !== DoorState.HOLD_OPEN_90) { c.angle = HOLD.HOLD_ANGLE; c.target = HOLD.HOLD_ANGLE; c.auto = null; c.setState(DoorState.HOLD_OPEN_90); }
+          pick();
+        }
+        // si otra cosa la cerró (p. ej. el paso anterior de la historia la soltó y se cerró sola), se vuelve a abrir
+        else if ((c.state === DoorState.CLOSED || c.state === DoorState.AUTO_CLOSING) && tries < 3 && performance.now() - t0 > 400) { tries++; open(c, HOLD.HOLD_ANGLE); }
+        else if (performance.now() - t0 > 30000) stage.onFrame.delete(wait);
+      };
+      stage.onFrame.add(wait);
+    },
+    giveBack: () => { products.returnHeld(); if (stage.invalidate) stage.invalidate(30); },
+    get holding() { return products.info(); },
+    onProduct(f) { products.on('held', (i) => f(i)); products.on('returned', () => f(null)); },
     // pasos: data-open="90" (las tres) o "0,90,0" (una cifra por puerta); data-led="0|1"
     step(d) {
       if (d.open !== undefined) { const a = String(d.open).split(',').map(Number); ctrls.forEach((c, i) => open(c, a[i] ?? a[0])); }

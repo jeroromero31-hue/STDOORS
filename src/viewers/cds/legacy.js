@@ -1109,7 +1109,7 @@ var oi = {
   ["lager", "ambar", "verde", "ambar", "lager"]
  ];
 
-function Ur(i, t = 48) {
+function Ur(i, t = globalThis.__stLathe || 48) {   // [sitio, Fase 10K] el exportador de RA pide menos segmentos
  let e = new mr(i.map(([n, s]) => new it(n, s)), t, Math.PI, Math.PI * 2);
  return e.computeVertexNormals(), e
 }

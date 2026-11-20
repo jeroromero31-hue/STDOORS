@@ -451,6 +451,9 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   // Fase 10J · ¿se descompuso una pieza? encontrarla tocando la puerta
   const partsEl = $('#parts');
   if (partsEl && familia !== 'cds') partsEl.insertAdjacentHTML('afterend', `<a class="find-cta" href="${url('componentes/')}?puerta=${familia}#encuentra"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Se descompuso una pieza y no sabes cómo se llama?</b><span>Toca la zona de la puerta donde está y te mostramos cuál es.</span></span></a>`);
+  // Fase 10K · después de ver el frío, cuánto cuesta: la calculadora de fuga de frío
+  const frio = $('.door__step--frio');
+  if (frio) frio.insertAdjacentHTML('beforeend', `<a class="find-cta find-cta--frio" href="${url('fuga-de-frio/')}"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Cuánto te cuesta ese frío?</b><span>Calcula, con tus aperturas al día, lo que se va en luz cada mes.</span></span></a>`);
   const add = $('#addDoor') || document.createElement('button');
   add.onclick = () => {
     const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';

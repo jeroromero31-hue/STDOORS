@@ -722,15 +722,51 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 .hw-x { fill: none; stroke: #e0672f; stroke-width: 2; stroke-dasharray: 3 3; }
 /* vista con cámara */
 .arv { display: grid; gap: var(--s-4); }
-.arv__stage { position: relative; aspect-ratio: 1 / 1; max-height: 56svh; width: 100%; border-radius: 16px; overflow: hidden; background: var(--c-ice); display: grid; place-items: center; }
-.arv__stage model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+/* Fase 10K · estudio de la vista con cámara: en el celular ocupa la pantalla completa */
+@media (max-width: 699px) { .sheet--ar { inset: 0; max-height: none; height: 100dvh; border-radius: 0; padding-top: max(10px, env(safe-area-inset-top)); } }
+.arv__stage { position: relative; aspect-ratio: 1 / 1; max-height: 58svh; width: 100%; border-radius: 16px; overflow: hidden; background: radial-gradient(120% 90% at 50% 20%, #f4f8fa 0%, #dfe8ed 70%, #cfdbe2 100%); display: grid; place-items: center; }
+@media (max-width: 699px) { .arv__stage { aspect-ratio: auto; height: 52svh; max-height: none; } }
+.arv__stage model-viewer { width: 100%; height: 100%; --poster-color: transparent; --progress-bar-color: var(--c-tech); }
 .arv__wait { margin: 0; color: var(--c-ink-soft); font-size: var(--t-sm); }
 .arv__t { display: grid; gap: 2px; } .arv__t b { font-size: var(--t-lg); } .arv__t span { color: var(--c-ink-soft); font-size: var(--t-sm); }
-.arv__act .btn { width: 100%; justify-content: center; }
+.arv__ctl { display: grid; gap: var(--s-4); }
+.arv__open { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-3); align-items: center; }
+.arv__toggle { gap: 8px; } .arv__toggle svg, .arv__act svg { width: 20px; height: 20px; flex: none; }
+.arv__scrub input, .arv__size input, .arv__xrbar input { width: 100%; accent-color: var(--c-tech); min-height: var(--tap); }
+.arv__size { border: 0; margin: 0; padding: 0; display: grid; gap: 2px; min-width: 0; }
+.arv__size legend { padding: 0; font-weight: var(--w-bold); font-size: var(--t-sm); margin-bottom: 4px; }
+.arv__size label { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) 4.6rem; gap: var(--s-3); align-items: center; font-size: var(--t-sm); }
+.arv__size output { font-variant-numeric: tabular-nums; font-weight: var(--w-bold); text-align: right; }
+.arv__opts { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-5); }
+.arv__seg { display: flex; gap: var(--s-2); }
+.arv__hint { margin: 0; color: var(--c-ink-soft); }
+.arv__act .btn { width: 100%; justify-content: center; gap: 10px; }
 .arv__qr { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: var(--s-4); align-items: center; padding: var(--s-3); border: 1px solid var(--c-line); border-radius: 14px; }
 .arv__code svg { width: 100%; height: auto; display: block; }
 .arv__qr p { margin: 0; }
 .arv__note { margin: 0; }
+/* puntos y cotas sobre el 3D (también dentro de la cámara, en Android) */
+.arv__hs { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; min-width: 40px; padding: 0 14px 0 10px; border: 0; border-radius: 999px; background: rgba(4, 23, 38, .86); color: #fff; font: inherit; font-size: 13px; font-weight: var(--w-bold); cursor: pointer; box-shadow: 0 6px 18px rgba(4, 23, 38, .25); transform: translate(-50%, -50%); --min-hotspot-opacity: .35; }
+.arv__hs svg { width: 18px; height: 18px; flex: none; }
+.arv__hs:focus-visible { outline: 3px solid #9fe8f2; outline-offset: 2px; }
+.arv__hs--p { padding: 0; justify-content: center; width: 40px; background: var(--c-tech); animation: arv-ping 2.4s ease-out infinite; }
+.arv__hs--p:nth-of-type(2n) { animation-delay: .6s; }
+model-viewer.is-taking .arv__hs--p, model-viewer.is-taking .arv__hs--open { opacity: 0 !important; visibility: hidden; pointer-events: none; }
+@keyframes arv-ping { 0% { box-shadow: 0 0 0 0 rgba(30, 143, 224, .55); } 70%, 100% { box-shadow: 0 0 0 14px rgba(30, 143, 224, 0); } }
+.arv__pt { width: 1px; height: 1px; pointer-events: none; opacity: 0; }
+.arv__dim { padding: 3px 8px; border-radius: 6px; background: #fff; color: var(--c-navy); font-size: 12px; font-weight: var(--w-bold); font-variant-numeric: tabular-nums; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 8px rgba(4, 23, 38, .18); white-space: nowrap; }
+.arv__lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.arv__lines line { stroke: var(--c-tech); stroke-width: 1.5; stroke-dasharray: 5 4; }
+model-viewer.in-ar .arv__lines { display: none; }
+.arv__took { position: absolute; left: 50%; top: 12px; transform: translate(-50%, -8px); margin: 0; padding: 6px 12px; border-radius: 999px; background: rgba(4, 23, 38, .86); color: #fff; font-size: 13px; font-weight: var(--w-bold); opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; }
+.arv__took.is-on { opacity: 1; transform: translate(-50%, 0); }
+.arv__xr { display: none; position: absolute; left: 12px; right: 12px; bottom: max(16px, env(safe-area-inset-bottom)); gap: 8px; }
+model-viewer.in-ar .arv__xr { display: grid; }
+.arv__xrhint { margin: 0; justify-self: center; padding: 6px 12px; border-radius: 999px; background: rgba(4, 23, 38, .7); color: #fff; font-size: 13px; }
+.arv__xrbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; padding: 8px 12px; border-radius: 18px; background: rgba(255, 255, 255, .92); }
+.arv__xrbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--c-navy); color: #fff; font: inherit; font-weight: var(--w-bold); }
+.arv__xrbtn svg { width: 20px; height: 20px; }
+@media (prefers-reduced-motion: reduce) { .arv__hs--p { animation: none; } .arv__took { transition: none; } }
 /* botón fijo «Cotizar a la medida» en las puertas (celular) */
 .cta-bar { display: none; }
 @media (max-width: 760px) {
@@ -804,3 +840,10 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 .fnd__zl::-webkit-scrollbar { display: none; }
 .fnd__zl .chip { flex: none; }
 @media (min-width: 900px) { .fnd__zl { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding: 0; } }
+
+/* ---------- Fase 10K · CDS: tomar un producto ---------- */
+.take { display: grid; gap: var(--s-3); margin-top: var(--s-4); }
+.take__now { margin: 0; min-height: 1.5em; }
+.take__basket { display: grid; gap: 6px; }
+.take__basket ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.take__basket li { padding: 4px 10px; border-radius: 999px; background: var(--c-ice); font-size: var(--t-sm); }

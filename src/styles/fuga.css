@@ -1,0 +1,77 @@
+/* Fase 10K · ¿Cuánto frío se escapa por tu puerta? */
+.fuga { padding-bottom: var(--s-9); }
+.fuga__head { padding-block: var(--s-7) var(--s-5); display: grid; gap: var(--s-3); max-width: 60rem; }
+.fuga__head h1 { font-size: var(--t-4xl); line-height: 1.02; }
+.fuga__head .t-lead { max-width: 44rem; }
+
+.fuga__in { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6); align-items: start; }
+@media (min-width: 980px) { .fuga__in { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); } .fuga__viz { position: sticky; top: calc(var(--header-h, 72px) + 16px); } }
+.fuga__viz { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); min-width: 0; }
+
+/* el corte térmico */
+.fuga__sim { position: relative; margin: 0; border-radius: 18px; overflow: hidden; background: #0a1440; aspect-ratio: 2 / 1; box-shadow: 0 18px 40px rgba(5, 30, 50, .22); }
+.fuga__sim canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }   /* fuera del flujo: su tamaño interno no empuja la página */
+.fuga__cap { position: absolute; inset: 12px 14px auto; display: flex; justify-content: space-between; color: #fff; font-size: var(--t-xs); text-shadow: 0 1px 6px rgba(4, 12, 40, .7); pointer-events: none; }
+.fuga__cap b { font-variant-numeric: tabular-nums; margin-left: 4px; }
+.fuga__door { position: absolute; left: 10px; top: 36px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .5); background: rgba(4, 12, 40, .55); color: #fff; font: inherit; font-size: var(--t-xs); font-weight: var(--w-bold); cursor: pointer; backdrop-filter: blur(6px); }
+.fuga__door:focus-visible { outline: 3px solid #ffe680; outline-offset: 2px; }
+
+/* resultado */
+.fuga__res { display: grid; gap: var(--s-3); padding: var(--s-5); border-radius: 18px; background: var(--c-navy); color: #fff; }
+.fuga__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.fuga__big span { font-size: var(--t-4xl); font-weight: var(--w-heavy); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.fuga__big small { font-size: var(--t-md); color: var(--c-on-navy-soft); }
+.fuga__year { margin: 0; color: var(--c-on-navy-soft); }
+.fuga__nums { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); padding-top: var(--s-3); border-top: 1px solid var(--c-line-navy); }
+.fuga__nums div { display: grid; gap: 2px; min-width: 0; }
+.fuga__nums dt { font-size: var(--t-xs); color: var(--c-on-navy-soft); }
+.fuga__nums dd { margin: 0; font-size: var(--t-lg); font-weight: var(--w-bold); font-variant-numeric: tabular-nums; }
+.fuga__eq { margin: 0; color: var(--c-on-navy-soft); }
+
+/* datos */
+.fuga__form { display: grid; gap: var(--s-4); }
+.fuga__g { margin: 0; padding: var(--s-4); border: 1px solid var(--c-line); border-radius: 16px; display: grid; gap: var(--s-3); min-width: 0; background: var(--c-white); }
+.fuga__g legend { padding: 0 6px; font-weight: var(--w-bold); }
+.fuga__pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+.fuga__num, .fuga__sel { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 6px; align-items: center; min-width: 0; }
+.fuga__num > span, .fuga__sel > span { grid-column: 1 / -1; font-size: var(--t-sm); color: var(--c-ink-soft); }
+.fuga__num input, .fuga__sel select { grid-column: 2; min-height: var(--tap); width: 100%; min-width: 0; padding: 0 10px; border: 1px solid var(--c-line-strong); border-radius: 10px; font: inherit; font-weight: var(--w-bold); background: var(--c-white); color: var(--c-ink); }
+.fuga__sel select { grid-column: 1 / -1; font-weight: var(--w-medium); }
+.fuga__num i { font-style: normal; color: var(--c-ink-soft); font-size: var(--t-sm); }
+.fuga__num .fuga__cur { grid-column: 1; font-weight: var(--w-bold); }
+.fuga__num:has(.fuga__cur) input { grid-column: 2 / -1; }
+.fuga__rng { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l o" "r r"; gap: 0 var(--s-3); align-items: center; }
+.fuga__rng span { grid-area: l; font-size: var(--t-sm); }
+.fuga__rng output { grid-area: o; font-weight: var(--w-bold); font-variant-numeric: tabular-nums; }
+.fuga__rng input { grid-area: r; width: 100%; min-height: var(--tap); accent-color: var(--c-tech); }
+.fuga__from { margin: 0; }
+
+/* ¿qué cambia si…? */
+.fuga__what { padding-top: var(--s-8); display: grid; gap: var(--s-4); }
+.fuga__what h2 { font-size: var(--t-2xl); }
+.fuga__sc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-3); }
+@media (min-width: 760px) { .fuga__sc { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fuga__s { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); padding: var(--s-4); border-radius: 14px; background: var(--c-ice); }
+.fuga__s p { margin: 0; display: grid; gap: 2px; min-width: 0; }
+.fuga__s p span { font-size: var(--t-sm); color: var(--c-ink-soft); }
+.fuga__save { text-align: right; flex: none; }
+.fuga__save b { font-size: var(--t-xl); color: var(--c-tech); font-variant-numeric: tabular-nums; }
+
+.fuga__cta { padding-top: var(--s-7); }
+.fuga__ctabox { display: grid; gap: var(--s-4); padding: var(--s-5); border-radius: 18px; border: 1.5px dashed var(--c-tech); }
+.fuga__ctabox p { margin: 0; max-width: 44rem; }
+.fuga__how { padding-top: var(--s-6); }
+.fuga__det { max-width: 52rem; }
+.fuga__how summary { cursor: pointer; font-weight: var(--w-bold); min-height: var(--tap); display: flex; align-items: center; }
+.fuga__how p { color: var(--c-ink-soft); }
+
+/* en el celular, el resultado sigue a la vista mientras mueves los datos */
+.fuga__mini { display: none; }
+@media (max-width: 979px) {
+  .fuga__mini { display: flex; align-items: baseline; gap: 8px; position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 40; transform: translate(-50%, 160%); padding: 12px 20px; border-radius: 999px; background: var(--c-navy); color: #fff; text-decoration: none; box-shadow: 0 12px 30px rgba(5, 30, 50, .3); transition: transform 300ms var(--ease-out); white-space: nowrap; }
+  .fuga__mini b { font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+  .fuga__mini span { color: var(--c-on-navy-soft); font-size: var(--t-sm); }
+  .fuga__mini.is-on { transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .fuga__mini { transition: none; } }
+@media (max-width: 599px) { .fuga__sim { aspect-ratio: 16 / 10; } }

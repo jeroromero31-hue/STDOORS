@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>¿Cuánto frío se escapa por tu puerta? — ST Doors</title>
+<meta name="description" content="Calcula cuánto te cuesta en luz el frío que sale cada vez que se abre la puerta de tu cámara frigorífica: aperturas al día, tiempo abierta, temperatura y cortina.">
+<link rel="icon" href="/favicon.png">
+</head>
+<body data-page="fuga">
+<main id="main" class="fuga">
+  <header class="wrap fuga__head">
+    <h1>¿Cuánto frío se escapa por tu puerta?</h1>
+    <p class="t-lead">Cada vez que se abre, el aire frío sale por abajo y el tibio entra por arriba. Dinos cómo se usa tu puerta y te decimos cuánto te cuesta en luz reponer ese frío.</p>
+  </header>
+
+  <section class="wrap fuga__in" aria-label="Calculadora">
+    <div class="fuga__viz">
+      <figure class="fuga__sim">
+        <canvas id="fugaSim" role="img" aria-label="Corte de una cámara frigorífica con la puerta abierta, como la vería una cámara térmica: el aire frío sale por abajo y el tibio entra por arriba"></canvas>
+        <figcaption class="fuga__cap"><span>Cámara <b data-v="tin">2 °C</b></span><span>Afuera <b data-v="tout">30 °C</b></span></figcaption>
+        <button type="button" class="fuga__door" id="fugaDoor" aria-pressed="true">Cerrar la puerta</button>
+      </figure>
+      <div class="fuga__res" id="fugaRes" aria-live="polite">
+        <p class="fuga__big"><span data-r="pesos">—</span> <small>al mes en luz</small></p>
+        <p class="fuga__year" data-r="year"></p>
+        <dl class="fuga__nums">
+          <div><dt>Luz al mes</dt><dd data-r="luz">—</dd></div>
+          <div><dt>Abierta al día</dt><dd data-r="min">—</dd></div>
+          <div><dt>Calor que entra con la puerta abierta</dt><dd data-r="kw">—</dd></div>
+          <div><dt>Agua que el equipo saca del aire</dt><dd data-r="agua">—</dd></div>
+        </dl>
+        <p class="fuga__eq t-small" data-r="eq"></p>
+      </div>
+    </div>
+
+    <form class="fuga__form" id="fugaForm" novalidate>
+      <fieldset class="fuga__g">
+        <legend>Tu puerta</legend>
+        <div class="fuga__pair">
+          <label class="fuga__num"><span>Ancho</span><input type="number" inputmode="numeric" min="50" max="600" step="1" name="ancho" value="120"><i>cm</i></label>
+          <label class="fuga__num"><span>Alto</span><input type="number" inputmode="numeric" min="100" max="600" step="1" name="alto" value="240"><i>cm</i></label>
+        </div>
+        <p class="t-small t-soft fuga__from" data-from hidden></p>
+      </fieldset>
+      <fieldset class="fuga__g">
+        <legend>Adentro de la cámara</legend>
+        <div class="chips" role="group" aria-label="Uso">
+          <button type="button" class="chip" data-uso="2" aria-pressed="true">Refrigeración</button>
+          <button type="button" class="chip" data-uso="-20" aria-pressed="false">Congelación</button>
+        </div>
+        <label class="fuga__rng"><span>Temperatura</span><input type="range" min="-30" max="15" step="1" name="tIn" value="2"><output data-o="tIn">2 °C</output></label>
+      </fieldset>
+      <fieldset class="fuga__g">
+        <legend>Afuera</legend>
+        <label class="fuga__rng"><span>Temperatura</span><input type="range" min="10" max="45" step="1" name="tOut" value="30"><output data-o="tOut">30 °C</output></label>
+        <label class="fuga__rng"><span>Humedad</span><input type="range" min="10" max="100" step="5" name="hrOut" value="50"><output data-o="hrOut">50 %</output></label>
+      </fieldset>
+      <fieldset class="fuga__g">
+        <legend>Cómo se usa</legend>
+        <label class="fuga__rng"><span>Aperturas al día</span><input type="range" min="0" max="600" step="5" name="aperturas" value="100"><output data-o="aperturas">100</output></label>
+        <label class="fuga__rng"><span>Segundos que dura abierta cada vez</span><input type="range" min="3" max="120" step="1" name="segundos" value="20"><output data-o="segundos">20 s</output></label>
+        <label class="fuga__rng"><span>Minutos al día que se queda abierta</span><input type="range" min="0" max="480" step="5" name="minutos" value="0"><output data-o="minutos">0 min</output></label>
+      </fieldset>
+      <fieldset class="fuga__g">
+        <legend>En el vano</legend>
+        <div class="chips" role="group" aria-label="Protección del vano">
+          <button type="button" class="chip" data-prot="ninguna" aria-pressed="true">Nada</button>
+          <button type="button" class="chip" data-prot="tiras" aria-pressed="false">Cortina hawaiana</button>
+          <button type="button" class="chip" data-prot="aire" aria-pressed="false">Cortina de aire</button>
+        </div>
+      </fieldset>
+      <fieldset class="fuga__g">
+        <legend>Tu luz</legend>
+        <div class="fuga__pair">
+          <label class="fuga__num"><span>Precio por kWh</span><b class="fuga__cur">$</b><input type="number" inputmode="decimal" min="0.5" max="20" step="0.1" name="precio" value="4"></label>
+          <label class="fuga__sel"><span>Altura de la ciudad</span>
+            <select name="alt"><option value="0">Al nivel del mar</option><option value="500">500 m</option><option value="1000">1,000 m</option><option value="1560">1,560 m (Guadalajara)</option><option value="2240">2,240 m (Ciudad de México)</option></select>
+          </label>
+        </div>
+        <p class="t-small t-soft">Usa el precio por kWh de tu recibo (con impuestos). Empezamos con $4.00.</p>
+      </fieldset>
+    </form>
+  </section>
+
+  <section class="wrap fuga__what" aria-labelledby="fugaWhatT">
+    <h2 id="fugaWhatT">¿Qué cambia si…?</h2>
+    <ul class="fuga__sc" id="fugaSc"></ul>
+  </section>
+
+  <section class="wrap fuga__cta" aria-label="Siguiente paso">
+    <div class="fuga__ctabox">
+      <p><b>Cotiza tu puerta con esta misma medida</b>, o mírala en tu espacio con la cámara del celular.</p>
+      <div class="row">
+        <a class="btn" href="/industriales/" id="fugaQuote">Elegir mi puerta</a>
+        <button type="button" class="btn btn--line" id="fugaAR">Verla en tu espacio</button>
+        <span id="fugaWA"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap fuga__how">
+    <details class="fuga__det">
+      <summary>Cómo lo calculamos</summary>
+      <div class="stack">
+        <p>Con el método de Gosney y Olama, el que usa ASHRAE para el aire que se intercambia por la puerta de una cámara frigorífica: con la puerta abierta, el aire frío —más pesado— sale por abajo y el tibio entra por arriba. Cuánto entra depende del tamaño de la puerta, de su alto y de la diferencia de temperatura y humedad entre adentro y afuera.</p>
+        <p>Ese calor se multiplica por el tiempo que la puerta pasa abierta al día (aperturas por segundos, más los minutos que se queda abierta), por un factor de flujo en la puerta (0.8 si la diferencia pasa de 11 °C; si no, 1.1) y por lo que detiene la protección del vano (cortina hawaiana 90 %, cortina de aire 50 %).</p>
+        <p>La luz es la que gasta el equipo para sacar ese calor: suponemos un equipo con eficiencia típica (COP de 2.5 en refrigeración y 1.5 en congelación) y 30 días al mes. El agua es la humedad del aire que entra y que el equipo condensa o congela en el evaporador.</p>
+        <p>Es una estimación para comparar: no incluye el frío que pasa por muros y techo, el de una puerta mal sellada cuando está cerrada ni los deshielos.</p>
+      </div>
+    </details>
+  </section>
+  <a class="fuga__mini" id="fugaMini" href="#fugaRes" aria-hidden="true" tabindex="-1"><b data-r="mini">—</b> <span>al mes en luz</span></a>
+</main>
+<script type="module" src="/src/pages/fuga.js"></script>
+</body>
+</html>
