@@ -150,6 +150,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const qa = new URLSearchParams(location.search).get('acabado'), va = (vano.get() || {}).acabado;
       setFinish(qa in cls ? qa : (va in cls && (!vano.get().fam || vano.get().fam === familia) ? va : viewer.finish));
       $$('.swatch', sw).forEach((b) => b.addEventListener('click', () => vano.set({ acabado: b.dataset.f, fam: familia }, 'puerta')));
+      // si el acabado se cambia en «A tu medida» (abajo), la puerta 3D también cambia
+      addEventListener('st:vano', (e) => { const a = vano.get().acabado; if (e.detail?.__from !== 'puerta' && a in cls && a !== state.finish) setFinish(a); });
     } else if (viewer.options) {
       const o = viewer.options;
       sw.classList.add('chips'); sw.setAttribute('aria-label', o.label);

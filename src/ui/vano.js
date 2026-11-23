@@ -3,6 +3,7 @@
 // solicitud con esa medida, la ves en tu espacio con la cámara o mandas la medida por WhatsApp. La medida se recuerda
 // en todo el sitio (y en Cotizar ya aparece escrita).
 import { plano, defaults, toCm, describe, FAM_NAME, CDS_W, CDS_H, CDS_MOD } from './medida.js';
+import { doorArt, ACABADOS_DE, ACABADO_NOMBRE } from './preview.js';
 import { solicitud, toast, url, createSheet } from './site.js';
 import { waButton, waUpdate } from './whatsapp.js';
 
@@ -41,7 +42,8 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
   const cfgOf = () => {
     const v = vano.get();
     if (fam === 'cds') return { ...defaults('cds'), ...(v.cds || {}) };
-    return { ...defaults(fam), ancho: v.ancho || '', alto: v.alto || '', ...(fam === 'vaiven' ? { hojas: v.hojas || 2 } : {}) };
+    const fins = ACABADOS_DE[fam] || [];
+    return { ...defaults(fam), ancho: v.ancho || '', alto: v.alto || '', ...(fam === 'vaiven' ? { hojas: v.hojas || 2 } : {}), ...(fins.length ? { acabado: fins.includes(v.acabado) ? v.acabado : fins[0] } : {}) };
   };
   const uid = Math.random().toString(36).slice(2, 7);
   host.classList.add('vano');
@@ -64,7 +66,8 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
   const fields = $('[data-fields]'), planEl = $('[data-plan]'), sum = $('[data-sum]');
 
   const draw = (c = cfgOf()) => {
-    planEl.innerHTML = plano(fam, c);
+    // Fase 11B: la puerta dibujada con su acabado, a escala, cambia mientras escribes (antes: el plano de líneas)
+    planEl.innerHTML = doorArt(fam, c);
     const known = fam === 'cds' || (c.ancho && c.alto);
     sum.textContent = fam === 'cds' ? `Juego de ${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}"`
       : known ? `Vano de ${c.ancho} × ${c.alto} cm · ${(c.ancho * c.alto / 10000).toFixed(2)} m²` : 'Escribe la medida para verla a escala.';
@@ -73,7 +76,9 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
   };
   const renderFields = () => {
     const c = cfgOf();
-    fields.innerHTML = fam === 'cds' ? `
+    const fins = ACABADOS_DE[fam] || [];
+    const finRow = fins.length ? `<div class="q-f"><span class="q-f__l" id="va-${uid}">Acabado</span><div class="chips q-fin" role="group" aria-labelledby="va-${uid}">${fins.map((f) => `<button type="button" class="chip chip--sm" data-acabado="${f}" aria-pressed="${c.acabado === f}"><i aria-hidden="true"></i>${ACABADO_NOMBRE[f]}</button>`).join('')}</div></div>` : '';
+    fields.innerHTML = finRow + (fam === 'cds' ? `
       <div class="q-f"><span class="q-f__l" id="vn-${uid}">Puertas en el juego</span>
         <div class="q-qty" role="group" aria-labelledby="vn-${uid}"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out>${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
       <div class="q-f"><span class="q-f__l" id="vw-${uid}">Ancho de cada puerta</span><div class="chips" role="group" aria-labelledby="vw-${uid}">${CDS_W.map((w) => `<button type="button" class="chip" data-k="ancho" data-v="${w}" aria-pressed="${c.ancho === w}">${w}"</button>`).join('')}</div></div>
@@ -87,7 +92,11 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
           <span class="q-dim__u">cm</span>
         </div>
         <button type="button" class="vano__how" data-how>¿Cómo mido mi vano?</button>
-      </fieldset>`;
+      </fieldset>`);
+    fields.querySelectorAll('[data-acabado]').forEach((b) => { b.onclick = () => {
+      fields.querySelectorAll('[data-acabado]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      vano.set({ acabado: b.dataset.acabado }, uid); draw();
+    }; });
     fields.querySelectorAll('input[data-k]').forEach((f) => {
       f.oninput = () => { const v = toCm(f.value); if (v >= 30) draw({ ...cfgOf(), [f.dataset.k]: v }); };
       f.onchange = () => { const v = toCm(f.value); f.value = v; vano.set({ [f.dataset.k]: v }, uid); draw(); };

@@ -461,7 +461,7 @@ deje saltar cualquier paso.
 Medida de frente sobre `ABATIBLE_CHAPA_REAL_REFERENCIA_OBLIGATORIA.png`: cuerpo gris mate más oscuro con las esquinas de
 arriba muy redondeadas y la parte alta curvada hacia la hoja; cilindro europeo a 0.29 del ancho y 0.72 del alto; placa
 negra plana de la mitad izquierda desde 0.59 del alto; jaladera con lóbulo grande a la izquierda que se afina hacia la
-derecha y baja bajo el cuerpo. Sombreado suave (sin facetas). Comparación: `docs/capturas/fase11-chapa.png`.
+derecha y baja bajo el cuerpo. Sombreado suave (sin facetas). Comparación: `docs/capturas/fase11-chapa.png` (corregida en 11B).
 Se rehicieron con la chapa nueva el modelo de la cámara, las imágenes del escáner y la foto de estudio del Inicio.
 
 ## Acabados que se ven bien (`src/materials/FinishRegistry.js`)
@@ -498,3 +498,36 @@ quitar. El costo de hoy queda como dato chico. En el menú y en las puertas: «C
 ## Pruebas (11)
 `/home/claude/f11/flow11.py` (ruta completa en 390, 360 y escritorio, letra grande, axe, cámara con acabados y toque,
 chapa, acabado compartido, Cotizar) y la cadena de regresión (`f11/chain11.sh`). USDZ: `f11/usdz.py` + `f11/usdtap.py`.
+
+
+# Fase 11B · «Baja a −20 °C»: el Inicio de antes, con termómetro, escarcha y recorrido de 60 s
+
+ST pidió no quitar el diseño que ya funcionaba: la ruta de cinco paradas de la Fase 11 se retiró y **el Inicio de la
+Fase 10K regresó completo** (la vaivén en 3D que se abre con el scroll, los tres capítulos, los rayos X, las piezas, la
+CDS, la medida y el cierre). Encima se montó una capa nueva (`src/home/frio.js`, `src/styles/frio.css`):
+
+- **Termómetro del recorrido:** en el borde derecho. La temperatura baja con el scroll, de 30 °C afuera a −20 °C al
+  final (cada capítulo tiene la suya). Al tocarlo se abren los 10 capítulos con su temperatura para brincar a cualquiera,
+  y el botón «Recorrido de 60 s».
+- **Escarcha:** debajo de 0 °C las orillas de la pantalla se escarchan (más mientras más frío); al regresar se derrite.
+  Al cruzar 0 °C el teléfono da un toque de vibración, si lo permite.
+- **Recorrido de 60 s:** desde la portada, el termómetro o el menú (`/?recorrido=1`). La página se recorre sola,
+  capítulo por capítulo (la vaivén se abre, entras, las tres puertas, los rayos X, las piezas, la CDS, la medida y
+  Cotiza), con una línea que dice qué estás viendo. Tocar la pantalla lo pausa; «Seguir», «Siguiente» y «Salir».
+- **Vista previa en vivo en «Hecha a la medida»:** la puerta dibujada a escala con su acabado (chips de acabado en la
+  abatible y la vaivén); en las páginas de puerta, cambiar el acabado ahí cambia también la puerta 3D.
+- Se quedan de la Fase 11: chapa, acabados, cámara que se abre al tocarla (también en iPhone), acabado en la cámara,
+  calculadora de ahorro, menú nuevo y Cotizar con vista previa.
+
+## Chapa, otra vez (11B)
+Con la imagen de la pieza 27 (kit de cerrojo de 68 mm) que mandó ST: la foto de referencia está tomada desde un costado
+y por eso la jaladera parecía cargada a la izquierda. Ahora: cuerpo gris mate hondo (7.4 × 16.6 × 5.8 cm) con aristas
+muy redondeadas; cilindro de llave redondo, centrado arriba; placa negra centrada, del 92 % del ancho del frente, desde
+la mitad hacia abajo; y debajo del cuerpo la jaladera en forma de bota: lóbulo que cuelga a la izquierda (donde entran
+los dedos), esquina redonda a la derecha justo bajo el cuerpo, inclinada hacia afuera. Comparación con la pieza 27 y con
+la foto: `docs/capturas/fase11b-chapa.png`. Se rehicieron el modelo de la cámara, los rayos X y la foto de la abatible.
+
+## Pruebas (11B)
+`/home/claude/f11/flow11b.py` (el Inicio completo, termómetro, escarcha, capítulos, recorrido con pausa/siguiente/salir,
+`/?recorrido=1`, medida con vista previa, Cotizar, menú, calculadora, cámara, chapa) y la cadena de regresión con las
+pruebas del Inicio de la Fase 10 otra vez activas.

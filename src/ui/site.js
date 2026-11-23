@@ -164,7 +164,7 @@ export function mountSite(page) {
   // se desliza con el dedo, y lo demás en renglones grandes
   const RUTA = { abatible: 'Cámara de frío', corrediza: 'Vanos anchos', vaiven: 'Cocinas y pasillos', cds: 'Exhibición en tienda' };
   menu.innerHTML = `<div class="wrap menu__in">
-      <a class="menu__route" href="${url('')}#elige"><span class="menu__rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Tu puerta en un minuto</b><span>Elígela, mírala por dentro, ponle tu medida y cotízala</span></a>
+      <a class="menu__route" href="${url('')}?recorrido=1"><span class="menu__rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Recorrido de 60 s</b><span>De 30 °C a −20 °C: las puertas, por dentro, la CDS y tu medida</span></a>
       <p class="menu__l" id="menuDoors">Puertas</p>
       <ul class="menu__doors" aria-labelledby="menuDoors">${DOORS.map((d, i) => `<li style="--i:${i}"><a href="${url(d.href)}"${d.id === here ? ' aria-current="page"' : ''}><img src="${url(`img/inicio/ruta/${d.id}.webp`)}" alt="" width="420" height="560" loading="lazy" decoding="async"><b>${d.nombre}</b><span>${d.id === here ? 'Estás aquí' : RUTA[d.id]}</span></a></li>`).join('')}</ul>
       <ul class="menu__rows">

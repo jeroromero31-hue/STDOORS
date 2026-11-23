@@ -365,3 +365,6 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Acabados:** negro satinado (metal 0.3, rugosidad 0.5) e inoxidable cepillado mate (rugosidad 0.45), como el
   configurador original; antes el negro parecía vidrio y el inoxidable un espejo.
 - **USDZ del iPhone:** sin película en ciclo; se abre y se cierra al tocarla (comportamientos de Quick Look).
+- **Chapa (11B):** rehecha con la imagen de la pieza 27: placa negra centrada (92 % del ancho), cilindro redondo
+  centrado, cuerpo hondo 7.4 × 16.6 × 5.8 cm y jaladera en forma de bota (lóbulo abajo a la izquierda). La foto de
+  referencia está tomada de lado. Comparación: `docs/capturas/fase11b-chapa.png`.

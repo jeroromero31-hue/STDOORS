@@ -132,14 +132,13 @@ src/ui/cotizar.js        solicitud editable y envío por correo / copiar (WhatsA
 src/ui/cdsPage.js        comparador de modelos CDS y galería de instalaciones
 src/ui/motion.js         movimiento de página (fichas, contador) con «reducir movimiento»
 src/pages/               un módulo por página (inicio, industriales, cds, componentes, cotizar, 404…)
-src/pages/inicio.js      Inicio (Fase 11): ruta de cinco paradas que se puede saltar: elige, por dentro (rayos X),
-                         a tu medida (dibujo en vivo), en tu espacio (cámara y ahorro) y cotiza. Sin 3D al entrar.
+src/pages/inicio.js      Inicio: la vaivén en 3D que se abre con el scroll, capítulos, rayos X, piezas, CDS, medida
+src/home/frio.js         Inicio (Fase 11B): termómetro del recorrido (30 °C → −20 °C), escarcha y recorrido de 60 s
 src/ui/preview.js        dibujo en vivo de la puerta a escala, con acabado y opciones (Inicio y Cotizar)
 src/ui/usdzTap.js        comportamientos de Quick Look: en iPhone la puerta se abre y se cierra al tocarla
 src/ui/usdzAnim.js       exportador USDZ de three.js con línea de tiempo por tramos y comportamientos
 src/ui/ar.js / arResize.js  vista 3D y cámara: a la medida sin estirar herrajes, con el acabado elegido
-src/home/*               Inicio de las fases 10A–10K (vaivén 3D, vaho, escáner, secuencia CDS): ya no se usan en el
-                         Inicio; scrub.js lo usa cine.js
+src/home/*               Inicio: hero 3D, vaho, escáner, secuencia CDS, avance con el scroll
 src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scroll suave (Lenis) y cursor en todo el sitio
 src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
 src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista

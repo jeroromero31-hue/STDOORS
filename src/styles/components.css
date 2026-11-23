@@ -897,3 +897,7 @@ model-viewer.in-ar .arv__xr { display: grid; }
 .q-route__rail i { height: 4px; border-radius: 4px; background: var(--c-line-navy); }
 .q-route__rail i:first-child { background: #9fe8f2; }
 .q-route:hover b { text-decoration: underline; text-underline-offset: 4px; }
+.vano__plan .dprev { border-radius: 14px; background: #fff; }
+.q-fin [data-acabado=hygienicWhite] i { background: radial-gradient(circle at 35% 30%, #fff, #e6e9e6 70%); }
+.q-fin [data-acabado=stainless] i { background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 3px), linear-gradient(160deg, #d9dcde, #a7acaf 55%, #c9ccce); }
+.q-fin [data-acabado=blackMetal] i { background: radial-gradient(circle at 35% 30%, #3b3e42, #1b1c1e 65%); }
