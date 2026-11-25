@@ -5,6 +5,7 @@ import '../styles/door.css';
 import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS } from './site.js';
 import { partPicture } from './picture.js';
 import { vano } from './vano.js';
+import { frostLayer } from '../home/frio.js';
 import { createStage } from '../core/stage.js';
 import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
 import { createCameraRig } from '../core/cameraRig.js';
@@ -109,6 +110,17 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const ro = document.createElement('p'); ro.className = 'readout'; ro.setAttribute('aria-hidden', 'true');
     ro.innerHTML = '<span></span><b></b>'; holder.append(ro);
     const [roL, roV] = [ro.querySelector('span'), ro.querySelector('b')]; let roLast = '';
+    // Fase 11C · si la puerta se queda abierta, el frío se escapa: las orillas de la pantalla se escarchan poco a poco;
+    // al cerrarla se derrite. Tu dedo también la derrite.
+    const fl = frostLayer({ tip: 'La puerta abierta deja salir el frío. Ciérrala, o derrite la escarcha con el dedo.' });
+    let flT = performance.now(), flAcc = 0, flOpen = 0;
+    stage.onFrame.add(() => {
+      const now = performance.now(), dt = Math.min(0.5, (now - flT) / 1000); flT = now;
+      const isOpen = motion.hinges && motion.hinges.length ? motion.hinges.some((h) => Math.abs(h.angle) > 20) : state.open;
+      flOpen = isOpen ? (flOpen || now) : 0;                       // solo si se QUEDA abierta (más de 2 s)
+      flAcc = Math.min(0.7, Math.max(0, flAcc + (isOpen && now - flOpen > 2000 ? dt / 14 : -dt / 2.5)));
+      if (flAcc !== fl.level) fl.set(flAcc);
+    });
     stage.onFrame.add(() => {
       const r = viewer.readout ? viewer.readout() : (motion.hinges && motion.hinges.length ? { label: 'Apertura de hoja', value: `${Math.round(Math.max(...motion.hinges.map((h) => Math.abs(h.angle))))}°`, on: motion.hinges.some((h) => Math.abs(h.angle) > 0.5) } : null);
       if (!r) return;

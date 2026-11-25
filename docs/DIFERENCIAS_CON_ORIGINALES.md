@@ -368,3 +368,5 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Chapa (11B):** rehecha con la imagen de la pieza 27: placa negra centrada (92 % del ancho), cilindro redondo
   centrado, cuerpo hondo 7.4 × 16.6 × 5.8 cm y jaladera en forma de bota (lóbulo abajo a la izquierda). La foto de
   referencia está tomada de lado. Comparación: `docs/capturas/fase11b-chapa.png`.
+- **Chapa y liberador (11C):** rehechos con las fotos de frente, de lado y de adentro que mandó ST (ver
+  `docs/capturas/fase11c-chapa.png`). La llave de la foto no se modela.

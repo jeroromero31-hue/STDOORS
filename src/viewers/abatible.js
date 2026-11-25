@@ -29,7 +29,7 @@ const BUMPER_TOP = 0.92;                 // altura del bumper del modelo base
 export const ABATIBLE = { W, H, T, PX, PZ, ZF, ZB, OW, OH, FD, MAX_OPEN: 95 };
 
 // chapa: proporciones medidas sobre la fotografía de referencia
-const LK = { W: 0.074, H: 0.166, D: 0.058, x: W / 2 - PW - 0.020 - 0.037, y0: 1.004 };   // Fase 11B: medida con la imagen de la pieza 27
+const LK = { W: 0.092, H: 0.185, D: 0.056, x: W / 2 - PW - 0.030 - 0.046, y0: 1.03 };   // Fase 11C: proporción de las fotos de ST (frente 1 : 2)
 
 export function createAbatible(stage, reg, { logoUrl } = {}) {
   const R = reg.materials;
@@ -130,18 +130,17 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   });
 
   // ---------- chapa exterior (pieza 27, kit de cerrojo de 68 mm) ----------
-  // Fase 11B, con la imagen de la pieza 27 que mandó ST (la foto de referencia está tomada desde un costado: por eso la
-  // jaladera parecía cargada a la izquierda):
-  // - cuerpo gris mate, hondo (casi tan hondo como ancho), con las aristas del frente y el tope muy redondeados;
-  // - cilindro de llave redondo, centrado, arriba;
-  // - placa negra centrada, casi del ancho del frente, desde poco arriba de la mitad hasta abajo;
-  // - debajo del cuerpo la placa se dobla hacia afuera: es la jaladera, donde entran los dedos para jalar.
+  // Fase 11C, con las fotos de frente y de lado que mandó ST:
+  // - cuerpo gris claro mate, el doble de alto que de ancho, hondo, con el tope y las aristas del frente muy redondeados;
+  // - cilindro europeo centrado en el tercio de arriba (sin llave);
+  // - placa negra centrada (0.68 del ancho) metida en su hueco, de poco arriba de la mitad hacia abajo;
+  // - debajo del cuerpo la placa se abre en una jaladera simétrica en «T» (0.9 del ancho), con hombros curvos, esquinas
+  //   redondas y el borde de abajo apenas cóncavo; de lado es una cuña que deja espacio a los dedos junto a la hoja.
   const lock = new THREE.Group(); lock.name = 'Chapa'; lock.position.set(LK.x, LK.y0, ZF); leaf.add(lock);
   {
     const { W: w, H: h, D: d } = LK;
-    const lockGray = new THREE.MeshPhysicalMaterial({ name: 'lockGray', color: new THREE.Color('#9a9da0'), roughness: 0.72, metalness: 0, clearcoat: 0.04, clearcoatRoughness: 0.8 });
-    // cuerpo: contorno de frente con el tope redondo, extruido hacia afuera con cantos muy suaves
-    const rt = 0.2 * w, rb = 0.006, bev = 0.009;
+    const lockGray = new THREE.MeshPhysicalMaterial({ name: 'lockGray', color: new THREE.Color('#8a8d90'), roughness: 0.76, metalness: 0, clearcoat: 0.03, clearcoatRoughness: 0.8 });
+    const rt = 0.14 * w, rb = 0.007, bev = 0.010;
     const f = new THREE.Shape();
     f.moveTo(-w / 2 + rb, 0); f.lineTo(w / 2 - rb, 0); f.quadraticCurveTo(w / 2, 0, w / 2, rb);
     f.lineTo(w / 2, h - rt); f.quadraticCurveTo(w / 2, h, w / 2 - rt, h);
@@ -149,35 +148,68 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
     f.lineTo(-w / 2, rb); f.quadraticCurveTo(-w / 2, 0, -w / 2 + rb, 0);
     const body = new THREE.ExtrudeGeometry(f, { depth: d - 2 * bev, bevelEnabled: true, bevelThickness: bev, bevelSize: bev, bevelOffset: -bev, bevelSegments: 8, curveSegments: 16 });
     body.translate(0, 0, bev);
-    // el tope se redondea hacia la hoja
-    { const P = body.attributes.position, y1 = h - 0.028;
-      for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > y1) { const t = (y - y1) / (h - y1); P.setZ(i, P.getZ(i) * (1 - 0.5 * t * t)); } }
+    { const P = body.attributes.position, y1 = h - 0.034;            // el tope se curva hacia la hoja (foto de lado)
+      for (let i = 0; i < P.count; i++) { const y = P.getY(i); if (y > y1) { const t = (y - y1) / (h - y1); P.setZ(i, P.getZ(i) * (1 - 0.42 * t * t)); } }
       body.computeVertexNormals(); }
     grab(add(lock, toCreasedNormals(body, 1.25), lockGray));
-    // cilindro de llave redondo, centrado arriba, con su ranura
-    const chrome = new THREE.MeshPhysicalMaterial({ name: 'lockCylinder', color: new THREE.Color('#c4c6c6'), metalness: 0.95, roughness: 0.22 });
-    const cy = h * 0.8, cr = 0.0078;
-    add(lock, new THREE.CylinderGeometry(cr, cr * 1.04, 0.003, 32).rotateX(Math.PI / 2), chrome, 0, cy, d + 0.0012, { shadow: false });
-    add(lock, new THREE.TorusGeometry(cr * 0.98, 0.0011, 8, 32), chrome, 0, cy, d + 0.0028, { shadow: false });
-    const slot = new THREE.Shape(); slot.absarc(0, 0.0012, 0.0019, 0, Math.PI * 2, false);
-    const slot2 = new THREE.Shape(); slot2.moveTo(-0.0009, 0.001); slot2.lineTo(0.0009, 0.001); slot2.lineTo(0.0012, -0.0042); slot2.lineTo(-0.0012, -0.0042); slot2.closePath();
-    [slot, slot2].forEach((sh) => add(lock, new THREE.ShapeGeometry(sh, 12), R.plasticBlack, 0, cy, d + 0.00285, { shadow: false }));
-    // placa negra centrada, casi del ancho del frente (como la imagen de la pieza 27)
+    // cilindro europeo, centrado, sin llave
+    const nickel = new THREE.MeshPhysicalMaterial({ name: 'lockCylinder', color: new THREE.Color('#c9c5b8'), metalness: 0.9, roughness: 0.3 });
+    const cy = h * 0.75, cr = 0.0085, sw = 0.0052, cl = 0.019;
+    const k = new THREE.Shape(); const ka = Math.asin(sw / cr);
+    k.absarc(0, cy, cr, -Math.PI / 2 + ka, -Math.PI / 2 - ka + Math.PI * 2, false);
+    k.lineTo(-sw, cy - cl); k.absarc(0, cy - cl, sw, Math.PI, Math.PI * 2, false); k.closePath();
+    add(lock, new THREE.ExtrudeGeometry(k, { depth: 0.002, bevelEnabled: true, bevelThickness: 0.0008, bevelSize: 0.0008, bevelSegments: 2, curveSegments: 24 }), nickel, 0, 0, d - 0.0008, { shadow: false });
+    add(lock, rbox(0.0016, 0.0085, 0.0006, 0.0006), R.plasticBlack, 0, cy - 0.0015, d + 0.0021, { shadow: false });
+    // hueco y placa negra
     const lever = new THREE.Group(); lever.name = 'Palanca'; lock.add(lever);
-    const pw = w * 0.92, sTop = h * 0.55, z0 = d + 0.0015;
-    grab(add(lever, rbox(pw, sTop, 0.007, 0.0022), R.plasticBlack, 0, sTop / 2, z0));
-    // jaladera, debajo del cuerpo: de frente es una «bota»: a la izquierda un lóbulo que cuelga (ahí entran los dedos),
-    // a la derecha termina justo bajo el cuerpo con la esquina redonda; entre los dos, una curva hacia adentro.
-    // Se inclina un poco hacia afuera para poder tomarla.
-    const xl = -pw / 2, xr = pw / 2, r1 = 0.0185, c1 = [xl + r1, -0.037 + r1], r2 = 0.0055, c2 = [xr - r2, -0.0065 + r2];
-    const g = new THREE.Shape();
-    g.moveTo(xl, 0.012); g.lineTo(xl, c1[1]);
-    g.absarc(c1[0], c1[1], r1, Math.PI, Math.PI * 2, false);
-    g.quadraticCurveTo(0.008, -0.0065, c2[0], -0.0065);
-    g.absarc(c2[0], c2[1], r2, -Math.PI / 2, 0, false);
-    g.lineTo(xr, 0.012); g.closePath();
-    const grip = new THREE.ExtrudeGeometry(g, { depth: 0.010, bevelEnabled: true, bevelThickness: 0.0025, bevelSize: 0.002, bevelSegments: 4, curveSegments: 24 });
-    const gm = grab(add(lever, toCreasedNormals(grip, 0.7), R.plasticBlack, 0, 0, z0 - 0.009)); gm.rotation.x = -0.3;
+    const pw = w * 0.68, sTop = h * 0.53;
+    add(lock, new THREE.PlaneGeometry(pw + 0.0045, sTop + 0.003), new THREE.MeshBasicMaterial({ color: 0x0c0d0e }), 0, (sTop + 0.003) / 2, d + 0.0004, { shadow: false });
+    grab(add(lever, rbox(pw, sTop, 0.006, 0.0015), R.plasticBlack, 0, sTop / 2, d + 0.0012));
+    // jaladera en «T» bajo el cuerpo
+    const PWd = w * 0.94, hD = 0.044, rc = 0.010, g = new THREE.Shape();
+    g.moveTo(-pw / 2, 0.004); g.lineTo(-pw / 2, -0.001);
+    g.bezierCurveTo(-pw / 2, -0.010, -PWd / 2 + 0.002, -0.006, -PWd / 2, -0.016);
+    g.lineTo(-PWd / 2, -hD + rc); g.quadraticCurveTo(-PWd / 2, -hD, -PWd / 2 + rc, -hD);
+    g.quadraticCurveTo(0, -hD + 0.005, PWd / 2 - rc, -hD);
+    g.quadraticCurveTo(PWd / 2, -hD, PWd / 2, -hD + rc); g.lineTo(PWd / 2, -0.016);
+    g.bezierCurveTo(PWd / 2 - 0.002, -0.006, pw / 2, -0.010, pw / 2, -0.001); g.lineTo(pw / 2, 0.004); g.closePath();
+    const gd = 0.032, grip = new THREE.ExtrudeGeometry(g, { depth: gd, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.0025, bevelSegments: 4, curveSegments: 20 });
+    { const P = grip.attributes.position;                              // cuña: la cara de atrás sube hacia el frente abajo
+      for (let i = 0; i < P.count; i++) { const y = P.getY(i), z = P.getZ(i); if (y < 0 && z < gd * 0.6) P.setZ(i, z + (-y / hD) * 0.016 * (1 - z / (gd * 0.6))); } }
+    const gm = grab(add(lever, toCreasedNormals(grip, 0.7), R.plasticBlack, 0, 0, d + 0.0042 - 0.003 - gd)); gm.rotation.x = -0.05;   // al ras de la placa
+  }
+
+  // ---------- liberador interior (por dentro de la cámara, frente a la chapa) ----------
+  // Fotos de ST: caja gris horizontal sobre una placa con dos tornillos hexagonales, con un pliegue en «V» al frente;
+  // a un lado la palanca verde con su etiqueta luminosa «PUSH» (se empuja para salir aunque esté cerrada con llave) y
+  // al otro, hacia el canto, la lengüeta gris.
+  {
+    const rel = new THREE.Group(); rel.name = 'Liberador'; rel.position.set(LK.x - 0.004, LK.y0 + LK.H * 0.6, ZB); rel.rotation.y = Math.PI; leaf.add(rel);
+    const g2 = new THREE.MeshPhysicalMaterial({ name: 'releaseGray', color: new THREE.Color('#a9acaf'), roughness: 0.72 });
+    const teal = new THREE.MeshPhysicalMaterial({ name: 'releaseTeal', color: new THREE.Color('#139c8d'), roughness: 0.45, clearcoat: 0.2 });
+    // placa con dos lóbulos y tornillos
+    const bp = new THREE.Shape(); bp.absarc(0, 0.052, 0.017, 0, Math.PI, false); bp.lineTo(-0.020, 0); bp.absarc(0, -0.052, 0.017, Math.PI, Math.PI * 2, false); bp.lineTo(0.020, 0); bp.closePath();
+    add(rel, new THREE.ExtrudeGeometry(bp, { depth: 0.003, bevelEnabled: true, bevelThickness: 0.001, bevelSize: 0.001, bevelSegments: 2, curveSegments: 16 }), g2, 0.004, 0, 0);
+    [0.054, -0.054].forEach((y) => { add(rel, new THREE.CylinderGeometry(0.0062, 0.0062, 0.005, 6).rotateX(Math.PI / 2), g2, 0.004, y, 0.0065); add(rel, new THREE.CylinderGeometry(0.0085, 0.0085, 0.0012, 20).rotateX(Math.PI / 2), g2, 0.004, y, 0.0045); });
+    // caja con el pliegue en «V»
+    const bw = 0.100, bh = 0.062, bd = 0.042;
+    grab(add(rel, rbox(bw, bh, bd, 0.010, 5), g2, 0, 0, bd / 2 + 0.002));
+    [-1, 1].forEach((sg) => { const v = add(rel, rbox(bw * 0.52, 0.0022, 0.0016, 0.0007), g2, sg * bw * 0.245, bh * 0.27, bd + 0.002); v.rotation.z = sg * -0.24; });
+    // lengüeta gris hacia el canto
+    add(rel, rbox(0.018, 0.040, 0.030, 0.003), new THREE.MeshPhysicalMaterial({ name: 'releaseTab', color: new THREE.Color('#bfc2c4'), roughness: 0.7 }), -bw / 2 - 0.006, 0.004, 0.017);
+    // palanca verde con la etiqueta «PUSH»
+    const lw = 0.058, lh = 0.054, ch = 0.016, L = new THREE.Shape();
+    L.moveTo(0, -lh / 2); L.lineTo(lw, -lh / 2); L.lineTo(lw, lh / 2); L.lineTo(ch, lh / 2); L.lineTo(0, lh / 2 - ch); L.closePath();   // esquina cortada junto a la caja
+    const lev = add(rel, new THREE.ExtrudeGeometry(L, { depth: 0.010, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 2 }), teal, bw / 2 - 0.006, -0.008, 0.012);
+    grab(lev);
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; const c2 = cv.getContext('2d');
+    c2.fillStyle = '#eef4d4'; c2.fillRect(0, 0, 256, 256);
+    c2.save(); c2.translate(128, 128); c2.rotate(-Math.PI / 2); c2.font = '900 74px Arial, sans-serif'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+    c2.lineWidth = 7; c2.strokeStyle = '#101214'; c2.strokeText('PUSH', 0, 4); c2.fillStyle = '#eef4d4'; c2.fillText('PUSH', 0, 4); c2.restore();
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const lab = new THREE.Shape(), m = 0.007; lab.moveTo(m, -lh / 2 + m); lab.lineTo(lw - m, -lh / 2 + m); lab.lineTo(lw - m, lh / 2 - m); lab.lineTo(ch + m * 0.6, lh / 2 - m); lab.lineTo(m, lh / 2 - ch - m * 0.4); lab.closePath();
+    const lg = new THREE.ShapeGeometry(lab, 4); { const P = lg.attributes.position, U = lg.attributes.uv; for (let i = 0; i < P.count; i++) U.setXY(i, P.getX(i) / lw, (P.getY(i) + lh / 2) / lh); }
+    add(rel, lg, new THREE.MeshStandardMaterial({ name: 'releaseLabel', map: tex, emissive: new THREE.Color('#c9f2a0'), emissiveIntensity: 0.18, roughness: 0.5 }), bw / 2 - 0.006, -0.008, 0.0237, { shadow: false });
   }
 
   // ---------- bisagras reversibles, como la foto del componente (pieza 30) ----------
@@ -278,7 +310,8 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
       bisagra: { pos: [-0.86, 1.86, 0.62], tgt: [PX - 0.01, 1.735, 0.15] },
       despiece: { pos: [-1.06, 1.93, 0.84], tgt: [PX + 0.01, 1.75, 0.19] },     // la bisagra separada completa
       empaque: { pos: [1.75, 1.5, 0.95], tgt: [0.15, 1.2, 0.5] },
-      chapa: { pos: [LK.x + 0.15, 1.19, ZF + 0.40], tgt: [LK.x - 0.004, 1.06, ZF + 0.03] },
+      chapa: { pos: [LK.x - 0.03, LK.y0 + 0.12, ZF + 0.62], tgt: [LK.x, LK.y0 + 0.07, ZF + 0.03] },
+      chapaLado: { pos: [LK.x - 0.28, LK.y0 + 0.36, ZF + 0.42], tgt: [LK.x, LK.y0 + 0.06, ZF + 0.03] },
       bumper: { pos: [0.72, 0.62, 1.42], tgt: [0.02, 0.5, 0.17] },
       frio: (st) => frameBox(st, [-1.0, 0, -0.2, 1.6, 2.3, 2.2], 0.32, 0.3),            // hueco, hoja abierta y el piso de enfrente
     },

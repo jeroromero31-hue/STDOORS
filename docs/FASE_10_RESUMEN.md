@@ -531,3 +531,22 @@ la foto: `docs/capturas/fase11b-chapa.png`. Se rehicieron el modelo de la cámar
 `/home/claude/f11/flow11b.py` (el Inicio completo, termómetro, escarcha, capítulos, recorrido con pausa/siguiente/salir,
 `/?recorrido=1`, medida con vista previa, Cotizar, menú, calculadora, cámara, chapa) y la cadena de regresión con las
 pruebas del Inicio de la Fase 10 otra vez activas.
+
+
+# Fase 11C · chapa y liberador con las fotos de ST, sin recorrido automático, escarcha que se derrite con el dedo
+
+- **Se quitó el recorrido de 60 s** (ST no lo quería literal). Se quedan el termómetro (brincar entre capítulos) y la
+  escarcha bajo 0 °C.
+- **Tu dedo derrite la escarcha:** donde tocas (o pasas el cursor) la escarcha se derrite en un círculo y vuelve a
+  congelarse en 2.6 s. La primera vez aparece una pista. Son capas de máscara CSS sobre la escarcha: no estorban al
+  scroll ni usan canvas (`frostLayer` en `src/home/frio.js`).
+- **Páginas de puerta: el frío se escapa mientras está abierta.** Si la hoja pasa de 20° de apertura, las orillas de la
+  pantalla se escarchan poco a poco (hasta 70 %); al cerrarla se derrite en unos segundos.
+- **Chapa exterior (fotos de frente y de lado):** cuerpo gris claro 9.2 × 18.5 × 5.6 cm (frente 1 : 2), tope y aristas
+  redondeados; cilindro europeo centrado en el tercio de arriba, **sin llave**; placa negra centrada (68 % del ancho)
+  metida en su hueco desde la mitad; debajo, jaladera simétrica en «T» (94 % del ancho) con hombros curvos, esquinas
+  redondas y borde inferior apenas cóncavo, en cuña para que entren los dedos. Más arriba en la hoja (sobre el bumper).
+- **Liberador interior (fotos de adentro):** caja gris horizontal con pliegue en «V», sobre placa con dos tornillos
+  hexagonales; palanca verde con la etiqueta luminosa «PUSH» y lengüeta gris hacia el canto. Se ve al abrir la puerta.
+- Comparación con las fotos: `docs/capturas/fase11c-chapa.png`. Se rehicieron el modelo de la cámara, los rayos X y la
+  foto de la abatible.
