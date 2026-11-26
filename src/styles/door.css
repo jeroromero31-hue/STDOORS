@@ -80,7 +80,7 @@
   .door__viewer { grid-area: 1 / 1; }
   .door__col { grid-area: 1 / 1; position: relative; z-index: 3; width: calc(var(--pad-x) + min(430px, 33vw)); padding: 0 0 0 var(--pad-x); pointer-events: none; }
   .door__card { pointer-events: auto; display: grid; gap: var(--s-3); padding: clamp(22px, 2vw, 32px); border-radius: 22px;
-    background: rgba(251, 252, 253, .84); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+    background: rgba(251, 252, 253, .84); -webkit-backdrop-filter: blur(14px) saturate(1.3); backdrop-filter: blur(14px) saturate(1.3);
     box-shadow: 0 28px 70px rgba(5, 47, 73, .14), inset 0 0 0 1px rgba(255, 255, 255, .7); }
   .door.is-inside .door__card { background: rgba(5, 47, 73, .74); box-shadow: 0 28px 70px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .08); }
   .door__hero { padding-block: var(--s-7) var(--s-7); }
@@ -158,3 +158,14 @@
 /* vistas especiales: «Ver el frío» y «Rayos X» como un par de botones pequeños */
 .door__views { display: flex; gap: 6px; flex-wrap: wrap; }
 .door__views .chip[aria-pressed=true] { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }
+
+/* Fase 12 · en tabletas (pantalla táctil ancha) la tarjeta no difumina el 3D de atrás: se redibuja en cada cuadro */
+@media (min-width: 901px) and (hover: none) {
+  .door__card { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(251, 252, 253, .95); }
+  .door.is-inside .door__card { background: rgba(5, 47, 73, .9); }
+}
+/* Fase 12 · en teléfonos y tabletas la barra de secciones tampoco difumina: queda encima del 3D, que se redibuja, y el
+   teléfono tenía que volver a difuminarlo en cada cuadro (en Android era de lo más pesado) */
+@media (max-width: 900px), (hover: none) {
+  .subnav { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--c-wall) 98%, transparent); }
+}

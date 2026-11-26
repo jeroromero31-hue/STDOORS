@@ -278,6 +278,11 @@ window.exportAR = async () => {
     const mark = new THREE.Mesh(new THREE.PlaneGeometry(0.01, 0.01).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
     mark.name = 'piso'; mark.position.set(vano.cx, vano.floor, 0); fixed.add(mark);
   }
+  // Fase 12 · abatible: dónde queda el liberador de adentro (la manija de emergencia con «PUSH»), para señalarlo y para
+  // que el visor 3D pueda ir a verlo por dentro
+  let interior = null;
+  const lib = puerta === 'abatible' ? stage.scene.getObjectByName('Liberador') : null;
+  if (lib) { POSE[puerta](0); stage.scene.updateMatrixWorld(true); const rb = new THREE.Box3().setFromObject(lib); interior = { punto: [(rb.min.x + rb.max.x) / 2, (rb.min.y + rb.max.y) / 2, rb.min.z - 0.012] }; }
   const glb = await new GLTFExporter().parseAsync(out, { binary: true, onlyVisible: true, maxTextureSize: 512, animations: clips });
   hidden.forEach((o) => { o.visible = true; });
   const bytes = new Uint8Array(glb); let str = '';
@@ -288,6 +293,7 @@ window.exportAR = async () => {
     franjas: { x: merge(spans.x), y: merge(spans.y) },
     clips: Object.fromEntries(clips.map((c) => [c.name, +c.duration.toFixed(3)])),
     abrir: { punto: tap.map((v) => +v.toFixed(4)) },
+    interior: interior && { punto: interior.punto.map((v) => +v.toFixed(4)) },
     recorrido: puerta === 'corrediza' ? TRAVEL : null,
     productos: products.map((p) => ({ ...p, punto: p.punto.map((v) => +v.toFixed(4)), cerca: p.cerca.map((v) => +v.toFixed(4)) })),
   };

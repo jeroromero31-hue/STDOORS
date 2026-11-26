@@ -17,7 +17,7 @@ export function mountScanner(section) {
       <picture class="scan__n" aria-hidden="true"><source media="(min-width: 901px)" data-srcset="${img(d, 'ancho', 'normal')}"><img alt="" data-src="${img(d, 'alto', 'normal')}" decoding="async"></picture>
       ${['ancho', 'alto'].map((fmt) => `<ol class="scan__tags scan__tags--${fmt}">${(d.tags[fmt] || []).map((t, k) => `
         <li class="scan__tag ${t.x > 0.56 ? 'is-l' : ''}" style="--x:${t.x};--y:${t.y}" data-y="${t.y}" data-k="${k + 1}" data-n="${t.numero || ''}" data-name="${t.nombre}"><i aria-hidden="true" data-k="${k + 1}"></i><span>${t.numero ? `<b>${t.numero}</b> ` : ''}${t.nombre}</span></li>`).join('')}</ol>`).join('')}
-      <i class="scan__line" aria-hidden="true"><span>Rayos X</span></i>
+      <i class="scan__lw" aria-hidden="true"><i class="scan__line"><span>Rayos X</span></i></i>
     </figure>`).join('');
   const figs = [...stage.querySelectorAll('.scan__door')];
   // Fase 10I · en celular las etiquetas tapaban la puerta: sobre la imagen solo va un punto con número y abajo, en una
@@ -68,6 +68,8 @@ export function mountScanner(section) {
     stage.querySelectorAll('.scan__tag').forEach((t) => t.classList.add('is-on')); setDoor(0); return;
   }
   let cur = -1;
+  const tagCache = new Map();
+  const tagsOf = (f, fmt) => { const k = f.dataset.i + fmt; if (!tagCache.has(k)) tagCache.set(k, [...f.querySelectorAll(`.scan__tags--${fmt} .scan__tag`)].map((tg) => ({ tg, y: +tg.dataset.y }))); return tagCache.get(k); };
   // cada puerta ocupa un tramo: entra (0–0.14), la línea baja (0.14–0.8) y se queda en rayos X con sus piezas
   track(section, (p) => {
     const k = Math.min(N - 1e-4, Math.max(0, (p || 0) * N)), i = Math.floor(k), t = k - i;
@@ -75,10 +77,10 @@ export function mountScanner(section) {
     const cut = seg(t, 0.14, 0.8), f = figs[i];
     f.style.setProperty('--cut', cut.toFixed(4));
     f.style.setProperty('--in', seg(t, 0, 0.12).toFixed(3));
-    f.querySelector('.scan__line').classList.toggle('is-on', cut > 0.001 && cut < 0.999);
+    const ln = f.querySelector('.scan__line'), lnOn = cut > 0.001 && cut < 0.999; if (lnOn !== ln.classList.contains('is-on')) ln.classList.toggle('is-on', lnOn);
     const fmt = wideQ.matches ? 'ancho' : 'alto';
     let lastOn = null;
-    f.querySelectorAll(`.scan__tags--${fmt} .scan__tag`).forEach((tg) => { const on = cut >= +tg.dataset.y; tg.classList.toggle('is-on', on); if (on && (!lastOn || +tg.dataset.y >= +lastOn.dataset.y)) lastOn = tg; });
-    showNow(lastOn);
+    tagsOf(f, fmt).forEach(({ tg, y }) => { const on = cut >= y; if (on !== tg.classList.contains('is-on')) tg.classList.toggle('is-on', on); if (on && (!lastOn || y >= lastOn.y)) lastOn = { tg, y }; });
+    showNow(lastOn && lastOn.tg);
   }, { mode: 'pin', smooth: 10 });
 }

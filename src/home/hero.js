@@ -36,7 +36,8 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
   viewer.setFinish('stainless');
   const [hl, hr] = viewer.hinges;
   // menos partículas en equipos modestos: el vaho es lo que más pinta por cuadro
-  const vapor = reducedMotion() ? null : createVapor(stage, { count: stage.quality === 'baja' ? 70 : 140 });
+  // Fase 12 · en el teléfono, 90 (el vaho es lo que más píxeles pinta: cada partícula puede ocupar un cuarto de la pantalla)
+  const vapor = reducedMotion() ? null : createVapor(stage, { count: stage.quality === 'baja' ? 60 : matchMedia('(pointer: coarse)').matches ? 90 : 140 });
 
   // ---------- etiquetas de piezas ----------
   const anchors = TAGS.map((t) => ({ ...t, a: viewer.anchors.find((a) => a.numero === t.numero) })).filter((t) => t.a);
@@ -210,6 +211,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
   };
   viewer.ready.then(() => {
     lighting = applyLook(stage, viewer);
+    stage.precompile();                                       // Fase 12: sombreadores en paralelo (ya con la luz del Inicio)
     if (viewer.thermal && thermo && !reducedMotion()) thermal = createThermal(stage, viewer.thermal);
     ready = true; load.done(); stage.invalidate(60);
     gl.classList.add('is-ready');

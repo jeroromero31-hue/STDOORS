@@ -5,7 +5,7 @@ import '../styles/door.css';
 import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS } from './site.js';
 import { partPicture } from './picture.js';
 import { vano } from './vano.js';
-import { frostLayer } from '../home/frio.js';
+import { frostLayer, preloadFrost } from '../home/frio.js';
 import { createStage } from '../core/stage.js';
 import { createFinishRegistry, FINISHES_BY_DOOR, FINISH_LABEL } from '../materials/FinishRegistry.js';
 import { createCameraRig } from '../core/cameraRig.js';
@@ -64,6 +64,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     // cómo se mueve: las abisagradas usan el adaptador común; las demás (la corrediza) traen el suyo
     const motion = viewer.motion || hingeMotion(stage, viewer.hinges || [viewer.hinge], viewer.pickables);
 
+    // Fase 12 · sombreadores compilados en paralelo antes del primer cuadro (en los modelos que se descargan, al llegar)
+    if (viewer.ready) viewer.ready.then(() => stage.precompile(), () => {}); else stage.precompile();
     // los modelos que se descargan avisan cuando están listos; si fallan, queda la imagen fija
     if (viewer.ready) {
       viewerEl.classList.add('is-loading');
@@ -118,6 +120,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const now = performance.now(), dt = Math.min(0.5, (now - flT) / 1000); flT = now;
       const isOpen = motion.hinges && motion.hinges.length ? motion.hinges.some((h) => Math.abs(h.angle) > 20) : state.open;
       flOpen = isOpen ? (flOpen || now) : 0;                       // solo si se QUEDA abierta (más de 2 s)
+      if (isOpen) preloadFrost();                                 // su textura se pide al abrir (llega antes de los 2 s)
       flAcc = Math.min(0.7, Math.max(0, flAcc + (isOpen && now - flOpen > 2000 ? dt / 14 : -dt / 2.5)));
       if (flAcc !== fl.level) fl.set(flAcc);
     });
@@ -351,6 +354,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       xrayBtn = $('#xrayBtn'); xrayBtn.onclick = () => { setXray(!xray.on); hint.classList.add('is-off'); };
       // Fase 10J · la puerta en tu espacio, con la cámara y a la medida de tu vano (si ya la escribiste)
       xrayBtn.insertAdjacentHTML('afterend', '<button class="chip chip--ar" id="arBtn" data-cur="Cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>En tu espacio</button>');
+      $('#arBtn').dataset.warm = familia;
       $('#arBtn').onclick = () => Promise.all([import('./ar.js'), import('./vano.js')]).then(([{ openAR }, { vano }]) => {
         const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto, acabado: state.finish });
       }).catch(() => toast('No se pudo abrir la vista con cámara'));
@@ -469,9 +473,6 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   // Fase 10J · ¿se descompuso una pieza? encontrarla tocando la puerta
   const partsEl = $('#parts');
   if (partsEl && familia !== 'cds') partsEl.insertAdjacentHTML('afterend', `<a class="find-cta" href="${url('componentes/')}?puerta=${familia}#encuentra"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Se descompuso una pieza y no sabes cómo se llama?</b><span>Toca la zona de la puerta donde está y te mostramos cuál es.</span></span></a>`);
-  // Fase 10K · después de ver el frío, cuánto cuesta: la calculadora de fuga de frío
-  const frio = $('.door__step--frio');
-  if (frio) frio.insertAdjacentHTML('beforeend', `<a class="find-cta find-cta--frio" href="${url('fuga-de-frio/')}"><span class="find-cta__dot" aria-hidden="true"></span><span><b>¿Cuánto ahorras si se queda adentro?</b><span>Calcula tu ahorro en luz al mes, con tus aperturas al día.</span></span></a>`);
   const add = $('#addDoor') || document.createElement('button');
   add.onclick = () => {
     const f = state.finish ? FINISH_LABEL[state.finish].toLowerCase() : state.option ? state.option.title || state.option.label : '';

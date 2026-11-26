@@ -112,7 +112,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     draw(c);
   };
   host.querySelectorAll('.chip[data-fam]').forEach((b) => { b.onclick = () => {
-    fam = b.dataset.fam; vano.set({ fam }, uid); host.querySelectorAll('.chip[data-fam]').forEach((o) => o.setAttribute('aria-pressed', o === b)); renderFields();
+    fam = b.dataset.fam; vano.set({ fam }, uid); $('[data-ar]').dataset.warm = fam; host.querySelectorAll('.chip[data-fam]').forEach((o) => o.setAttribute('aria-pressed', o === b)); renderFields();
   }; });
   $('[data-wa]').replaceWith(waButton({ tipo: 'medida', fam, cfg: cfgOf() }, { cls: 'btn btn--line', attr: 'data-wa' }));
 
@@ -129,6 +129,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     const go = host.querySelector('.vano__go'); if (!go) $('.vano__act').insertAdjacentHTML('beforeend', `<a class="btn btn--line vano__go" href="${url('cotizar/')}">Ver mi solicitud</a>`);
   };
   // ver en tu espacio con la cámara (realidad aumentada), a la medida escrita
+  $('[data-ar]').dataset.warm = fam;
   $('[data-ar]').onclick = () => import('./ar.js').then(({ openAR }) => openAR(fam, cfgOf())).catch((e) => { console.error(e); toast('No se pudo abrir la vista con cámara'); });
   // la medida es una sola para todo el sitio: si otro lugar la cambia, se actualiza aquí sin rehacer los campos
   // (rehacerlos mientras escribes cambiaría el campo que estás tocando y cerraría el teclado del celular)

@@ -550,3 +550,79 @@ pruebas del Inicio de la Fase 10 otra vez activas.
   hexagonales; palanca verde con la etiqueta luminosa «PUSH» y lengüeta gris hacia el canto. Se ve al abrir la puerta.
 - Comparación con las fotos: `docs/capturas/fase11c-chapa.png`. Se rehicieron el modelo de la cámara, los rayos X y la
   foto de la abatible.
+
+
+# Fase 12 · optimización a fondo (Android, iPhone y computadora), vidrio que se limpia con el dedo y el liberador en la vista 3D
+
+Pedido de ST: «optimizar al máximo nivel posible, sin perder calidad»: la CDS del Inicio se trababa (celular y
+computadora), la vista térmica se veía mal en el celular, Android iba «súper lento»; integrar la manija interna de la
+abatible a la vista 3D (Android y Apple); quitar la calculadora de ahorro e innovar con otra cosa.
+
+## Qué se encontró y qué se hizo
+
+**CDS del Inicio (el tirón).** El video tenía defectos en los propios cuadros: un cuadro en blanco y un salto de encuadre
+a los 0.55 s (justo cuando la puerta empieza a abrir) y dos cuadros repetidos al final. Venía de capturar la pantalla
+después de esperar. Ahora cada cuadro se dibuja y se lee del lienzo en la misma tarea (`window.shot`), a 1.5× y reducido
+con Lanczos, **a 60 cuadros por segundo** (192 cuadros, antes 96 a 30), y se codifica con x264 lento («animation»).
+`scripts/render-cds-video.py`. La lectura de grados solo toca el texto cuando cambia.
+
+**Vista térmica en el celular.** La escala «Frío · Ambiente» chocaba con el termómetro del Inicio (las dos usaban la
+clase `.thermo`): en las páginas de puerta la barra de colores salía debajo del visor, cruzando los botones. El
+termómetro ahora es `.ftermo`. Además:
+- El ruido del aire frío lee una textura (una lectura por llamada) en vez de 8 cálculos de hash: unas 5 veces menos
+  trabajo por píxel.
+- Se dibuja con menos píxeles (hasta 1.25× en el teléfono; una cámara térmica real es de baja resolución) y sin mapa de
+  sombras (ese material no usa luces). En teléfonos, la corriente se anima a 30 cuadros por segundo.
+- Más rango de color con la puerta cerrada: el aire es más tibio arriba y el piso más fresco, y la hoja cerrada se ve
+  algo más fresca que el muro (del otro lado está la cámara fría). Antes con la puerta cerrada todo era naranja.
+
+**Android lento — lo que más pesaba en la tarjeta gráfica:**
+- **Desenfoque sobre el 3D.** La barra de secciones de las puertas difuminaba (`backdrop-filter`) el 3D que tenía
+  debajo, en cada cuadro. En teléfonos y tabletas ya no difumina (fondo casi opaco); en computadora el radio bajó de 18 a
+  14 px. Las etiquetas del 3D del Inicio tampoco difuminan.
+- **Resolución dinámica** (`src/core/stage.js`): mientras algo se mueve, si el equipo no llega a ~45 cuadros por
+  segundo se dibuja con menos píxeles (hasta 55 %), y vuelve a subir cuando sobra tiempo. Quieta, la escena se dibuja
+  nítida a la densidad de la pantalla (como antes), así que lo que se mira de cerca no pierde calidad. Si bajar no
+  mejora (pantalla a 30 Hz por ahorro de batería), regresa y no vuelve a bajar. Se recuerda entre páginas.
+- **Sombras solo cuando algo se mueve:** el mapa de sombras se redibuja solo si cambió algo que proyecta sombra (o una
+  luz), no al girar la cámara ni al seguir el scroll.
+- **Sombreadores en paralelo** (`stage.precompile`, KHR_parallel_shader_compile, que tiene Chrome en Android): antes el
+  primer cuadro compilaba todo de golpe y trababa la página medio segundo o más. Donde el navegador no compila en
+  paralelo se deja como antes (esperar solo atrasaría el primer cuadro).
+- **Vaho del Inicio:** 90 partículas en el teléfono (antes 140), un poco más densas: se ve igual y se pintan menos
+  píxeles (cada una puede ocupar un cuarto de la pantalla).
+
+**Hilo principal (scroll):**
+- **Escarcha:** era un `div` con dos texturas SVG de ruido (`feTurbulence`) y máscaras CSS; el teléfono recalculaba el
+  ruido al repintar (al aparecer la barra del navegador, al derretir). Ahora es un lienzo que se pinta una vez, con una
+  textura ya hecha (`public/img/frio/escarcha.webp`, 51 KB, `scripts/build-escarcha.py`) que se pide al acercarse a 0 °C
+  (o al abrir la puerta). Su intensidad es la opacidad del lienzo: la anima la tarjeta gráfica sin repintar.
+- **Escáner de rayos X:** el recorte de la imagen normal era `clip-path` (repintaba la imagen en cada cuadro) y la línea
+  bajaba cambiando `top`. Ahora son transformaciones (el marco baja y la imagen sube lo mismo).
+
+**Vista 3D y cámara:**
+- **«Por dentro»:** en la abatible, la vista 3D tiene «Por fuera / Por dentro». «Por dentro» lleva la cámara atrás de
+  la puerta, cerca del liberador (la manija de emergencia «PUSH»), con un letrero que lo señala; solo se ve desde atrás.
+  En la cámara (Android y iPhone) el liberador ya venía en el modelo: rodea la puerta para verlo.
+- **Puntos de la vista 3D centrados:** las cotas (cm), «Ábrela» y los productos se corrían medio tamaño hacia arriba
+  a la izquierda (model-viewer ya los centra). Ya quedan sobre su punto.
+- **iPhone:** el archivo para la cámara (USDZ) bajó de 9.8 a 4.4 MB (se juntan los vértices repetidos y se escriben menos
+  cifras) y se arma en cuanto abre la vista (antes esperaba 0.7 s).
+- **Más rápido al abrir:** al tocar (o pasar el cursor por) «En tu espacio», «Verla en tu espacio» o «Mírala en 3D», el
+  visor y el modelo empiezan a bajar antes del clic.
+
+Capturas: `docs/capturas/fase12-termica-antes-despues.png` (celular: antes la barra de colores cruzaba los botones;
+ahora queda en el visor) y `docs/capturas/fase12-por-dentro.png` (vista 3D por fuera y «Por dentro» con el liberador).
+
+## Calculadora retirada · lo nuevo: «Límpialo con el dedo» (CDS)
+La calculadora de ahorro se quitó (página, menú, Inicio y puertas); `/fuga-de-frio/` manda al Inicio.
+En su lugar, en la **Prueba de humedad** de la CDS: cuando el vidrio se empaña, **pasas el dedo (o el mouse) y lo
+limpias**, como un vidrio real; con el tiempo se vuelve a empañar, más rápido entre más humedad le sobre al modelo, y al
+final dice en cuántos segundos y qué modelo se quedaría claro con esa humedad (Plus, con resistencia en el vidrio). El
+dedo sobre el vidrio no gira la cámara ni mueve la página; la jaladera sigue abriendo la puerta.
+
+## Pruebas (12)
+`/home/claude/f12/flow12.py` (vidrio que se limpia en celular y computadora, escala térmica dentro del visor y más
+ligera, sombras al girar y al abrir, resolución dinámica, «Por dentro» y liberador, cotas centradas, escarcha en lienzo
+y derretir, escáner con transformaciones, calculadora retirada, USDZ < 6 MB, video a 60 cuadros sin saltos ni
+repetidos) y la cadena de regresión de las fases anteriores (con las pruebas de la calculadora cambiadas a «ya no está»).

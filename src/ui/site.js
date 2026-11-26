@@ -171,7 +171,6 @@ export function mountSite(page) {
         <li><a href="${url('industriales/')}"${page === 'industriales' ? ' aria-current="page"' : ''}><b>Industriales</b> <span>Compara las tres y elige</span></a></li>
         <li><a href="${url('componentes/')}"${page === 'componentes' ? ' aria-current="page"' : ''}><b>Componentes</b> <span>Piezas de repuesto con su número</span></a></li>
         <li><a href="${url('componentes/')}#encuentra"><b>¿Qué pieza es?</b> <span>Toca la puerta y encuéntrala</span></a></li>
-        <li><a href="${url('fuga-de-frio/')}"${page === 'fuga' ? ' aria-current="page"' : ''}><b>Calcula tu ahorro</b> <span>Cuánto ahorras en luz con la puerta cerrada</span></a></li>
         <li><a href="${url('cotizar/')}"${page === 'cotizar' ? ' aria-current="page"' : ''}><b>Cotizar</b> <span data-menu-count>Tu solicitud</span></a></li>
       </ul>
       <p class="menu__c"><a href="mailto:${contacto.correo}">${contacto.correo}</a><a href="tel:${contacto.telefono.replace(/[^+\d]/g, '')}">${contacto.telefono}</a></p>
@@ -226,6 +225,14 @@ export function mountSite(page) {
   }
   // enlace del código QR de «Verla en tu espacio»: abre la vista en el celular
   if (/[?&]ar=/.test(location.search)) import('./ar.js').then((m) => m.arFromUrl()).catch(() => {});
+  // Fase 12 · al tocar (o pasar el cursor por) un botón que abre la vista 3D o la cámara, se empiezan a bajar el visor y el
+  // modelo de esa puerta: el toque llega ~0.1–0.3 s después y la vista abre antes. data-warm="abatible|corrediza|vaiven|cds"
+  const warm = (e) => {
+    const b = e.target.closest && e.target.closest('[data-warm], [data-3d], [data-ar]'); if (!b) return;
+    const fam = b.dataset.warm || (b.closest('[data-fam]') || {}).dataset?.fam; if (fam) import('./ar.js').then((m) => m.warmAR(fam)).catch(() => {});
+  };
+  document.addEventListener('pointerdown', warm, { passive: true, capture: true });
+  document.addEventListener('pointerover', (e) => { if (e.pointerType === 'mouse') warm(e); }, { passive: true });
   // Fase 10I · caché en el teléfono (solo en el sitio publicado; en pruebas automáticas, con ?sw=1)
   if (import.meta.env.PROD && 'serviceWorker' in navigator && (!navigator.webdriver || /[?&]sw=1/.test(location.search))) {
     addEventListener('load', () => navigator.serviceWorker.register(url('sw.js'), { scope: url('') }).catch(() => {}));

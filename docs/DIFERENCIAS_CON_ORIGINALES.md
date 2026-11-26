@@ -355,7 +355,7 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
   - Se agregan dos cosas que no son de las puertas: una marca invisible en el piso real de la corrediza y las franjas rígidas para el ajuste a la medida.
 - **Ajuste a la medida (`src/ui/arResize.js`):** sustituye la escala uniforme de 10J. Es una aproximación visual: las piezas reales pueden cambiar de cantidad o posición según la medida (p. ej. una tercera bisagra en puertas altas).
 - **iPhone (`src/ui/usdzAnim.js`):** copia del exportador USDZ de three.js r169 (MIT) con línea de tiempo (traslación, giro y escala por cuadro, a 12 cuadros por segundo). Los materiales sin sombreado pasan a estándar con brillo propio.
-- **Calculadora de fuga de frío:** método de Gosney y Olama (ASHRAE) con supuestos explícitos (COP y protección); no son datos de ST.
+- **Calculadora de fuga de frío:** método de Gosney y Olama (ASHRAE) con supuestos explícitos (COP y protección); no son datos de ST. *(Retirada en la Fase 12.)*
 
 
 ## Fase 11
@@ -370,3 +370,14 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
   referencia está tomada de lado. Comparación: `docs/capturas/fase11b-chapa.png`.
 - **Chapa y liberador (11C):** rehechos con las fotos de frente, de lado y de adentro que mandó ST (ver
   `docs/capturas/fase11c-chapa.png`). La llave de la foto no se modela.
+
+
+## Fase 12
+- **Vista térmica:** el ruido 3D usa una textura de 256 × 256 en vez de un hash; más rango de color con la puerta cerrada y
+  la hoja cerrada algo más fresca que el muro (ilustrativo, sin cifras).
+- **CDS:** el vaho del vidrio de afuera lleva un mapa que el dedo limpia (`fog.wipe` en `src/viewers/cds.js`); se
+  vuelve a empañar con el tiempo. Es una ilustración, no un dato de ST.
+- **Modelo de la cámara de la abatible:** se volvió a exportar solo para guardar dónde queda el liberador
+  (`interior.punto` en `src/data/ar.json`); la geometría es la misma.
+- **USDZ (iPhone):** se juntan los vértices repetidos (`mergeVertices`) y se escriben 6 cifras en puntos y 4 en normales.
+- **Video de la CDS del Inicio:** 60 cuadros por segundo, cuadros exactos (mismo modelo y misma toma).

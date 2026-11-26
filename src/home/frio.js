@@ -5,6 +5,7 @@
 //   (El recorrido automático de 60 s de la 11B se quitó: ST no lo quería literal.)
 // No toca el diseño de las secciones: solo se monta encima.
 import '../styles/frio.css';
+import { url } from '../ui/site.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -33,20 +34,20 @@ export function mountFrio() {
 
   // ---------- termómetro ----------
   const th = document.createElement('div');
-  th.className = 'thermo';
+  th.className = 'ftermo';
   th.innerHTML = `
-    <button type="button" class="thermo__btn" aria-expanded="false" aria-controls="thermoList" aria-label="30°C: termómetro del recorrido, Afuera. Toca para ver los capítulos">
-      <span class="thermo__tube" aria-hidden="true"><i class="thermo__hg"></i>${chs.map((c) => `<b style="--y:${((30 - c.t) / 50).toFixed(3)}"></b>`).join('')}</span>
-      <span class="thermo__bulb" aria-hidden="true"></span>
-      <span class="thermo__read" aria-hidden="true"><b>30</b>°C</span>
+    <button type="button" class="ftermo__btn" aria-expanded="false" aria-controls="ftermoList" aria-label="30°C: termómetro del recorrido, Afuera. Toca para ver los capítulos">
+      <span class="ftermo__tube" aria-hidden="true"><i class="ftermo__hg"></i>${chs.map((c) => `<b style="--y:${((30 - c.t) / 50).toFixed(3)}"></b>`).join('')}</span>
+      <span class="ftermo__bulb" aria-hidden="true"></span>
+      <span class="ftermo__read" aria-hidden="true"><b>30</b>°C</span>
     </button>
-    <div class="thermo__panel" id="thermoList" hidden>
-      <p class="thermo__h">Baja a −20 °C</p>
-      <ol class="thermo__list">${chs.map((c, i) => `<li><button type="button" data-ch="${i}"><span class="thermo__t">${c.t > 0 ? c.t : c.t === 0 ? '0' : '−' + Math.abs(c.t)}°</span><span>${c.name}</span></button></li>`).join('')}</ol>
+    <div class="ftermo__panel" id="ftermoList" hidden>
+      <p class="ftermo__h">Baja a −20 °C</p>
+      <ol class="ftermo__list">${chs.map((c, i) => `<li><button type="button" data-ch="${i}"><span class="ftermo__t">${c.t > 0 ? c.t : c.t === 0 ? '0' : '−' + Math.abs(c.t)}°</span><span>${c.name}</span></button></li>`).join('')}</ol>
     </div>`;
   document.body.append(th);
   const fl = frostLayer({ tip: matchMedia('(pointer: coarse)').matches ? 'Bajo cero: toca la escarcha y tu dedo la derrite.' : 'Bajo cero: pasa el cursor por la escarcha y se derrite.' });
-  const btn = $('.thermo__btn', th), panel = $('.thermo__panel', th), read = $('.thermo__read b', th);
+  const btn = $('.ftermo__btn', th), panel = $('.ftermo__panel', th), read = $('.ftermo__read b', th);
 
   let tops = [], lastT = 30, crossed = false, ticking = false, idle = 0;
   const measure = () => { tops = chs.map((c) => top(c.el)); };
@@ -65,6 +66,7 @@ export function mountFrio() {
     th.style.setProperty('--k', k.toFixed(4));
     const r = Math.round(T); read.textContent = r < 0 ? `−${-r}` : `${r}`;
     th.classList.toggle('is-cold', T < 0);
+    if (T < 6) preloadFrost();                                  // la escarcha llega bajo 0 °C: su textura se pide antes
     fl.set(clamp(-T / 20));
     if (Math.round(lastT) !== r || !btn.dataset.l) { btn.dataset.l = 1; btn.setAttribute('aria-label', `${read.textContent}°C: termómetro del recorrido, ${chs[chapterAt(scrollY)].name}. Toca para ver los capítulos`); }
     // al cruzar 0 °C, un toque de vibración (si el teléfono lo permite)
@@ -98,20 +100,59 @@ export function mountFrio() {
 
 // ---------- escarcha que tu dedo derrite (Fase 11C; también en las páginas de puerta) ----------
 // Una capa fija en las orillas de la pantalla. Donde tocas (o pasas el cursor) se derrite en un círculo y vuelve a
-// congelarse poco a poco. Son capas de máscara sobre la misma escarcha: sin canvas y sin estorbar al scroll.
+// congelarse poco a poco.
+// Fase 12 · antes era un div con dos texturas SVG de ruido (feTurbulence) y máscaras CSS: el teléfono volvía a calcular
+// el ruido al repintar (al aparecer o esconderse la barra del navegador, al derretir) y en Android se trababa. Ahora es
+// un lienzo: la textura se genera una vez (en mosaico, ~10 ms) y solo se vuelve a pintar al derretir o al girar la
+// pantalla. Su intensidad es la opacidad del lienzo, que la anima la tarjeta gráfica sin repintar nada. La textura es
+// una imagen ya hecha (~50 KB) que se pide al acercarse a 0 °C.
+// textura ya hecha (scripts/build-escarcha.py): se pide una vez y el navegador la decodifica fuera del hilo principal
+let tileReady = null;
+export function preloadFrost() {
+  if (!tileReady) {
+    const img = new Image(); img.decoding = 'async'; img.src = url('img/frio/escarcha.webp');
+    tileReady = (img.decode ? img.decode() : new Promise((res, rej) => { img.onload = res; img.onerror = rej; })).then(() => img).catch(() => null);
+  }
+  return tileReady;
+}
 export function frostLayer({ tip = '' } = {}) {
-  const frost = document.createElement('div'); frost.className = 'frost is-off'; frost.setAttribute('aria-hidden', 'true'); document.body.append(frost);
-  const holes = [], EDGE = 'radial-gradient(ellipse 74% 70% at 50% 50%, transparent 60%, #000 98%)';
-  let level = 0, mRaf = 0, hinted = false, shown = false;
+  const frost = document.createElement('canvas'); frost.className = 'frost is-off'; frost.setAttribute('aria-hidden', 'true'); document.body.append(frost);
+  const g = frost.getContext('2d');
+  const R = Math.min(devicePixelRatio || 1, 2);
+  const holes = [];
+  let level = 0, mRaf = 0, hinted = false, shown = false, W = 0, H = 0, pat = null, cw = 0, ch = 0;
   try { hinted = sessionStorage.getItem('st.frio.hint') === '1'; } catch { /* sin almacenamiento */ }
+  // óvalo con degradado (las orillas): como radial-gradient(ellipse rx% ry% at 50% 50%, …)
+  const oval = (rx, ry, stops) => {
+    g.save(); g.setTransform(W * rx, 0, 0, H * ry, W / 2, H / 2);
+    const gr = g.createRadialGradient(0, 0, 0, 0, 0, 1); stops.forEach(([o, c]) => gr.addColorStop(o, c));
+    g.fillStyle = gr; g.fillRect(-0.5 / rx, -0.5 / ry, 1 / rx, 1 / ry); g.restore();
+  };
+  const size = () => {
+    // a lo alto se toma la pantalla con la barra del navegador escondida (100lvh): al aparecer o esconderse no se repinta
+    const w = innerWidth, h = Math.max(innerHeight, document.documentElement.clientHeight, frost.getBoundingClientRect().height || 0);
+    if (Math.abs(w - cw) < 2 && Math.abs(h - ch) < h * 0.15) return false;
+    cw = w; ch = h; W = frost.width = Math.round(w * R); H = frost.height = Math.round(h * R); return true;
+  };
   const paint = () => {
-    mRaf = 0; const now = performance.now();
+    mRaf = 0; if (level === 0) return;
+    const now = performance.now();
     for (let i = holes.length - 1; i >= 0; i--) if (now - holes[i].t > 2600) holes.splice(i, 1);
-    const layers = holes.map((h) => { const k = clamp((now - h.t) / 2600), r = 64 * (1 - k * k); return `radial-gradient(circle at ${h.x}px ${h.y}px, transparent ${(r * 0.55).toFixed(1)}px, #000 ${(r + 18).toFixed(1)}px)`; });
-    const m = [...layers, EDGE].join(', ');
-    frost.style.webkitMaskImage = m; frost.style.maskImage = m;
-    frost.style.webkitMaskComposite = holes.length ? 'source-in' : ''; frost.style.maskComposite = holes.length ? 'intersect' : '';
-    if (holes.length) mRaf = requestAnimationFrame(paint);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, W, H);
+    oval(0.8, 0.75, [[0, 'rgba(214,240,248,0)'], [0.62, 'rgba(214,240,248,0)'], [1, 'rgba(214,240,248,.42)']]);
+    if (pat) { g.save(); g.scale(R, R); g.fillStyle = pat; g.fillRect(0, 0, W / R, H / R); g.restore(); }   // el mosaico va en px de CSS
+    g.globalCompositeOperation = 'destination-in';
+    oval(0.74, 0.7, [[0, 'rgba(0,0,0,0)'], [0.6, 'rgba(0,0,0,0)'], [0.98, '#000'], [1, '#000']]);
+    if (holes.length) {
+      g.globalCompositeOperation = 'destination-out';
+      holes.forEach((h) => {
+        const k = Math.min(1, (now - h.t) / 2600), r = 64 * (1 - k * k) * R, x = h.x * R, y = h.y * R, r0 = r * 0.55, r1 = r + 18 * R;
+        const gr = g.createRadialGradient(x, y, r0, x, y, r1); gr.addColorStop(0, '#000'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = gr; g.beginPath(); g.arc(x, y, r1, 0, Math.PI * 2); g.fill();
+      });
+      mRaf = requestAnimationFrame(paint);
+    }
+    g.globalCompositeOperation = 'source-over';
   };
   const melt = (x, y) => {
     if (level < 0.05) return;                                     // solo si hay escarcha
@@ -130,11 +171,19 @@ export function frostLayer({ tip = '' } = {}) {
     const f = v ? addEventListener : removeEventListener;
     f('touchstart', onTouch, { passive: true }); f('touchmove', onTouch, { passive: true }); f('pointermove', onMouse, { passive: true });
   };
+  addEventListener('resize', () => { if (level > 0 && size() && !mRaf) mRaf = requestAnimationFrame(paint); });
   // la primera vez que se escarcha, una pista
   const tipEl = document.createElement('p'); tipEl.className = 'frost-tip'; tipEl.setAttribute('role', 'status'); document.body.append(tipEl);
   const set = (v) => {
     v = clamp(v); if (Math.abs(v - level) < 0.012 && !(v === 0 && level > 0)) return;   // menos cambios de estilo
-    level = v; frost.style.setProperty('--frost', level.toFixed(3)); frost.classList.toggle('is-off', level === 0); listen(level >= 0.05);
+    const was = level; level = v;
+    if (level > 0 && was === 0) {
+      frost.classList.remove('is-off'); size(); paint();
+      if (!pat) preloadFrost().then((img) => { if (img && !pat) { pat = g.createPattern(img, 'repeat'); if (level > 0 && !mRaf) mRaf = requestAnimationFrame(paint); } });
+    }
+    frost.style.opacity = (level * 0.8).toFixed(3);
+    if (level === 0) frost.classList.add('is-off');
+    listen(level >= 0.05);
     if (tip && !shown && !hinted && level > 0.25) { shown = true; tipEl.textContent = tip; tipEl.classList.add('is-on'); setTimeout(() => tipEl.classList.remove('is-on'), 4200); }
   };
   return { el: frost, set, melt, holes, get level() { return level; } };

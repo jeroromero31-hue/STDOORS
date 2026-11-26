@@ -165,9 +165,20 @@ export function mountCdsExtras({ viewer, live, door }) {
       <div class="chips" role="group" aria-label="Modelo">${MODELOS.map((m) => `<button class="chip" data-hm="${m.id}" aria-pressed="false">${m.nombre}</button>`).join('')}</div>
       <label class="humid__l" for="hr">Humedad del lugar <output id="hrOut" for="hr">80 %</output></label>
       <input class="humid__r" type="range" id="hr" min="30" max="100" step="1" value="80">
-      <p class="humid__res" aria-live="polite"></p>`;
-    const hr = $('#hr', box), out = $('#hrOut', box), res = $('.humid__res', box);
-    let active = false;
+      <p class="humid__res" aria-live="polite"></p>
+      <p class="humid__wipe" hidden></p>`;
+    const hr = $('#hr', box), out = $('#hrOut', box), res = $('.humid__res', box), wipeP = $('.humid__wipe', box);
+    let active = false, tEnd = 0, fogged = false;
+    // Fase 12 · el vidrio empañado se limpia con el dedo y vuelve a empañarse: entre más humedad le sobre al modelo, más rápido
+    const wipeMsg = (txt) => { wipeP.hidden = !txt; wipeP.textContent = txt || ''; };
+    const onWipe = (ev) => {
+      if (ev === 'end') tEnd = performance.now();
+      if (ev === 'fogged' && fogged) {
+        const m = model(), s = Math.max(1, Math.round((performance.now() - tEnd) / 1000));
+        const mejor = MODELOS.filter((x) => x.proteccion > m.proteccion && x.proteccion >= +hr.value).sort((a, b) => a.proteccion - b.proteccion)[0];
+        wipeMsg(`Se volvió a empañar en unos ${s} s.${mejor ? ` La ${mejor.nombre}, con resistencia en el vidrio, se mantiene clara con ${hr.value} %.` : ''}`);
+      }
+    };
     const model = () => { const c = $('#swatches .chip[aria-pressed=true]'); return MODELOS.find((m) => m.id === (c ? c.dataset.o : 'advanced')) || MODELOS[0]; };
     const update = () => {
       const m = model(), h = +hr.value, f = Math.max(0, Math.min(1, (h - m.proteccion) / 22));
@@ -178,6 +189,10 @@ export function mountCdsExtras({ viewer, live, door }) {
         : `La ${m.nombre} tiene ${m.proteccion} % de protección contra la humedad: con ${h} % el vidrio sigue claro.`;
       res.classList.toggle('is-fog', f > 0);
       viewer.fog.set(active ? (f > 0 ? 0.25 + 0.75 * f : 0) : 0);
+      const was = fogged; fogged = active && f > 0;
+      if (viewer.fog.wipe) viewer.fog.wipe(fogged, { seconds: 12 - 7 * f, onEvent: onWipe });
+      if (fogged && !was) wipeMsg(matchMedia('(pointer: coarse)').matches ? 'Límpialo: pasa el dedo de lado a lado por el vidrio empañado.' : 'Límpialo: pasa el mouse con el botón apretado por el vidrio empañado.');
+      if (!fogged) wipeMsg('');
     };
     hr.addEventListener('input', update);
     $$('[data-hm]', box).forEach((b) => { b.onclick = () => { const c = $(`#swatches .chip[data-o="${b.dataset.hm}"]`); if (c && c.getAttribute('aria-pressed') !== 'true') c.click(); update(); }; });

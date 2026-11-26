@@ -45,6 +45,16 @@ window.frame = (k) => {
   stage.invalidate(2);
   return new Promise((r) => setTimeout(r, 120));
 };
+// Fase 12 · cuadro exacto: se dibuja aquí mismo y se lee el lienzo en la misma tarea. Antes se tomaba captura de la
+// pantalla después de esperar: un cuadro salió en blanco y otros repetidos, y en el teléfono se veía como un tirón.
+window.shot = (k) => {
+  stage.renderer.setAnimationLoop(null);          // aquí se dibuja a mano: el bucle solo duplicaría el trabajo
+  window.frame(k);
+  stage.controls.update(); stage.scene.updateMatrixWorld(); stage.camera.updateMatrixWorld();
+  stage.renderer.shadowMap.needsUpdate = true;   // el mapa de sombras se actualiza solo en el bucle del escenario
+  stage.renderer.render(stage.scene, stage.camera);
+  return stage.renderer.domElement.toDataURL('image/png');
+};
 window.__cds = cds;
 window.posterShot = () => {
   const v = cds.views.general(stage);

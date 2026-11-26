@@ -119,7 +119,7 @@ ST_PAQUETE=/ruta/al/paquete npm run verificar    # solo verifica las dos
 ## Estructura
 
 ```
-index.html, industriales/…, cds/, componentes/, cotizar/, fuga-de-frio/   páginas (cada index.html es una entrada)
+index.html, industriales/…, cds/, componentes/, cotizar/   páginas (cada index.html es una entrada; fuga-de-frio/ solo manda al Inicio)
 lab/materiales.html      calibración de materiales (interna, noindex)
 lab/sistema.html         guía del sistema de diseño (interna, noindex)
 src/styles/tokens.css    colores, tipo, espacio, radios y movimiento

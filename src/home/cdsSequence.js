@@ -1,4 +1,6 @@
 // CDS en el Inicio: la puerta central abre y se queda a 90°, tomada del modelo 3D del sitio.
+// Fase 12 · el video se volvió a dibujar a 60 cuadros por segundo con cuadros exactos (el anterior tenía un cuadro en
+// blanco y un salto de encuadre a medio abrir, y dos cuadros repetidos al final: eso era el tirón).
 // Fase 10H · antes era una secuencia de imágenes que seguía al scroll y en el celular se trababa (cada cuadro se
 // decodificaba al vuelo). Ahora es un video corto (scripts/build-cds-video.py, 3 s, ~0.3 MB) que el teléfono
 // reproduce con su decodificador: arranca solo cuando la imagen llega a la pantalla, se queda en la puerta abierta
@@ -28,17 +30,19 @@ export function mountSequence(section, media) {
   const again = box.querySelector('.cds-seq__again');
   let fmt = null, played = false, near = false, raf = 0;
 
+  let shownA = -1, shownOn = null;
   const showAngle = () => {
+    // solo se toca el texto cuando cambia (cada cambio obliga a volver a acomodar esa parte de la página)
     const a = Math.round(angleAt(v.currentTime, v.duration));
-    roVal.textContent = `${a}°`; roTxt.textContent = a >= 90 ? 'Se queda abierta' : 'Puerta central';
-    ro.classList.toggle('is-on', played);
+    if (a !== shownA) { shownA = a; roVal.textContent = `${a}°`; const t = a >= 90 ? 'Se queda abierta' : 'Puerta central'; if (roTxt.textContent !== t) roTxt.textContent = t; }
+    if (played !== shownOn) { shownOn = played; ro.classList.toggle('is-on', played); }
   };
   const tick = () => { showAngle(); raf = v.paused || v.ended ? 0 : requestAnimationFrame(tick); };
 
   // Fase 10J · el iPhone no descarga un video por adelantado (ignora «preload»): empezaba a bajarlo al reproducir y se
   // detenía a cargar a media apertura. Ahora el video completo (~0.4 MB) se descarga antes, en segundo plano, y se
   // reproduce desde la memoria del teléfono: ya no hay pausas por red. Si la descarga falla, se usa el video normal.
-  const typeOk = (x) => v.canPlayType(x === 'mp4' ? 'video/mp4; codecs="avc1.640020"' : 'video/webm; codecs="vp9"');
+  const typeOk = (x) => v.canPlayType(x === 'mp4' ? 'video/mp4; codecs="avc1.640029"' : 'video/webm; codecs="vp9"');
   let ready = false, want = false, blobUrl = '', loading = null;
   const markReady = () => { ready = true; if (want && !played) play(); };
   v.addEventListener('canplaythrough', markReady);

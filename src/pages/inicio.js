@@ -33,7 +33,8 @@ const curtain = intro(firstVisit ? $('#intro') : null, { onOpen: () => { if (fir
 // grano fino de película sobre la escena (se genera aquí: no se descarga nada)
 try {
   const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), img = g.createImageData(160, 160);
-  for (let i = 0; i < img.data.length; i += 4) { const v = 96 + Math.random() * 64; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+  // Fase 12 · el grano ya lleva su transparencia (5 %): va en el mismo fondo que la viñeta, una capa menos sobre el 3D
+  for (let i = 0; i < img.data.length; i += 4) { const v = 96 + Math.random() * 64; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 13; }
   g.putImageData(img, 0, 0); hx.style.setProperty('--grain', `url(${c.toDataURL()})`);
 } catch { /* sin grano */ }
 

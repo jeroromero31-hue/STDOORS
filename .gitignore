@@ -5,3 +5,4 @@ dist/
 # pruebas de la Fase 9
 scripts/qa/capturas_qa/
 scripts/qa/auditoria.json
+__pycache__/

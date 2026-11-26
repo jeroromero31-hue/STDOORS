@@ -38,7 +38,7 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 .hx__dot { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--c-cyan); background: rgba(22, 185, 203, .28); box-shadow: 0 0 0 5px rgba(22, 185, 203, .16); }
 .hx__wire { position: absolute; top: -.5px; width: 44px; height: 1px; background: var(--c-cyan); }
 .hx__label { position: absolute; top: -17px; display: flex; align-items: baseline; gap: 10px; width: max-content; max-width: min(44vw, 300px); padding: 8px 12px; border-radius: 2px;
-  background: rgba(5, 47, 73, .9); color: var(--c-on-navy); font-size: var(--t-xs); font-weight: var(--w-medium); line-height: 1.3; backdrop-filter: blur(6px); }
+  background: rgba(5, 47, 73, .93); color: var(--c-on-navy); font-size: var(--t-xs); font-weight: var(--w-medium); line-height: 1.3; }   /* sin desenfoque: se mueve sobre el 3D en cada cuadro */
 .hx__label b { color: var(--c-cyan); font-variant-numeric: tabular-nums; font-size: var(--t-sm); }
 .hx__tag[data-side="l"] .hx__wire { right: 7px; }
 .hx__tag[data-side="l"] .hx__label { right: 51px; }
@@ -301,11 +301,10 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 @keyframes intro-fuera { to { visibility: hidden; } }
 
 /* ---------- grano y viñeta sobre la escena 3D ---------- */
-.hx__fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1400ms var(--ease-out);
-  background: radial-gradient(120% 90% at 62% 45%, transparent 58%, rgba(8, 32, 48, .10) 100%); }
-.hx__fx::after { content: ""; position: absolute; inset: 0; background-image: var(--grain); background-size: 160px; opacity: .05; }
+.hx__fx { --grain-l: var(--grain, linear-gradient(transparent, transparent)); position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1400ms var(--ease-out);
+  background: var(--grain-l) 0 0 / 160px, radial-gradient(120% 90% at 62% 45%, transparent 58%, rgba(8, 32, 48, .10) 100%); }
 /* en teléfonos el círculo de luz alrededor de la puerta lo da esta viñeta (la escena no lleva reflector) */
-@media (pointer: coarse) { .hx__fx { background: radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
+@media (pointer: coarse) { .hx__fx { background: var(--grain-l) 0 0 / 160px, radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
 .hx__gl.is-ready + .hx__fx { opacity: 1; }
 
 
@@ -346,9 +345,14 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 .scan__door.is-on { opacity: 1; visibility: visible; transition: opacity 400ms var(--ease-out); }
 .scan__door picture, .scan__door img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .scan__door img { object-fit: cover; border-radius: 18px; }
-.scan__n { clip-path: inset(calc(var(--cut) * 100%) 0 0 0); transform: scale(calc(.94 + .06 * var(--in))); transform-origin: 50% 60%; }
+/* Fase 12 · la imagen normal se recorta desde arriba moviendo su marco hacia abajo y la imagen hacia arriba lo mismo:
+   son dos transformaciones que la tarjeta gráfica aplica sin volver a pintar la imagen (antes, clip-path la repintaba
+   en cada cuadro del scroll). La línea también baja con una transformación (antes cambiaba «top»). */
+.scan__n { overflow: hidden; transform: scale(calc(.94 + .06 * var(--in))) translate3d(0, calc(var(--cut) * 100%), 0); transform-origin: 50% 60%; will-change: transform; }
+.scan__n img { transform: translate3d(0, calc(var(--cut) * -100%), 0); will-change: transform; }
 .scan__x { transform: scale(calc(.94 + .06 * var(--in))); transform-origin: 50% 60%; }
-.scan__line { position: absolute; z-index: 3; left: -12px; right: -12px; top: calc(var(--cut) * 100%); height: 2px; pointer-events: none; opacity: 0; transition: opacity 250ms;
+.scan__lw { position: absolute; z-index: 3; left: -12px; right: -12px; top: 0; height: 100%; pointer-events: none; transform: translate3d(0, calc(var(--cut) * 100%), 0); will-change: transform; }
+.scan__line { position: absolute; left: 0; right: 0; top: 0; height: 2px; pointer-events: none; opacity: 0; transition: opacity 250ms;
   background: linear-gradient(90deg, transparent, #9fe8f2 12%, #fff 50%, #9fe8f2 88%, transparent); box-shadow: 0 0 24px 6px rgba(30, 143, 224, .6), 0 0 2px 1px #fff; }
 .scan__line.is-on { opacity: 1; }
 .scan__line span { position: absolute; right: 16px; top: 8px; font-size: var(--t-xs); font-weight: var(--w-bold); color: #9fe8f2; }
@@ -390,6 +394,6 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
 .scan--static .scan__pin { position: relative; height: auto; }
 .scan--static .scan__stage { display: grid; gap: var(--s-5); }
 .scan--static .scan__door { grid-area: auto; opacity: 1; visibility: visible; height: auto; width: min(100%, 640px); }
-.scan--static .scan__n, .scan--static .scan__line { display: none; }
+.scan--static .scan__n, .scan--static .scan__lw { display: none; }
 .scan__tag span::before { content: ''; position: absolute; left: -9px; top: calc(50% - var(--dy, 0px) / 2 - 0.5px); width: 9px; height: 1px; background: rgba(159, 232, 242, .6); }
 .scan__tag.is-l span::before { left: auto; right: -9px; }

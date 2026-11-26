@@ -37,11 +37,14 @@ const glslStops = THERMAL_STOPS.map((h) => {
 const fragmentShader = /* glsl */ `
   uniform float uTime; uniform float uWallZ; uniform float uFloorY; uniform int uN; uniform vec4 uOpen[${MAX}]; uniform float uTop[${MAX}]; uniform float uSemi;
   varying vec3 vW; varying vec3 vN;
-  float h3(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+  uniform sampler2D uNoise;
+  // Fase 12 · ruido 3D con una sola lectura de textura (antes: 8 cálculos de hash por llamada). Cada rebanada en z es la
+  // misma textura corrida (37, 17); el canal verde trae la rebanada siguiente, así que basta mezclar los dos canales.
   float noise(vec3 x) {
     vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mix(h3(i), h3(i + vec3(1, 0, 0)), f.x), mix(h3(i + vec3(0, 1, 0)), h3(i + vec3(1, 1, 0)), f.x), f.y),
-               mix(mix(h3(i + vec3(0, 0, 1)), h3(i + vec3(1, 0, 1)), f.x), mix(h3(i + vec3(0, 1, 1)), h3(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+    vec2 uv = (i.xy + vec2(37.0, 17.0) * i.z) + f.xy;
+    vec2 rg = texture2D(uNoise, (uv + 0.5) / 256.0).rg;
+    return mix(rg.x, rg.y, f.z);
   }
   float fbm(vec3 p) { return 0.55 * noise(p) + 0.3 * noise(p * 2.03 + 7.1) + 0.15 * noise(p * 4.1 + 3.7); }
   vec3 palette(float t) {
@@ -56,8 +59,11 @@ const fragmentShader = /* glsl */ `
   void main() {
     vec3 p = vW, n = normalize(vN);
     float dz = p.z - uWallZ, y = p.y - uFloorY;
-    // ambiente: un poco más tibio arriba (el aire caliente sube) y con algo de variación en las superficies
-    float t = 0.74 + 0.08 * clamp(y / 2.6, 0.0, 1.0) + 0.05 * (fbm(p * 1.7) - 0.5);
+    // ambiente: más tibio arriba (el aire caliente sube) y el piso más fresco; con algo de variación en las superficies.
+    // Fase 12: más rango (antes todo quedaba naranja con la puerta cerrada)
+    float up = smoothstep(0.0, 2.8, y);
+    float t = 0.6 + 0.21 * up + 0.07 * (fbm(p * 1.7) - 0.5);
+    t -= 0.07 * smoothstep(0.55, 0.95, n.y) * (1.0 - up);
     // detrás del muro: la cámara fría
     t = mix(t, 0.07 + 0.05 * fbm(p * 3.0 + uTime * 0.05), smoothstep(-0.02, -0.22, dz));
     float cold = 0.0;
@@ -76,6 +82,15 @@ const fragmentShader = /* glsl */ `
       // hacia afuera: llega más lejos con la puerta más abierta
       float lz = exp(-d / (0.55 + 2.4 * a)) * smoothstep(-0.25, 0.05, dz);
       cold = max(cold, a * lx * ly * lz * (0.55 + 0.9 * flow));
+    }
+    // la hoja cerrada: del otro lado está la cámara fría, así que se ve algo más fresca que el muro (y más abajo que arriba)
+    for (int i = 0; i < ${MAX}; i++) {
+      if (i >= uN) break;
+      vec4 o = uOpen[i]; float shut = 1.0 - clamp(o.z * 4.0, 0.0, 1.0); if (shut < 0.01) continue;
+      float inX = smoothstep(o.x - 0.01, o.x + 0.01, p.x) * (1.0 - smoothstep(o.y - 0.01, o.y + 0.01, p.x));
+      float inY = 1.0 - smoothstep(uTop[i] - 0.01, uTop[i] + 0.02, y);
+      float inZ = smoothstep(-0.06, -0.02, dz) * (1.0 - smoothstep(0.24, 0.3, dz));
+      t -= (1.0 - uSemi) * shut * inX * inY * inZ * (0.09 + 0.05 * (1.0 - y / max(uTop[i], 0.5)));   // la vaivén tiene lo suyo abajo
     }
     t = mix(t, 0.1, clamp(cold * 1.35, 0.0, 1.0));
     // puerta semi aislante (vaivén): la hoja cerrada deja pasar algo de frío (se ve más fresca que el muro) y por la junta
@@ -101,12 +116,28 @@ const fragmentShader = /* glsl */ `
     gl_FragColor = vec4(palette(t) * shade, 1.0);
   }`;
 
+// textura de ruido (256 × 256): rojo al azar y verde = el rojo corrido (37, 17), para el ruido 3D de arriba
+let noiseTex = null;
+function noiseTexture() {
+  if (noiseTex) return noiseTex;
+  const N = 256, r = new Uint8Array(N * N), d = new Uint8Array(N * N * 4);
+  let seed = 1234567;
+  for (let i = 0; i < r.length; i++) { seed = (seed * 1103515245 + 12345) >>> 0; r[i] = (seed >>> 16) & 255; }
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const k = (y * N + x) * 4; d[k] = r[y * N + x]; d[k + 1] = r[((y + 17) & 255) * N + ((x + 37) & 255)]; d[k + 3] = 255;
+  }
+  noiseTex = new THREE.DataTexture(d, N, N, THREE.RGBAFormat);
+  noiseTex.wrapS = noiseTex.wrapT = THREE.RepeatWrapping; noiseTex.magFilter = noiseTex.minFilter = THREE.LinearFilter;
+  noiseTex.generateMipmaps = false; noiseTex.colorSpace = THREE.NoColorSpace; noiseTex.needsUpdate = true;
+  return noiseTex;
+}
+
 export function createThermal(stage, spec) {
   const uOpen = Array.from({ length: MAX }, () => new THREE.Vector4());
   const uTop = new Array(MAX).fill(2);
   const mat = new THREE.ShaderMaterial({
     vertexShader, fragmentShader, toneMapped: false, side: THREE.DoubleSide,
-    uniforms: { uTime: { value: 0 }, uWallZ: { value: spec.wallZ || 0 }, uFloorY: { value: spec.floorY || 0 }, uN: { value: 0 }, uOpen: { value: uOpen }, uTop: { value: uTop }, uSemi: { value: spec.semi ? 1 : 0 } },
+    uniforms: { uTime: { value: 0 }, uWallZ: { value: spec.wallZ || 0 }, uFloorY: { value: spec.floorY || 0 }, uN: { value: 0 }, uOpen: { value: uOpen }, uTop: { value: uTop }, uSemi: { value: spec.semi ? 1 : 0 }, uNoise: { value: noiseTexture() } },
   });
   mat.name = 'VistaTermica';
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -126,11 +157,12 @@ export function createThermal(stage, spec) {
       uOpen[i].set(o.x0, o.x1, shown[i], 0); uTop[i] = o.top;
     });
     mat.uniforms.uTime.value = reduced.matches ? 0 : (now - t0) / 1000;
-    // la corriente se mueve: se dibuja cada cuadro mientras está activa; en calidad baja (teléfonos), a 30 cuadros por
-    // segundo: la corriente se ve igual y el teléfono se calienta menos
-    if (stage.quality === 'baja' && now - lastDraw < 31) return;
+    // la corriente se mueve: se dibuja cada cuadro mientras está activa. En teléfonos y equipos modestos, a 30 cuadros
+    // por segundo: la corriente se ve igual y el teléfono se calienta menos (Fase 12: antes solo en calidad baja)
+    if ((coarse || stage.quality !== 'alta') && now - lastDraw < 31) return;
     lastDraw = now; stage.invalidate(2);
   });
+  const coarse = matchMedia('(pointer: coarse)').matches;
 
   return {
     material: mat,
@@ -145,6 +177,11 @@ export function createThermal(stage, spec) {
       } else if (saved) {
         s.overrideMaterial = null; s.background = saved.bg; s.fog = saved.fog; saved = null;
       }
+      // Fase 12 · la imagen de una cámara térmica es suave: se dibuja con menos píxeles (hasta 1.25× en el teléfono) y
+      // sin mapa de sombras (este material no usa luces). Al salir se regresa todo.
+      stage.cap = on ? (coarse ? 1.25 : 1.5) : 0; stage.shadowsPaused = on;
+      if (!on && stage.shadowsDirty) stage.shadowsDirty();
+      if (stage.applyRatio) stage.applyRatio();
       stage.invalidate(6);
     },
   };

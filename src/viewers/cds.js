@@ -74,15 +74,27 @@ export function createCDS(stage) {
   const fogMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f7, roughness: 0.92, metalness: 0, transparent: true, opacity: 0.94, alphaMap: fogMap, depthWrite: false, side: THREE.DoubleSide });
   fogMat.name = 'Vaho';
   const fogU = { value: 0 };
+  // Fase 12 · «Límpialo con el dedo»: un mapa por puerta (las tres lado a lado) donde el dedo deja el vidrio limpio;
+  // blanco = limpio. Con el tiempo se vuelve a empañar, más rápido entre más humedad le sobre al modelo.
+  const WP = { w: 64, h: 150 }, wipeCv = document.createElement('canvas'); wipeCv.width = WP.w * doors.length; wipeCv.height = WP.h;
+  const wipeG = wipeCv.getContext('2d'); wipeG.fillStyle = '#000'; wipeG.fillRect(0, 0, wipeCv.width, wipeCv.height);
+  const wipeTex = new THREE.CanvasTexture(wipeCv); wipeTex.colorSpace = THREE.NoColorSpace; wipeTex.generateMipmaps = false; wipeTex.minFilter = THREE.LinearFilter;
+  const wipeU = { value: wipeTex };
   fogMat.onBeforeCompile = (sh) => {
-    sh.uniforms.uFog = fogU;
-    sh.fragmentShader = 'uniform float uFog;\n' + sh.fragmentShader.replace('#include <alphamap_fragment>',
-      'float fogM = texture2D( alphaMap, vAlphaMapUv ).g; diffuseColor.a *= smoothstep( 1.0 - uFog - 0.12, 1.0 - uFog + 0.06, fogM ) * step( 0.001, uFog );');
+    sh.uniforms.uFog = fogU; sh.uniforms.uWipe = wipeU;
+    sh.vertexShader = 'attribute vec2 wipeUv;\nvarying vec2 vWipeUv;\n' + sh.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\n\tvWipeUv = wipeUv;');
+    sh.fragmentShader = 'uniform float uFog;\nuniform sampler2D uWipe;\nvarying vec2 vWipeUv;\n' + sh.fragmentShader.replace('#include <alphamap_fragment>',
+      'float fogM = texture2D( alphaMap, vAlphaMapUv ).g; float wipeM = texture2D( uWipe, vWipeUv ).r;\n' +
+      'diffuseColor.a *= smoothstep( 1.0 - uFog - 0.12, 1.0 - uFog + 0.06, fogM ) * step( 0.001, uFog ) * ( 1.0 - smoothstep( 0.12, 0.7, wipeM ) );');
   };
-  doors.forEach((d) => {
+  const fogMeshes = doors.map((d, i) => {
     const f = d.panes.front, p = f.geometry.parameters;
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(p.width - 0.004, p.height - 0.004), fogMat);
-    m.position.z = p.depth / 2 + 0.0008; m.renderOrder = 12; m.name = 'Vaho'; m.raycast = () => {}; f.add(m);   // no estorba al tomar la jaladera
+    const g = new THREE.PlaneGeometry(p.width - 0.004, p.height - 0.004), uv = g.attributes.uv, wu = new Float32Array(uv.count * 2);
+    for (let k = 0; k < uv.count; k++) { wu[k * 2] = (i + uv.getX(k)) / doors.length; wu[k * 2 + 1] = uv.getY(k); }
+    g.setAttribute('wipeUv', new THREE.BufferAttribute(wu, 2));
+    const m = new THREE.Mesh(g, fogMat);
+    m.position.z = p.depth / 2 + 0.0008; m.renderOrder = 12; m.name = 'Vaho'; m.userData.bay = i; m.userData.paneW = p.width; m.raycast = () => {}; f.add(m);   // no estorba al tomar la jaladera
+    return m;
   });
   let fogNow = 0, fogGoal = 0;
   stage.onFrame.add((dt) => {
@@ -91,7 +103,72 @@ export function createCDS(stage) {
     fogNow += (fogGoal - fogNow) * k; if (Math.abs(fogGoal - fogNow) < 0.002) fogNow = fogGoal;
     fogU.value = fogNow; if (stage.invalidate) stage.invalidate(2);
   });
-  const fog = { set: (v) => { fogGoal = Math.max(0, Math.min(1, v)); if (stage.invalidate) stage.invalidate(2); }, get value() { return fogGoal; } };
+
+  // trazo del dedo: solo cuando el vidrio está empañado y la página lo permite (paso «Prueba de humedad»)
+  let wipeOn = false, wiping = null, dirty = false, wiped = 0, refog = 8, sinceWipe = 0, wipeCb = null, upAcc = 0;
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), handles = doors.flatMap((d) => d.pickables.filter((m) => m.userData.isHandle));
+  const hitGlass = (e) => {
+    if (!wipeOn || fogNow < 0.08) return null;
+    const r = stage.canvas.getBoundingClientRect();
+    ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, stage.camera);
+    const hits = []; fogMeshes.forEach((m) => THREE.Mesh.prototype.raycast.call(m, ray, hits));
+    if (!hits.length) return null;
+    hits.sort((a, b) => a.distance - b.distance);
+    const grab = ray.intersectObjects(handles, false)[0];               // la jaladera va primero: con ella se abre la puerta
+    if (grab && grab.distance < hits[0].distance + 0.01) return null;
+    return hits[0];
+  };
+  const dab = (h, prev) => {
+    const m = h.object, i = m.userData.bay, x = (i + h.uv.x) * WP.w, y = (1 - h.uv.y) * WP.h;
+    const rad = Math.max(5, 0.05 / m.userData.paneW * WP.w);          // ~5 cm: la yema del dedo con algo de barrido
+    wipeG.save(); wipeG.beginPath(); wipeG.rect(i * WP.w, 0, WP.w, WP.h); wipeG.clip();        // no se pasa a la puerta de al lado
+    const steps = prev && prev.bay === i ? Math.max(1, Math.ceil(Math.hypot(x - prev.x, y - prev.y) / (rad * 0.4))) : 1;
+    for (let s = 1; s <= steps; s++) {
+      const px = prev && prev.bay === i ? prev.x + (x - prev.x) * s / steps : x, py = prev && prev.bay === i ? prev.y + (y - prev.y) * s / steps : y;
+      const gr = wipeG.createRadialGradient(px, py, rad * 0.2, px, py, rad);
+      gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      wipeG.fillStyle = gr; wipeG.fillRect(px - rad, py - rad, rad * 2, rad * 2);
+    }
+    wipeG.restore(); dirty = true; wiped = 1; sinceWipe = 0;
+    return { bay: i, x, y };
+  };
+  const onDown = (e) => {
+    const h = hitGlass(e); if (!h) return;
+    e.stopPropagation(); e.preventDefault();                          // ni gira la cámara ni toma la puerta
+    wiping = { id: e.pointerId, last: dab(h, null) };
+    try { stage.canvas.setPointerCapture(e.pointerId); } catch (_) { /* sin captura en algunos navegadores */ }
+    if (wipeCb) wipeCb('start');
+  };
+  const onMove = (e) => {
+    if (!wiping || e.pointerId !== wiping.id) return;
+    e.stopPropagation();
+    const h = hitGlass(e); if (h) wiping.last = dab(h, wiping.last); else wiping.last = null;
+    if (stage.invalidate) stage.invalidate(2);
+  };
+  const onUp = (e) => { if (!wiping || e.pointerId !== wiping.id) return; wiping = null; if (wipeCb) wipeCb('end'); };
+  // En el teléfono se limpia de lado a lado: el visor deja que el dedo desplace la página hacia arriba y abajo (pan-y), así
+  // que un trazo que empieza de lado limpia y uno que empieza hacia arriba o abajo sigue moviendo la página.
+  const host = stage.canvas.parentElement;
+  host.addEventListener('pointerdown', onDown, { capture: true });
+  host.addEventListener('pointermove', onMove, { capture: true });
+  window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+  stage.onFrame.add((dt) => {
+    if (!wiped) return;
+    sinceWipe += dt; upAcc += dt;
+    if (!wiping && sinceWipe > 0.6 && upAcc > 1 / 15) {               // se vuelve a empañar poco a poco (15 veces por segundo basta)
+      const a = Math.min(0.5, upAcc * 3.2 / refog); upAcc = 0;
+      wipeG.fillStyle = `rgba(0,0,0,${a.toFixed(3)})`; wipeG.fillRect(0, 0, wipeCv.width, wipeCv.height); dirty = true;
+      wiped *= 1 - a;
+      if (wiped < 0.02 || fogGoal === 0) { wipeG.fillStyle = '#000'; wipeG.fillRect(0, 0, wipeCv.width, wipeCv.height); wiped = 0; if (wipeCb) wipeCb('fogged'); }
+    }
+    if (dirty) { wipeTex.needsUpdate = true; dirty = false; if (stage.invalidate) stage.invalidate(2); }
+  });
+  const fog = {
+    set: (v) => { fogGoal = Math.max(0, Math.min(1, v)); if (stage.invalidate) stage.invalidate(2); }, get value() { return fogGoal; },
+    // on: el dedo limpia; seconds: cuánto tarda en volverse a empañar; cb('start'|'end'|'fogged')
+    wipe(on, { seconds = 8, onEvent = null } = {}) { wipeOn = !!on; refog = Math.max(2, seconds); wipeCb = onEvent; },
+    get wiped() { return wiped; },
+  };
 
   // Encuadres: cada uno es una caja que debe quedar completa en el visor, vista desde un ángulo. Así se adaptan a la
   // proporción del visor (escritorio, tableta o celular) en vez de usar la distancia fija del original.

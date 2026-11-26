@@ -31,6 +31,7 @@ export const RANGO = { abatible: { w: [70, 180], h: [180, 300] }, corrediza: { w
 const ICON = {
   open: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h8v14H4zM12 5l4-1.5v13L12 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="10.5" r=".9" fill="currentColor"/></svg>',
   take: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  push: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h9M9 6.5 12.5 10 9 13.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 4v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   cam: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
 };
 let mvLoad = null, sheet = null, lastUrl = '';
@@ -39,26 +40,35 @@ const loadViewer = () => (mvLoad ||= import('@google/model-viewer'));
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-async function readGlb(fam) {
-  if (cache.has(fam)) return cache.get(fam);
-  const r = await fetch(url(`ar/${fam}.glbz`));
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  let buf = await r.arrayBuffer();
-  const h = new Uint8Array(buf, 0, 2);
-  if (h[0] === 0x1f && h[1] === 0x8b) {
-    if (typeof DecompressionStream !== 'function') throw new Error('Este navegador no puede abrir el modelo');
-    buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+// Fase 12 · se guarda la promesa (no solo el resultado): si la vista se «calienta» antes de tocarla, el toque espera la
+// misma descarga en vez de empezar otra
+function readGlb(fam) {
+  if (!cache.has(fam)) {
+    const p = (async () => {
+      const r = await fetch(url(`ar/${fam}.glbz`));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      let buf = await r.arrayBuffer();
+      const h = new Uint8Array(buf, 0, 2);
+      if (h[0] === 0x1f && h[1] === 0x8b) {
+        if (typeof DecompressionStream !== 'function') throw new Error('Este navegador no puede abrir el modelo');
+        buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+      }
+      return buf;
+    })();
+    p.catch(() => cache.delete(fam));
+    cache.set(fam, p);
   }
-  cache.set(fam, buf);
-  return buf;
+  return cache.get(fam);
 }
+// al acercar el dedo (o el cursor) a un botón de «verla en 3D / en tu espacio»: se empiezan a bajar el visor y el modelo
+export function warmAR(fam) { if (!ar.puertas[fam]) return; loadViewer().catch(() => {}); readGlb(fam).catch(() => {}); }
 // iPhone: Quick Look recibe un USDZ que se abre y se cierra cuando tocas la puerta (y, en la CDS, saca el producto que
 // tocas). Nada se repite solo. Se arma aquí, del mismo GLB a la medida y con el acabado elegido, con ./usdzAnim.js (el
 // exportador de three.js con línea de tiempo) y ./usdzTap.js (los comportamientos).
 export const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 export async function buildUSDZ(bytes, meta, fam, opts = {}) {
-  const [THREE, { GLTFLoader }, { USDZAnimExporter }, { tapBehaviors }] = await Promise.all([
-    import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'), import('./usdzAnim.js'), import('./usdzTap.js')]);
+  const [THREE, { GLTFLoader }, { USDZAnimExporter }, { tapBehaviors }, { mergeVertices }] = await Promise.all([
+    import('three'), import('three/examples/jsm/loaders/GLTFLoader.js'), import('./usdzAnim.js'), import('./usdzTap.js'), import('three/examples/jsm/utils/BufferGeometryUtils.js')]);
   const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const gltf = await new GLTFLoader().parseAsync(buf, '');
   const scene = gltf.scene, mixer = new THREE.AnimationMixer(scene);
@@ -72,6 +82,10 @@ export async function buildUSDZ(bytes, meta, fam, opts = {}) {
   const clip = (n) => gltf.animations.find((c) => c.name === n);
   const top = (o) => { let n = o; while (n.parent && n.parent !== scene) n = n.parent; return n.name || ''; };
   const meshes = []; scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  // Fase 12 · el modelo viene con cada triángulo suelto (tres vértices propios): se juntan los vértices iguales. El USDZ
+  // es texto y pesaba ~10 MB en la abatible; así baja a una fracción y el iPhone lo abre antes.
+  const merged = new Map();
+  meshes.forEach((m) => { const g = m.geometry; if (!merged.has(g)) { try { merged.set(g, mergeVertices(g, 1e-5)); } catch { merged.set(g, g); } } m.geometry = merged.get(g); });
   const moving = meshes.filter((m) => /^(mov|prod)/.test(top(m)));
   const matrices = new Map(moving.map((m) => [m, []]));
   // ---------- línea de tiempo por tramos ----------
@@ -145,6 +159,7 @@ export async function openAR(fam, cfg0 = {}) {
           <button type="button" class="btn btn--line arv__toggle" data-toggle aria-pressed="false">${ICON.open}<span>Ábrela</span></button>
           <label class="arv__scrub"><span class="sr-only">Qué tanto se abre</span><input type="range" min="0" max="100" step="1" value="0" data-scrub aria-label="Qué tanto se abre la puerta"></label>
         </div>
+        ${meta.interior ? `<div class="arv__seg arv__side" role="group" aria-label="Lado de la puerta"><button type="button" class="chip" data-side="fuera" aria-pressed="true">Por fuera</button><button type="button" class="chip" data-side="dentro" aria-pressed="false">Por dentro</button></div>` : ''}
         ${fins.length ? `<div class="arv__fin" role="group" aria-label="Acabado">${fins.map((f) => `<button type="button" class="arv__sw arv__sw--${f}" data-fin="${f}" aria-pressed="${f === (acabado || fins[0])}"><i aria-hidden="true"></i><span>${ACABADO_LABEL[f]}</span></button>`).join('')}</div>` : ''}
         ${fam === 'cds' ? `<p class="arv__hint t-small">Toca un <b>+</b> sobre un producto para tomarlo: la puerta se abre, el producto viene hacia ti y regresa a su parrilla.</p>` : `
         <fieldset class="arv__size">
@@ -195,6 +210,7 @@ export async function openAR(fam, cfg0 = {}) {
       <div slot="hotspot-dw" class="arv__dim" data-position="0 0 0" aria-hidden="true"></div>
       <div slot="hotspot-dh" class="arv__dim arv__dim--h" data-position="0 0 0" aria-hidden="true"></div>
       <svg class="arv__lines" aria-hidden="true"><line data-l="w"/><line data-l="h"/></svg>`}
+      ${meta.interior ? `<button type="button" slot="hotspot-lib" class="arv__hs arv__hs--lib" data-position="0 0 0" data-normal="0 0 -1" data-visibility-attribute="visible" data-lib aria-label="Liberador: desde adentro, se empuja y abre">${ICON.push || ''}<span>Liberador: desde adentro, se empuja y abre</span></button>` : ''}
       <p class="arv__took" data-took aria-live="polite"></p>
       <div class="arv__xr" data-xr>
         <p class="arv__xrhint">Muévela con un dedo · gírala con dos</p>
@@ -211,6 +227,7 @@ export async function openAR(fam, cfg0 = {}) {
       const P = (p) => mapPoint(m, p).map((n) => n.toFixed(4)).join(' ');
       const hs = (name, p) => { const h = el.querySelector(`[slot="hotspot-${name}"]`); if (h) h.dataset.position = P(p); };
       hs('abrir', meta.abrir.punto);
+      if (meta.interior) hs('lib', meta.interior.punto);
       if (fam !== 'cds') {
         const L = v.cx - v.w / 2, Rr = v.cx + v.w / 2, z = meta.caja.max[2] + 0.04, F = v.floor, T = v.floor + v.h;
         hs('dw0', [L, F + 0.03, z]); hs('dw1', [Rr, F + 0.03, z]); hs('dw', [v.cx, F + 0.03, z]);
@@ -224,10 +241,11 @@ export async function openAR(fam, cfg0 = {}) {
     const prepIOS = (bytes) => {
       if (!isIOS()) return;
       clearTimeout(tIos);
+      // la primera vez se arma de inmediato (para que el botón de la cámara ya lo tenga); al mover la medida, al soltar
       tIos = setTimeout(async () => {
         try { const blob = await buildUSDZ(bytes, meta, fam); if (iosUrl) URL.revokeObjectURL(iosUrl); iosUrl = URL.createObjectURL(blob); el.setAttribute('ios-src', iosUrl); }
         catch (e) { console.error(e); el.removeAttribute('ios-src'); }            // si falla, el visor arma el suyo (fijo)
-      }, 700);
+      }, iosUrl ? 700 : 0);
     };
     const build = () => {
       const { bytes, map } = resizeGlb(buf, meta, fam, { w: size.w, h: size.h }, acabado);
@@ -345,6 +363,20 @@ export async function openAR(fam, cfg0 = {}) {
       b.onclick = () => { state[key] = b.dataset[attr]; sheet.body.querySelectorAll(`[data-${attr}]`).forEach((x) => x.setAttribute('aria-pressed', String(x === b))); apply(); };
     });
     seg('scale', 'scale', () => el.setAttribute('ar-scale', state.scale));
+    // Fase 12 · «Por dentro»: la cámara pasa del otro lado de la puerta y se acerca al liberador (la manija de emergencia
+    // que trae la abatible por dentro); «Por fuera» regresa a la vista de siempre
+    const ORBIT0 = el.getAttribute('camera-orbit');
+    const side = (inside) => {
+      sheet.body.querySelectorAll('[data-side]').forEach((x) => x.setAttribute('aria-pressed', String((x.dataset.side === 'dentro') === inside)));
+      el.classList.toggle('is-inside', inside);
+      if (inside && meta.interior) {
+        const p = mapPoint(state.map, meta.interior.punto);
+        el.setAttribute('min-camera-orbit', 'auto 20deg 0.9m');
+        el.cameraTarget = `${(p[0] - 0.08).toFixed(3)}m ${(p[1] - 0.04).toFixed(3)}m ${p[2].toFixed(3)}m`; el.cameraOrbit = '194deg 84deg 1.35m';
+      } else { el.cameraTarget = 'auto auto auto'; el.cameraOrbit = ORBIT0; }
+    };
+    sheet.body.querySelectorAll('[data-side]').forEach((b) => { b.onclick = () => side(b.dataset.side === 'dentro'); });
+    const lib = el.querySelector('[data-lib]'); if (lib) lib.onclick = () => side(true);
     seg('place', 'place', () => el.setAttribute('ar-placement', state.place));
 
     // ---------- dentro de la cámara ----------

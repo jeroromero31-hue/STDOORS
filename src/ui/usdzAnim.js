@@ -372,10 +372,10 @@ function buildMesh( geometry ) {
 	{
 		int[] faceVertexCounts = [${ buildMeshVertexCount( geometry ) }]
 		int[] faceVertexIndices = [${ buildMeshVertexIndices( geometry ) }]
-		normal3f[] normals = [${ buildVector3Array( attributes.normal, count )}] (
+		normal3f[] normals = [${ buildVector3Array( attributes.normal, count, 4 )}] (
 			interpolation = "vertex"
 		)
-		point3f[] points = [${ buildVector3Array( attributes.position, count )}]
+		point3f[] points = [${ buildVector3Array( attributes.position, count, 6 )}]
 ${ buildPrimvars( attributes ) }
 		uniform token subdivisionScheme = "none"
 	}
@@ -420,7 +420,9 @@ function buildMeshVertexIndices( geometry ) {
 
 }
 
-function buildVector3Array( attribute, count ) {
+// Fase 12 · cifras significativas: puntos con 6 (décimas de milímetro en una puerta) y normales con 4; el texto pesa menos
+const short = ( v, p ) => { const t = v.toPrecision( p ); return t.indexOf( 'e' ) < 0 && t.indexOf( '.' ) >= 0 ? t.replace( /0+$/, '' ).replace( /\.$/, '' ) : t; };
+function buildVector3Array( attribute, count, precision = PRECISION ) {
 
 	if ( attribute === undefined ) {
 
@@ -437,7 +439,7 @@ function buildVector3Array( attribute, count ) {
 		const y = attribute.getY( i );
 		const z = attribute.getZ( i );
 
-		array.push( `(${ x.toPrecision( PRECISION ) }, ${ y.toPrecision( PRECISION ) }, ${ z.toPrecision( PRECISION ) })` );
+		array.push( `(${ short( x, precision ) }, ${ short( y, precision ) }, ${ short( z, precision ) })` );
 
 	}
 

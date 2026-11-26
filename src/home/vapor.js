@@ -51,7 +51,8 @@ export function createVapor(stage, { count = 140, x = 1.15, y0 = 0.02, y1 = 2.3,
 
   const mat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false,
-    uniforms: { uColor: { value: new THREE.Color(0xeef8fc) }, uOpacity: { value: 0.2 }, uPx: { value: 300 }, uFade: { value: 0 }, uMax: { value: 256 } },
+    // Fase 12 · con menos partículas cada una es un poco más densa: se ve el mismo vaho y se pintan menos píxeles
+    uniforms: { uColor: { value: new THREE.Color(0xeef8fc) }, uOpacity: { value: Math.min(0.34, 0.2 * Math.sqrt(140 / count)) }, uPx: { value: 300 }, uFade: { value: 0 }, uMax: { value: 256 } },
   });
   const points = new THREE.Points(geo, mat); points.name = 'Vaho'; points.renderOrder = 2000; points.frustumCulled = false;
   stage.scene.add(points);

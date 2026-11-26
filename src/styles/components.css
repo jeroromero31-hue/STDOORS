@@ -258,6 +258,7 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 .humid__l output { font-size: var(--t-lg); font-weight: var(--w-heavy); font-variant-numeric: tabular-nums; }
 .humid__r { width: 100%; min-height: 44px; accent-color: var(--c-tech); cursor: pointer; }
 .humid__res { font-size: var(--t-sm); font-weight: var(--w-medium); }
+.humid__wipe { font-size: var(--t-sm); color: var(--c-ink-soft, inherit); margin: 0; }
 
 /* ---------- CDS: galería de instalaciones ---------- */
 .cds-gallery { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--s-3); }
@@ -769,15 +770,23 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 .arv__qr p { margin: 0; }
 .arv__note { margin: 0; }
 /* puntos y cotas sobre el 3D (también dentro de la cámara, en Android) */
-.arv__hs { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; min-width: 40px; padding: 0 14px 0 10px; border: 0; border-radius: 999px; background: rgba(4, 23, 38, .86); color: #fff; font: inherit; font-size: 13px; font-weight: var(--w-bold); cursor: pointer; box-shadow: 0 6px 18px rgba(4, 23, 38, .25); transform: translate(-50%, -50%); --min-hotspot-opacity: .35; }
+.arv__hs { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; min-width: 40px; padding: 0 14px 0 10px; border: 0; border-radius: 999px; background: rgba(4, 23, 38, .86); color: #fff; font: inherit; font-size: 13px; font-weight: var(--w-bold); cursor: pointer; box-shadow: 0 6px 18px rgba(4, 23, 38, .25); --min-hotspot-opacity: .35; }   /* model-viewer ya centra cada punto en su lugar (Fase 12: antes se corría medio tamaño arriba a la izquierda) */
 .arv__hs svg { width: 18px; height: 18px; flex: none; }
 .arv__hs:focus-visible { outline: 3px solid #9fe8f2; outline-offset: 2px; }
+/* Fase 12 · liberador de adentro: solo se ve desde atrás de la puerta (model-viewer marca data-visible si mira a la cámara) */
+.arv__hs--lib { position: relative; background: #0e8f96; width: max-content; max-width: 220px; text-align: left; line-height: 1.25; padding-block: 7px; transform: translateY(calc(-50% - 46px)); }
+.arv__hs--lib::after { content: ""; position: absolute; left: 50%; bottom: -44px; width: 2px; height: 40px; margin-left: -1px; background: #0e8f96; }
+.arv__hs--lib::before { content: ""; position: absolute; left: 50%; bottom: -51px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; border: 2px solid #fff; background: #0e8f96; }
+.arv__hs--lib:not([data-visible]) { opacity: 0 !important; pointer-events: none; }
+model-viewer:not(.is-inside) .arv__hs--lib span { display: none; }
+model-viewer.is-inside .arv__hs--open, model-viewer.is-inside .arv__dim, model-viewer.is-inside .arv__pt, model-viewer.is-inside .arv__lines { opacity: 0 !important; pointer-events: none; transition: opacity 200ms; }
+.arv__side { margin-top: var(--s-2); }
 .arv__hs--p { padding: 0; justify-content: center; width: 40px; background: var(--c-tech); animation: arv-ping 2.4s ease-out infinite; }
 .arv__hs--p:nth-of-type(2n) { animation-delay: .6s; }
 model-viewer.is-taking .arv__hs--p, model-viewer.is-taking .arv__hs--open { opacity: 0 !important; visibility: hidden; pointer-events: none; }
 @keyframes arv-ping { 0% { box-shadow: 0 0 0 0 rgba(30, 143, 224, .55); } 70%, 100% { box-shadow: 0 0 0 14px rgba(30, 143, 224, 0); } }
 .arv__pt { width: 1px; height: 1px; pointer-events: none; opacity: 0; }
-.arv__dim { padding: 3px 8px; border-radius: 6px; background: #fff; color: var(--c-navy); font-size: 12px; font-weight: var(--w-bold); font-variant-numeric: tabular-nums; pointer-events: none; transform: translate(-50%, -50%); box-shadow: 0 2px 8px rgba(4, 23, 38, .18); white-space: nowrap; }
+.arv__dim { padding: 3px 8px; border-radius: 6px; background: #fff; color: var(--c-navy); font-size: 12px; font-weight: var(--w-bold); font-variant-numeric: tabular-nums; pointer-events: none; box-shadow: 0 2px 8px rgba(4, 23, 38, .18); white-space: nowrap; }
 .arv__lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .arv__lines line { stroke: var(--c-tech); stroke-width: 1.5; stroke-dasharray: 5 4; }
 model-viewer.in-ar .arv__lines { display: none; }
