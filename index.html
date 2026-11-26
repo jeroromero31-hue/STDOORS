@@ -5,47 +5,55 @@
 <title>ST Doors — Puertas para cámaras frigoríficas y exhibición Reach-In</title>
 <meta name="description" content="Puertas abatibles y corredizas para cámaras frigoríficas, vaivén semi aislantes y puertas de exhibición Reach-In CDS Legacy. Ábrelas y recórrelas en 3D.">
 <link rel="icon" href="/favicon.png">
-<script>try { if (sessionStorage.getItem('st.intro') || matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('sin-intro'); } catch (e) { document.documentElement.classList.add('sin-intro'); }</script>
 </head>
 <body data-page="inicio">
-<!-- Intro: la marca sobre azul marino; al estar lista la puerta 3D se abre como una vaivén (src/home/cine.js).
-     Si el JavaScript no llega, se quita sola a los 4 s (CSS). Una vez por sesión. -->
-<div class="intro" id="intro" aria-hidden="true">
-  <div class="intro__leaf"></div><div class="intro__leaf"></div>
-  <div class="intro__c"><img src="/img/marca/st-logo-blanco.png" alt="" width="150" height="72"><span class="intro__bar"><i></i></span></div>
-</div>
 <main id="main">
-  <!-- Afuera: la puerta vaivén en 3D. Al bajar, abre y la cámara cruza hacia el interior (src/home/hero.js). -->
+  <!-- Fase 14 · «El umbral». Afuera, el muro y una vaivén de verdad (imágenes del mismo 3D, sin cargar el 3D): al bajar
+       sus hojas abren hacia adentro, sale el vaho frío a ras de piso y cruzas la puerta. Del otro lado no hay una
+       pantalla vacía: están las tres puertas. Las hojas también se empujan con el dedo o el cursor y regresan solas,
+       como una vaivén (src/home/umbral.js). -->
   <section class="hx" id="hx" aria-labelledby="hxTitle">
     <div class="hx__pin">
-      <div class="hx__gl" id="hxGl" aria-hidden="true"></div>
-      <div class="hx__fx" aria-hidden="true"></div>
-      <div class="hx__hud" id="hxHud" aria-hidden="true"></div>
-      <div class="hx__veil" aria-hidden="true"></div>
+      <!-- El texto va pintado en el muro (primero en el orden de lectura; encima de todo con z-index) -->
       <div class="wrap hx__copy">
         <h1 id="hxTitle">El frío se queda de su lado.</h1>
         <p class="hx__lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In. Ábrelas y recórrelas en 3D.</p>
         <p class="row hx__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
       </div>
-      <p class="hx__load" id="hxLoad" aria-hidden="true"><span class="hx__bar"><i></i></span><span>Cargando la puerta en 3D <b>0 %</b></span></p>
-      <p class="hx__read" id="hxRead" aria-hidden="true"><span>Apertura de hoja</span><b>0°</b></p>
-      <div class="hx__thermo" id="hxThermo" aria-hidden="true"><span class="hx__thermo-l"><span>Frío</span><b>Así se ve el frío · vista ilustrativa</b><span>Ambiente</span></span><span class="hx__thermo-bar"></span></div>
-      <p class="hx__cue" aria-hidden="true">Baja para abrir la puerta</p>
+      <!-- Adentro: lo que hay del otro lado de la puerta -->
+      <div class="hx__in" id="adentro">
+        <div class="hx__room" aria-hidden="true"><i class="hx__mist"></i></div>
+        <div class="wrap hx__inT">
+          <h2 id="adentroT">Un solo trabajo: que el frío no se escape.</h2>
+          <p>Hay tres maneras de lograrlo. Toca una para abrirla en 3D.</p>
+        </div>
+        <ul class="hx__row" aria-labelledby="adentroT">
+        <li class="hx__pu" data-door="abatible"><a href="/industriales/abatible/" data-cur="Abrir"><span class="hx__pic" style="--w:523;--h:1008"><img src="/img/umbral/fila-abatible-262.webp" srcset="/img/umbral/fila-abatible-262.webp 262w, /img/umbral/fila-abatible-523.webp 523w" sizes="(min-width: 900px) 24vw, 34vw" width="523" height="1008" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Abatible</b><span>Gira sobre bisagras</span></span></a></li>
+        <li class="hx__pu" data-door="corrediza"><a href="/industriales/corrediza/" data-cur="Abrir"><span class="hx__pic" style="--w:1043;--h:792"><img src="/img/umbral/fila-corrediza-522.webp" srcset="/img/umbral/fila-corrediza-522.webp 522w, /img/umbral/fila-corrediza-1043.webp 1043w" sizes="(min-width: 900px) 24vw, 34vw" width="1043" height="792" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Corrediza</b><span>Corre colgada de un riel</span></span></a></li>
+        <li class="hx__pu" data-door="vaiven"><a href="/industriales/vaiven/" data-cur="Abrir"><span class="hx__pic" style="--w:909;--h:998"><img src="/img/umbral/fila-vaiven-454.webp" srcset="/img/umbral/fila-vaiven-454.webp 454w, /img/umbral/fila-vaiven-909.webp 909w" sizes="(min-width: 900px) 24vw, 34vw" width="909" height="998" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Vaivén</b><span>Abre hacia los dos lados</span></span></a></li>
+        </ul>
+        <p class="hx__cds"><a href="/cds/">¿Es para una tienda? Puertas de exhibición CDS</a></p>
+      </div>
+      <!-- Afuera: muro, piso y la puerta. Se acerca con el scroll hasta que cruzas -->
+      <div class="hx__out" aria-hidden="true">
+        <i class="hx__w" data-w="t"></i><i class="hx__w" data-w="l"></i><i class="hx__w" data-w="r"></i><i class="hx__w hx__floor" data-w="f"></i>
+        <div class="hx__door" style="--ar:2306/2274">
+          <i class="hx__gap"></i><i class="hx__sill"></i>
+          <div class="hx__leaves">
+            <div class="hx__leaf hx__leaf--l" style="left:5.074%;top:4.749%;width:44.883%;height:93.140%"><img src="/img/umbral/vaiven-izq-518.webp" srcset="/img/umbral/vaiven-izq-518.webp 518w, /img/umbral/vaiven-izq-1035.webp 1035w" sizes="(min-aspect-ratio: 9/8) and (min-width: 700px) 30vw, 44vw" alt="" fetchpriority="high" decoding="async"><i class="hx__sheen"></i><i class="hx__shade"></i></div>
+            <div class="hx__leaf hx__leaf--r" style="left:50.043%;top:4.749%;width:44.883%;height:93.140%"><img src="/img/umbral/vaiven-der-518.webp" srcset="/img/umbral/vaiven-der-518.webp 518w, /img/umbral/vaiven-der-1035.webp 1035w" sizes="(min-aspect-ratio: 9/8) and (min-width: 700px) 30vw, 44vw" alt="" fetchpriority="high" decoding="async"><i class="hx__sheen"></i><i class="hx__shade"></i></div>
+          </div>
+          <img class="hx__frame" src="/img/umbral/vaiven-marco-1153.webp" srcset="/img/umbral/vaiven-marco-1153.webp 1153w, /img/umbral/vaiven-marco-2306.webp 2306w" sizes="(min-aspect-ratio: 9/8) and (min-width: 700px) 62vw, 96vw" alt="" fetchpriority="high" decoding="async">
+          <div class="hx__spill"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="hx__veil" aria-hidden="true"><i></i><i></i></div>
+      <p class="hx__cue" aria-hidden="true">Baja para entrar</p>
     </div>
   </section>
 
   <!-- Adentro: lo que sigue es el interior de la cámara -->
   <div class="inside surface-navy">
-    <!-- Una frase que se ilumina palabra por palabra con el scroll -->
-    <section class="say" id="say" aria-labelledby="sayText">
-      <div class="say__pin">
-        <div class="wrap">
-          <h2 class="say__text" id="sayText">Una puerta de cámara frigorífica tiene un solo trabajo: que el frío no se escape. Hay tres maneras de lograrlo.</h2>
-          <p class="say__lead">Cada una se puede abrir, girar y ver por dentro en 3D, pieza por pieza.</p>
-        </div>
-      </div>
-    </section>
-
     <!-- Una puerta por capítulo. La foto se descubre abriéndose como esa puerta: gira, corre o se separa al centro. -->
     <section class="ch" data-door="abatible" aria-labelledby="chAbatible">
       <div class="ch__pin">

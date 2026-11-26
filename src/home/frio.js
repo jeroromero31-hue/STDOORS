@@ -14,8 +14,7 @@ const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
 // capítulos: sección, nombre, temperatura y qué hacer en el recorrido (seg: segundos recorriendo, hold: segundos quieto)
 const CHAPTERS = [
-  { sel: '#hx', name: 'Afuera', t: 30, cap: 'Afuera hace 30 °C. La vaivén se abre y entras a la cámara.', seg: 9, hold: 0.6, through: true },
-  { sel: '#say', name: 'Un solo trabajo', t: 18, cap: 'Un solo trabajo: que el frío se quede adentro.', seg: 3.5, hold: 0.8, through: true },
+  { sel: '#hx', name: 'La puerta', t: 30, cap: 'Afuera hace 30 °C. La vaivén se abre y entras a la cámara.', seg: 9, hold: 0.6, through: true },
   { sel: '.ch[data-door=abatible]', name: 'Abatible', t: 8, cap: 'Abatible: para cámaras de refrigeración y congelación.', seg: 2.2, hold: 2.4 },
   { sel: '.ch[data-door=corrediza]', name: 'Corrediza', t: 4, cap: 'Corrediza: para vanos anchos y paso de montacargas.', seg: 2, hold: 2.4 },
   { sel: '.ch[data-door=vaiven]', name: 'Vaivén', t: 1, cap: 'Vaivén: cocinas y pasillos; abre a los dos lados.', seg: 2, hold: 2.4 },

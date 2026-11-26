@@ -381,3 +381,12 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
   (`interior.punto` en `src/data/ar.json`); la geometría es la misma.
 - **USDZ (iPhone):** se juntan los vértices repetidos (`mergeVertices`) y se escriben 6 cifras en puntos y 4 en normales.
 - **Video de la CDS del Inicio:** 60 cuadros por segundo, cuadros exactos (mismo modelo y misma toma).
+
+## Fase 14
+- **Liberador de adentro (abatible):** a su tamaño real según ST y sus fotos: caja de 14.5 × 9 × 5.8 cm con la parte de
+  arriba doblada sobre un pliegue en «V», placa vertical con dos tornillos, palanca «PUSH» de 7.2 × 9.6 cm con las dos
+  esquinas del lado de la caja cortadas y lengüeta hasta antes del empaque. Se movió 2.2 cm hacia el centro de la hoja
+  para que la lengüeta no se meta en el empaque. El modelo de la cámara se volvió a exportar.
+- **Entrada del Inicio:** la vaivén ya no es el visor 3D sino tres imágenes del mismo modelo (inoxidable, de frente),
+  que giran con CSS 3D; la apertura de hoja llega a 92° (tope, de canto) en vez de los 63° del original, porque aquí
+  la vista cruza la puerta. El vaho es una ilustración.

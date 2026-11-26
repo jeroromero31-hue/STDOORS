@@ -56,7 +56,7 @@ function seo() {
 
 // Fase 10I · el modelo 3D empieza a bajar junto con el JavaScript: <link rel="preload"> al .binz de cada puerta
 // (y al de la vaivén en el Inicio). Solo en el build, cuando ya se conoce el nombre con su huella.
-const PRELOAD = { 'industriales/corrediza/': 'corrediza', 'industriales/vaiven/': 'vaiven', '': 'vaiven' };
+const PRELOAD = { 'industriales/corrediza/': 'corrediza', 'industriales/vaiven/': 'vaiven' };   // Fase 14: el Inicio ya no carga 3D
 function preloadModels() {
   return {
     name: 'st-preload-models',

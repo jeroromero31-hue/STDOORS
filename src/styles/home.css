@@ -1,8 +1,9 @@
 /* Inicio: un recorrido que cruza la puerta.
    VOZ      industrial y precisa, frases cortas, solo datos de catálogo.
-   IDEA     la cámara frigorífica: afuera es el muro blanco; al bajar se abre la puerta y se entra al interior azul marino.
-   IMAGEN   la vaivén en 3D a pantalla completa; después, cada foto se descubre abriéndose como su propia puerta.
-   COLOR    muro #FBFCFD afuera, azul marino #052F49 adentro, cian solo para señalar piezas y lecturas.
+   IDEA     la cámara frigorífica: afuera es el muro blanco; al bajar se abre la vaivén, sale el vaho y se cruza a la
+            cámara fría, clara, donde están las tres puertas (Fase 14). Más adelante, los capítulos sobre azul marino.
+   IMAGEN   la vaivén de frente, con hojas que giran y se empujan; después, cada foto se descubre abriéndose como su puerta.
+   COLOR    muro #FBFCFD afuera, hielo #EEF5F8 al cruzar, azul marino #052F49 en los capítulos, cian solo para lecturas.
    TIPO     Outfit (Nexa cuando haya licencia): 800 muy grande y apretado para nombres; 400 para leer; cifras tabulares.
    Todo lo que se mueve imita cómo se mueve una puerta. Con «movimiento reducido» cada escena queda en su estado final. */
 
@@ -10,108 +11,157 @@ body[data-page="inicio"] { padding-top: 0 !important; }
 .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 
-/* ---------- entrada 3D ---------- */
-.hx { position: relative; background: var(--c-wall); color: var(--c-ink); }
-.hx--live { height: 250svh; }
-.hx__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; }
+/* ---------- Fase 14 · entrada: «el umbral» ----------
+   Afuera: el muro, el piso y la vaivén (tres imágenes del mismo 3D). umbral.js acomoda las piezas del muro alrededor
+   de la puerta: el vano queda libre y por ahí se ve adentro. Al bajar, las hojas abren (CSS 3D), sale el vaho blanco a
+   ras de piso, el muro crece hasta que cruzas el vano en una bocanada de vaho y queda la cámara fría, clara, con las
+   tres puertas. Sin azul marino ni pantallas vacías; menos de una pantalla de recorrido. */
+.hx { --fb: 132px; --top: 300px; --dw: min(94vw, 58svh); --persp: 900px; --run: 90svh; position: relative; background: var(--c-wall); color: var(--c-ink); }
+.hx--live { height: calc(100svh + var(--run)); }
+.hx__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
 .hx--live .hx__pin { position: sticky; top: 0; }
-.hx__gl { position: absolute; inset: 0; opacity: 0; transition: opacity 1400ms var(--ease-out); }
-.hx__gl.is-ready, .hx--still .hx__gl { opacity: 1; }
-.hx__gl canvas { width: 100%; height: 100%; }
-.hx__gl picture, .hx__gl img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; }
-.hx--still .hx__gl::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(251, 252, 253, .94) 0 34%, rgba(251, 252, 253, 0) 62%); }
 
-.hx__copy { position: absolute; inset: 0 0 auto 0; z-index: 3; display: grid; align-content: center; gap: clamp(16px, 2.4vh, 28px); height: 100%; padding-top: var(--nav-h);
-  opacity: var(--title, 1); transform: translateY(calc((1 - var(--title, 1)) * -36px)); pointer-events: none; }
+/* ----- adentro: la cámara fría ----- */
+.hx__in { position: absolute; inset: 0; z-index: 0; display: flex; flex-direction: column; color: var(--c-ink); background: #EEF5F8; transform-origin: 50% 50%; }
+.hx--live:not(.is-set) .hx__in { visibility: hidden; }
+.hx--live .hx__in { will-change: transform; }
+.hx--live .hx__in.is-here { will-change: auto; }
+.hx__room { --fl: 89%; --pj: 26vw; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(80% 42% at 50% 0%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 72%),
+    linear-gradient(180deg, transparent calc(var(--fl) - 2px), rgba(12, 38, 54, .12) calc(var(--fl) - 2px) var(--fl), transparent var(--fl)),
+    linear-gradient(180deg, transparent var(--fl), #DDE9EF var(--fl), #F3F8FA 100%),
+    repeating-linear-gradient(90deg, rgba(12, 38, 54, 0) 0 calc(var(--pj) - 1px), rgba(12, 38, 54, .06) calc(var(--pj) - 1px) var(--pj)),
+    linear-gradient(180deg, #F5FAFC, #E6F0F4 var(--fl)); }
+/* vaho quieto a ras del piso de adentro */
+.hx__mist { position: absolute; left: -12%; right: -12%; top: calc(var(--fl) - 15%); height: 27%; background: var(--vaho-banco, none) center bottom / 100% 100% no-repeat; opacity: .5; }
+.hx__inT { position: relative; z-index: 1; display: grid; gap: 10px; justify-items: start; padding-top: calc(var(--nav-h) + clamp(12px, 2.6vh, 32px)); }
+.hx__inT h2 { font-size: clamp(2rem, 1.1rem + 3.9vw, 4.6rem); line-height: .98; letter-spacing: -0.035em; max-width: 13ch; }
+.hx__inT p { margin: 0; font-size: var(--t-md); color: var(--c-ink-soft); max-width: 34ch; }
+.hx__cds { position: relative; z-index: 1; margin: 0; padding: 14px max(var(--pad-x), 52px) 0 var(--pad-x); font-size: var(--t-sm); }
+.hx__cds a { display: inline-flex; align-items: center; min-height: 44px; color: var(--c-tech); font-weight: var(--w-medium); text-underline-offset: .22em; }
+/* las tres puertas: en el teléfono una lista (puerta a la izquierda, nombre a la derecha) */
+.hx__row { position: relative; z-index: 1; list-style: none; margin: clamp(10px, 2.6vh, 28px) 0 0; padding: 0 max(var(--pad-x), 52px) 0 var(--pad-x); display: grid; }
+.hx__pu a { display: grid; grid-template-columns: clamp(104px, 34vw, 150px) minmax(0, 1fr); align-items: end; gap: 16px; padding: 9px 0; color: inherit; text-decoration: none; border-bottom: 1px solid rgba(12, 38, 54, .1); }
+.hx__pu:first-child a { border-top: 1px solid rgba(12, 38, 54, .1); }
+.hx__pic { position: relative; height: clamp(84px, 15svh, 150px); display: flex; align-items: flex-end; justify-content: center; }
+.hx__pic img { position: relative; z-index: 1; display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; transition: transform 400ms var(--ease-out); }
+.hx__pic::after { content: ""; position: absolute; left: 4%; right: 4%; bottom: -6px; height: 12px; border-radius: 50%; background: radial-gradient(closest-side, rgba(12, 38, 54, .26), rgba(12, 38, 54, 0)); }
+.hx__pt { display: grid; gap: 2px; padding-bottom: 8px; }
+.hx__pt b { font-size: var(--t-xl); font-weight: var(--w-heavy); letter-spacing: -0.02em; line-height: 1.05; }
+.hx__pt > span { font-size: var(--t-sm); color: var(--c-ink-soft); }
+.hx__pu a:hover .hx__pic img, .hx__pu a:focus-visible .hx__pic img { transform: translateY(-5px); }
+.hx__pu a:focus-visible { outline: 3px solid var(--c-tech); outline-offset: 4px; border-radius: 6px; }
+/* desde tableta: las tres de pie sobre el piso, a escala entre ellas, con su nombre en el piso */
+@media (min-width: 700px) {
+  .hx__room { --fl: 76%; --pj: 12vw; }
+  .hx__row { --ppm: min(11svh, calc((100vw - 2 * var(--pad-x) - 8vw) / 7)); position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 24%; margin: 0; padding: 0; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 4vw; }
+  .hx__pu a { position: relative; display: block; padding: 0; border: 0 !important; }
+  .hx__pic { height: calc(var(--m, 2.4) * var(--ppm)); }
+  .hx__pu[data-door="abatible"] { --m: 2.07; }
+  .hx__pu[data-door="corrediza"] { --m: 2.75; }
+  .hx__pu[data-door="vaiven"] { --m: 2.53; }
+  .hx__pt { position: absolute; left: 50%; top: calc(100% + 16px); width: max-content; max-width: 16rem; transform: translateX(-50%); justify-items: center; text-align: center; padding: 0; }
+  .hx__inT p { font-size: var(--t-lg); }
+  .hx__cds { position: absolute; left: 0; right: 0; bottom: 7%; padding: 0 var(--pad-x); text-align: center; }
+}
+/* horizontal: el título a la izquierda (alineado con el menú) y las puertas a la derecha */
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .hx__room { --fl: 74%; --pj: 9.5vw; }
+  .hx__in { --wl: max(0px, (100vw - var(--max)) / 2); --colw: min(36rem, 34vw); }
+  .hx__inT { position: absolute; left: 0; right: 0; top: 0; bottom: 26%; align-content: center; gap: 16px; padding-top: var(--nav-h); }
+  .hx__inT > * { max-width: var(--colw); }
+  .hx__row { --ppm: min(10.6svh, calc((100vw - var(--wl) - var(--pad-x) - var(--colw) - 3vw - var(--pad-x) - 6vw) / 7)); left: calc(var(--wl) + var(--pad-x) + var(--colw) + 3vw); bottom: 26%; gap: 3vw; }
+  .hx__cds { top: 74%; bottom: auto; max-width: var(--max); margin-inline: auto; padding: 18px var(--pad-x) 0; text-align: left; }
+}
+
+/* ----- afuera: muro, piso y puerta ----- */
+.hx__out { position: absolute; inset: 0; z-index: 1; }
+.hx--live .hx__out { will-change: transform; }
+.hx__w { position: absolute; left: 0; top: 0; width: 0; height: 0; display: block; background: radial-gradient(78% 64% at 56% 32%, #FFFFFF 0%, #F8FAFB 46%, #ECF0F3 100%); }
+.hx__floor { background: linear-gradient(180deg, #D9DFE3 0, #E7EBEE 22%, #F1F3F5 100%) !important; }
+.hx__door { position: absolute; left: 0; right: 0; bottom: var(--fb); width: var(--dw); margin-inline: auto; aspect-ratio: var(--ar); touch-action: pan-y; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.hx:not(.is-ready) .hx__door { background: var(--c-wall); }
+/* sombra de contacto sobre el piso y sombra suave del marco sobre el muro */
+.hx__door::before { content: ""; position: absolute; left: -3%; right: -3%; bottom: -3.4%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(12, 38, 54, .34), rgba(12, 38, 54, 0)); }
+.hx__door::after { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: 0 24px 60px -28px rgba(12, 38, 54, .45); pointer-events: none; }
+.hx__gap { position: absolute; left: 6%; right: 6%; top: 26%; bottom: 0; opacity: 0; pointer-events: none;
+  background: var(--vaho-nube, none) 50% 72% / 92% auto no-repeat, var(--vaho-banco, none) 50% 100% / 100% 64% no-repeat; }
+.hx__leaves { position: absolute; inset: 0; perspective: var(--persp); perspective-origin: 50% 46%; }
+/* bajo las hojas (holgura de 2 cm) se ve el piso de adentro, no lo que hay más allá */
+.hx__sill { position: absolute; left: 4.5%; right: 4.5%; top: 97.4%; bottom: 0; background: linear-gradient(180deg, #CFDCE3, #E4EDF1); pointer-events: none; }
+.hx__leaf { position: absolute; overflow: hidden; -webkit-backface-visibility: hidden; backface-visibility: hidden; cursor: grab; }
+.hx--live .hx__leaf { will-change: transform; }
+.hx__leaf--l { transform-origin: 0 50%; }
+.hx__leaf--r { transform-origin: 100% 50%; }
+.hx__leaf img { display: block; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+.hx__shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(90deg, rgba(10, 30, 42, .16), rgba(10, 30, 42, .64)); }
+.hx__leaf--r .hx__shade { background: linear-gradient(270deg, rgba(10, 30, 42, .16), rgba(10, 30, 42, .64)); }
+.hx__sheen { position: absolute; top: -8%; bottom: -8%; width: 58%; opacity: 0; pointer-events: none; background: linear-gradient(98deg, rgba(255, 255, 255, 0) 15%, rgba(255, 255, 255, .36) 50%, rgba(255, 255, 255, 0) 85%); }
+.hx__leaf--l .hx__sheen { left: 0; transform: translate3d(-110%, 0, 0); }
+.hx__leaf--r .hx__sheen { right: 0; transform: translate3d(110%, 0, 0); }
+.hx__frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+/* el aire frío pesa: sale a ras de piso y se extiende hacia ti */
+.hx__spill { position: absolute; z-index: 2; left: -34%; right: -34%; bottom: -13%; height: 44%; opacity: .16; pointer-events: none; transform-origin: 50% 100%; }
+.hx--live .hx__spill { will-change: transform, opacity; }
+.hx__spill i { position: absolute; inset: 0; background: var(--vaho-banco, none) 50% 100% / 100% 100% no-repeat; }
+.hx__spill i:nth-child(2) { inset: 16% 8% -2% 18%; }
+.hx__spill i:nth-child(3) { inset: 34% 22% -8% 16%; opacity: .8; }
+
+/* la bocanada de vaho al cruzar el vano */
+.hx__veil { position: absolute; inset: -8%; z-index: 2; opacity: 0; visibility: hidden; pointer-events: none;
+  background: radial-gradient(62% 56% at 50% 52%, rgba(255, 255, 255, .97), rgba(245, 250, 252, .9) 58%, rgba(236, 245, 249, .74)); }
+.hx__veil i { position: absolute; inset: 0; background: var(--vaho-nube, none) 50% 50% / 80% auto no-repeat; }
+.hx__veil i:nth-child(2) { background-position: 26% 72%; background-size: 110% auto; }
+
+/* ----- el texto, pintado en el muro ----- */
+.hx__copy { position: absolute; inset: 0 0 auto 0; z-index: 3; display: grid; align-content: center; gap: clamp(16px, 2.4vh, 28px); height: 100%; padding-top: var(--nav-h); pointer-events: none; }
 .hx__copy > * { pointer-events: auto; }
+.hx--live .hx__copy { will-change: transform, opacity; }
 .hx h1 { font-size: clamp(2.75rem, 0.9rem + 6.2vw, 7.4rem); line-height: .94; letter-spacing: -0.038em; max-width: 8.4ch; }
 .hx__lead { margin: 0; font-size: var(--t-lg); color: var(--c-ink-soft); max-width: 31ch; }
 .hx__cta { gap: var(--s-3); }
-/* primera visita: lo demás del texto llega después del título */
-html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(.is-shown) .hx__cta { opacity: 0; transform: translateY(14px); }
-.hx__lead, .hx__cta { transition: opacity 700ms var(--ease-out) 420ms, transform 900ms cubic-bezier(.2, .8, .2, 1) 420ms; }
-.hx__cta { transition-delay: 560ms; }
-.hx.is-past .hx__copy { visibility: hidden; }   /* ya no se ve: tampoco se puede enfocar ni tocar */
-
-.hx__hud { position: absolute; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; }
-.hx__tag { position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
-.hx__dot { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--c-cyan); background: rgba(22, 185, 203, .28); box-shadow: 0 0 0 5px rgba(22, 185, 203, .16); }
-.hx__wire { position: absolute; top: -.5px; width: 44px; height: 1px; background: var(--c-cyan); }
-.hx__label { position: absolute; top: -17px; display: flex; align-items: baseline; gap: 10px; width: max-content; max-width: min(44vw, 300px); padding: 8px 12px; border-radius: 2px;
-  background: rgba(5, 47, 73, .93); color: var(--c-on-navy); font-size: var(--t-xs); font-weight: var(--w-medium); line-height: 1.3; }   /* sin desenfoque: se mueve sobre el 3D en cada cuadro */
-.hx__label b { color: var(--c-cyan); font-variant-numeric: tabular-nums; font-size: var(--t-sm); }
-.hx__tag[data-side="l"] .hx__wire { right: 7px; }
-.hx__tag[data-side="l"] .hx__label { right: 51px; }
-.hx__tag[data-side="r"] .hx__wire { left: 7px; }
-.hx__tag[data-side="r"] .hx__label { left: 51px; }
-
-.hx__legend { display: none; }
-@media (max-width: 599px) {
-  .hx__label { padding: 5px 8px; gap: 0; }
-  .hx__label > span { display: none; }
-  .hx__wire { width: 22px; }
-  .hx__tag[data-side="l"] .hx__label { right: 29px; }
-  .hx__tag[data-side="r"] .hx__label { left: 29px; }
-  .hx__legend { display: grid; gap: 6px; position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: max(20px, env(safe-area-inset-bottom)); margin: 0; padding: 14px 16px; list-style: none;
-    background: rgba(5, 47, 73, .92); color: var(--c-on-navy); border-radius: 2px; font-size: var(--t-xs); font-weight: var(--w-medium); }
-  .hx__legend li { display: grid; grid-template-columns: 2rem 1fr; }
-  .hx__legend b { color: var(--c-cyan); font-variant-numeric: tabular-nums; }
-}
-.hx__read { position: absolute; z-index: 3; left: var(--pad-x); bottom: clamp(24px, 5vh, 48px); margin: 0; display: grid; gap: 2px; visibility: hidden; color: var(--c-ink); }
-.hx__read span { font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--c-ink-soft); }
-.hx__read b { font-size: clamp(2.5rem, 1.6rem + 3vw, 4.5rem); font-weight: var(--w-heavy); line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-
-.hx__load { position: absolute; z-index: 3; left: 50%; top: 64%; transform: translate(-50%, -50%); margin: 0; display: grid; justify-items: center; gap: 10px;
-  font-size: var(--t-xs); color: var(--c-ink-soft); transition: opacity 500ms var(--ease-out); }
-.hx__load b { font-weight: var(--w-bold); color: var(--c-ink); font-variant-numeric: tabular-nums; }
-.hx__bar { display: block; width: 140px; height: 2px; background: var(--c-line); overflow: hidden; }
-.hx__bar i { display: block; height: 100%; width: calc(var(--k, 0) * 100%); background: var(--c-navy); transition: width 200ms linear; }
-.hx__load.is-done { opacity: 0; pointer-events: none; }
-.hx__cue { position: absolute; z-index: 3; left: 50%; bottom: 22px; transform: translateX(-50%); margin: 0; display: grid; justify-items: center; gap: 8px;
-  font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--c-ink-soft); opacity: var(--cue, 1); }
+.hx__cue { position: absolute; z-index: 3; left: var(--pad-x); bottom: 22px; margin: 0; display: grid; justify-items: start; gap: 8px; font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--c-ink-soft); pointer-events: none; }
 .hx__cue::after { content: ""; width: 1px; height: 28px; background: linear-gradient(var(--c-ink-soft), transparent); }
 .hx:not(.hx--live) .hx__cue { display: none; }
-@media (min-aspect-ratio: 9/8) and (min-width: 700px) { .hx__cue { left: var(--pad-x); transform: none; justify-items: start; } }
-.hx__veil { position: absolute; inset: 0; z-index: 4; background: var(--c-navy); opacity: var(--veil, 0); pointer-events: none; }
-
-/* horizontal: el título a la izquierda y la puerta a la derecha */
+/* horizontal: el título a la izquierda y la puerta a la derecha, de pie sobre el piso */
 @media (min-aspect-ratio: 9/8) and (min-width: 700px) {
-  .hx__load { left: 67%; top: 52%; }
+  .hx__door { left: auto; right: max(var(--pad-x), 4vw); margin: 0; bottom: 8%; }
 }
 /* vertical: título arriba, puerta al centro, botones abajo */
 @media (max-aspect-ratio: 9/8), (max-width: 699px) {
   .hx__copy { align-content: start; padding-top: calc(var(--nav-h) + clamp(12px, 3vh, 32px)); gap: 12px; }
   .hx h1 { font-size: clamp(2.5rem, 1.2rem + 7vw, 4.5rem); max-width: 10ch; }
   .hx__lead { font-size: var(--t-md); max-width: 34ch; }
-  .hx__cta { position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: max(20px, env(safe-area-inset-bottom)); }
-  .hx__cta { align-items: stretch; }
+  .hx__cta { position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: max(20px, env(safe-area-inset-bottom)); align-items: stretch; }
   .hx__cta .btn { flex: 1 1 0; padding-inline: var(--s-3); }
   .hx__cue { display: none; }
-  .hx__read { bottom: auto; top: calc(var(--nav-h) + 20px); }
-  .hx--still .hx__gl::after { background: linear-gradient(180deg, rgba(251, 252, 253, .95) 0 38%, rgba(251, 252, 253, 0) 60%, rgba(251, 252, 253, 0) 80%, rgba(251, 252, 253, .9)); }
 }
+/* el vaho se mueve solo mientras hay vaho (puerta abierta o recién cerrada) y la entrada está a la vista; en reposo
+   no hay nada animándose (la batería no se gasta mientras lees) */
 @media (prefers-reduced-motion: no-preference) {
-  .hx__dot { animation: pulso 2.4s var(--ease-inout) infinite; }
-  @keyframes pulso { 0%, 100% { box-shadow: 0 0 0 5px rgba(22, 185, 203, .16); } 50% { box-shadow: 0 0 0 10px rgba(22, 185, 203, .05); } }
+  .hx__spill i { animation: hx-drift 11s ease-in-out infinite alternate paused; }
+  .hx__spill i:nth-child(2) { animation: hx-drift-m 14s ease-in-out infinite alternate paused; }
+  .hx__spill i:nth-child(3) { animation-duration: 8.5s; animation-direction: alternate-reverse; }
+  .hx__veil i { animation: hx-drift 7s ease-in-out infinite alternate paused; }
+  .hx.is-foggy:not(.is-away) .hx__spill i, .hx.is-foggy:not(.is-away) .hx__veil i { animation-play-state: running; }
   .hx__cue::after { animation: baja 1.8s var(--ease-inout) infinite; transform-origin: top; }
-  @keyframes baja { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
 }
+@keyframes hx-drift { from { transform: translate3d(-3%, 0, 0); } to { transform: translate3d(3%, -3%, 0); } }
+@keyframes hx-drift-m { from { transform: translate3d(3%, 0, 0) scaleX(-1); } to { transform: translate3d(-4%, -4%, 0) scaleX(-1); } }
+@keyframes baja { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+/* sin movimiento (o sin JavaScript): la puerta cerrada arriba y las tres puertas debajo, una después de otra */
+.hx:not(.hx--live) .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
+.hx:not(.hx--live) .hx__out, .hx:not(.hx--live) .hx__copy { bottom: auto; height: max(100svh, 560px); }
+.hx:not(.hx--live) .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
+@media (min-width: 900px) { .hx:not(.hx--live) .hx__in { min-height: max(100svh, 560px); } }
 
 /* ---------- adentro ---------- */
 .inside { background: var(--c-navy); color: var(--c-on-navy); }
 .inside a:not(.btn) { color: inherit; }
 
-/* frase: las palabras se encienden en orden de lectura con el scroll (Apple) */
-.say__pin { position: relative; display: grid; align-items: center; padding-block: clamp(72px, 10vw, 140px); }
-.say__pin > .wrap, .stats > .wrap, .out__in { position: relative; z-index: 1; }
+.stats > .wrap, .out__in { position: relative; z-index: 1; }
 .stats { position: relative; }
-.say__text { font-size: clamp(2rem, 0.8rem + 4.6vw, 5.4rem); line-height: 1.02; letter-spacing: -0.035em; max-width: 17ch; }
-.say__text .w { color: rgba(255, 255, 255, calc(.4 + .6 * var(--on, 1)));   /* apagada: 3.5:1, legible */ transition: color 120ms linear; }
-.say__lead { margin: var(--s-6) 0 0; font-size: var(--t-lg); color: var(--c-on-navy-soft); max-width: 40ch; opacity: var(--lead, 1); }
-@media (min-height: 560px) and (prefers-reduced-motion: no-preference) {
-  .say { height: 170svh; }
-  .say__pin { position: sticky; top: 0; height: 100svh; padding-block: calc(var(--nav-h) + 24px) 24px; }
-}
 
 /* cifras grandes, con su explicación debajo (ZRK) */
 .stats { padding-block: clamp(72px, 9vw, 140px); border-top: 1px solid var(--c-line-navy); }
@@ -280,49 +330,6 @@ html:not(.sin-intro) .hx:not(.is-shown) .hx__lead, html:not(.sin-intro) .hx:not(
   .out__leaf--r { right: 0; transform-origin: 100% 50%; transform: rotateY(calc(var(--o, 0) * -102deg)); }
   .out.is-done .out__leaf { visibility: hidden; }
 }
-
-/* ---------- intro ---------- */
-.intro { position: fixed; inset: 0; z-index: 100; perspective: 2000px; pointer-events: none; }
-.sin-intro .intro { display: none; }
-.intro__leaf { position: absolute; top: 0; bottom: 0; width: 50.2%; background: var(--c-navy); -webkit-backface-visibility: hidden; backface-visibility: hidden; transition: transform 1150ms cubic-bezier(.7, 0, .25, 1), opacity 160ms linear; }
-.intro__leaf:first-child { left: 0; transform-origin: 0 50%; }
-.intro__leaf:nth-child(2) { right: 0; transform-origin: 100% 50%; }
-.intro__c { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 22px; transition: opacity 280ms var(--ease-out); }
-.intro__c img { width: 150px; height: auto; animation: intro-logo 700ms var(--ease-out) both; }
-.intro__bar { display: block; width: 120px; height: 2px; background: rgba(255, 255, 255, .18); overflow: hidden; }
-.intro__bar i { display: block; height: 100%; background: var(--c-cyan); transform: scaleX(.04); transform-origin: left; transition: transform 300ms linear; }
-.intro.is-open .intro__c { opacity: 0; }
-.intro.is-open .intro__leaf:first-child { transform: rotateY(100deg); opacity: 0; transition-delay: 160ms, 1100ms; }
-.intro.is-open .intro__leaf:nth-child(2) { transform: rotateY(-100deg); opacity: 0; transition-delay: 220ms, 1160ms; }
-@keyframes intro-logo { from { opacity: 0; transform: translateY(10px); } }
-/* si el JavaScript no llega, la intro se quita sola */
-.intro { animation: intro-fuera 1ms linear 4s forwards; }
-.intro.is-open { animation: none; }
-@keyframes intro-fuera { to { visibility: hidden; } }
-
-/* ---------- grano y viñeta sobre la escena 3D ---------- */
-.hx__fx { --grain-l: var(--grain, linear-gradient(transparent, transparent)); position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 1400ms var(--ease-out);
-  background: var(--grain-l) 0 0 / 160px, radial-gradient(120% 90% at 62% 45%, transparent 58%, rgba(8, 32, 48, .10) 100%); }
-/* en teléfonos el círculo de luz alrededor de la puerta lo da esta viñeta (la escena no lleva reflector) */
-@media (pointer: coarse) { .hx__fx { background: var(--grain-l) 0 0 / 160px, radial-gradient(90% 70% at 50% 62%, transparent 45%, rgba(8, 32, 48, .16) 100%); } }
-.hx__gl.is-ready + .hx__fx { opacity: 1; }
-
-
-/* Fase 10F · vista térmica en la entrada: escala y barrido de escáner */
-.hx__thermo { position: absolute; z-index: 5; left: var(--pad-x); right: var(--pad-x); bottom: calc(var(--s-5) + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px;
-  max-width: 720px; margin-inline: auto; color: #fff; pointer-events: none; text-shadow: 0 1px 8px rgba(4, 12, 40, .7);
-  opacity: 0; transform: translateY(8px); transition: opacity 400ms var(--ease-out), transform 500ms var(--ease-out); }
-.hx__thermo.is-on { opacity: 1; transform: none; }
-.hx__thermo-bar { display: block; height: 4px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .2); }
-.hx__thermo-l { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-3); font-size: var(--t-xs); }
-.hx__thermo > * { min-width: 0; }
-.hx__thermo-l > * { flex: none; }
-.hx__thermo-l b { flex: 0 1 auto; min-width: 0; font-weight: var(--w-medium); color: rgba(255, 255, 255, .9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hx__scan { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; animation: hx-scan 850ms cubic-bezier(.6, 0, .25, 1) forwards; }
-.hx__scanline { position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3; pointer-events: none; background: #9fe8f2;
-  box-shadow: 0 0 22px 6px rgba(30, 143, 224, .55); animation: hx-scanline 850ms cubic-bezier(.6, 0, .25, 1) forwards; }
-@keyframes hx-scan { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(100% 0 0 0); } }
-@keyframes hx-scanline { from { top: 0; } to { top: 100%; } }
 
 /* ---------- Fase 10G · Escáner: rayos X de las cuatro puertas, en un plano técnico ---------- */
 .scan { --bp: #041726; position: relative; height: calc(100svh * 4.6); background: var(--bp); color: #fff; }

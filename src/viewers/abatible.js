@@ -9,7 +9,7 @@ import { frameBox } from '../core/cameraRig.js';
 import { rbox, scaleUV, swapUV } from '../core/stage.js';
 import { Hinge } from '../core/hinge.js';
 import { createBackdrop } from '../core/backdrop.js';
-import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { toCreasedNormals, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // ---------- medidas (m), iguales al modelo base ----------
 const OW = 0.90, OH = 1.95;              // paso libre
@@ -180,36 +180,62 @@ export function createAbatible(stage, reg, { logoUrl } = {}) {
   }
 
   // ---------- liberador interior (por dentro de la cámara, frente a la chapa) ----------
-  // Fotos de ST: caja gris horizontal sobre una placa con dos tornillos hexagonales, con un pliegue en «V» al frente;
-  // a un lado la palanca verde con su etiqueta luminosa «PUSH» (se empuja para salir aunque esté cerrada con llave) y
-  // al otro, hacia el canto, la lengüeta gris.
+  // Fotos de ST: caja gris horizontal sobre una placa vertical con dos tornillos hexagonales (uno arriba y otro abajo de
+  // la caja); arriba, la caja se dobla hacia atrás en un pliegue en «V», como un sobre. De un lado, la palanca verde con su
+  // etiqueta luminosa «PUSH» (se empuja para salir aunque esté cerrada con llave), con las dos esquinas del lado de la caja
+  // cortadas; del otro, hacia el canto, la lengüeta gris que llega hasta el empaque.
+  // Fase 14: medidas reales (la caja mide ~14.5 × 9 cm; antes estaba a 2/3 de su tamaño).
   {
-    const rel = new THREE.Group(); rel.name = 'Liberador'; rel.position.set(LK.x - 0.004, LK.y0 + LK.H * 0.6, ZB); rel.rotation.y = Math.PI; leaf.add(rel);
+    const bw = 0.145, bh = 0.090, bd = 0.058, zb = 0.0045;                 // caja: ancho, alto, fondo y dónde empieza (sobre la placa)
+    // la lengüeta termina justo antes del empaque de la cara posterior (x = W/2 − 0.047)
+    const rel = new THREE.Group(); rel.name = 'Liberador'; rel.position.set(LK.x - 0.026, LK.y0 + LK.H * 0.6, ZB); rel.rotation.y = Math.PI; leaf.add(rel);
     const g2 = new THREE.MeshPhysicalMaterial({ name: 'releaseGray', color: new THREE.Color('#a9acaf'), roughness: 0.72 });
     const teal = new THREE.MeshPhysicalMaterial({ name: 'releaseTeal', color: new THREE.Color('#139c8d'), roughness: 0.45, clearcoat: 0.2 });
-    // placa con dos lóbulos y tornillos
-    const bp = new THREE.Shape(); bp.absarc(0, 0.052, 0.017, 0, Math.PI, false); bp.lineTo(-0.020, 0); bp.absarc(0, -0.052, 0.017, Math.PI, Math.PI * 2, false); bp.lineTo(0.020, 0); bp.closePath();
-    add(rel, new THREE.ExtrudeGeometry(bp, { depth: 0.003, bevelEnabled: true, bevelThickness: 0.001, bevelSize: 0.001, bevelSegments: 2, curveSegments: 16 }), g2, 0.004, 0, 0);
-    [0.054, -0.054].forEach((y) => { add(rel, new THREE.CylinderGeometry(0.0062, 0.0062, 0.005, 6).rotateX(Math.PI / 2), g2, 0.004, y, 0.0065); add(rel, new THREE.CylinderGeometry(0.0085, 0.0085, 0.0012, 20).rotateX(Math.PI / 2), g2, 0.004, y, 0.0045); });
-    // caja con el pliegue en «V»
-    const bw = 0.100, bh = 0.062, bd = 0.042;
-    grab(add(rel, rbox(bw, bh, bd, 0.010, 5), g2, 0, 0, bd / 2 + 0.002));
-    [-1, 1].forEach((sg) => { const v = add(rel, rbox(bw * 0.52, 0.0022, 0.0016, 0.0007), g2, sg * bw * 0.245, bh * 0.27, bd + 0.002); v.rotation.z = sg * -0.24; });
+    // placa vertical: un lóbulo con tornillo arriba y otro abajo, que se abren hacia la caja
+    const yb = bh / 2 + 0.014, r = 0.018, yc = yb - 0.004, hw = 0.027, bp = new THREE.Shape();
+    bp.moveTo(hw, -(bh / 2 - 0.012)); bp.lineTo(hw, bh / 2 - 0.012);
+    bp.quadraticCurveTo(r, bh / 2 - 0.004, r, yc); bp.absarc(0, yc, r, 0, Math.PI, false);
+    bp.quadraticCurveTo(-r, bh / 2 - 0.004, -hw, bh / 2 - 0.012); bp.lineTo(-hw, -(bh / 2 - 0.012));
+    bp.quadraticCurveTo(-r, -(bh / 2 - 0.004), -r, -yc); bp.absarc(0, -yc, r, Math.PI, Math.PI * 2, false);
+    bp.quadraticCurveTo(r, -(bh / 2 - 0.004), hw, -(bh / 2 - 0.012));
+    add(rel, new THREE.ExtrudeGeometry(bp, { depth: 0.0025, bevelEnabled: true, bevelThickness: 0.001, bevelSize: 0.0012, bevelSegments: 2, curveSegments: 18 }), g2, 0, 0, 0.001);
+    [yb, -yb].forEach((y) => {
+      add(rel, new THREE.CylinderGeometry(0.0112, 0.0112, 0.0016, 24).rotateX(Math.PI / 2), g2, 0, y, 0.0053, { shadow: false });   // arandela
+      add(rel, new THREE.CylinderGeometry(0.0086, 0.0086, 0.0072, 6).rotateX(Math.PI / 2), g2, 0, y, 0.0097);                       // cabeza hexagonal
+    });
+    // caja: malla fina redondeada, para poder doblar su parte de arriba hacia atrás sobre la «V»
+    {
+      const rr = 0.015, g = new THREE.BoxGeometry(bw, bh, bd, 40, 26, 16); g.deleteAttribute('normal'); g.deleteAttribute('uv');
+      const P = g.attributes.position, hx = bw / 2 - rr, hy = bh / 2 - rr, hz = bd / 2 - rr, v = new THREE.Vector3(), c = new THREE.Vector3();
+      for (let i = 0; i < P.count; i++) {
+        v.fromBufferAttribute(P, i);
+        c.set(THREE.MathUtils.clamp(v.x, -hx, hx), THREE.MathUtils.clamp(v.y, -hy, hy), THREE.MathUtils.clamp(v.z, -hz, hz));
+        v.sub(c); const L = v.length(); if (L > 1e-9) v.multiplyScalar(rr / L); v.add(c);
+        const yv = 0.010 + 0.024 * Math.min(1, Math.abs(v.x) / (bw / 2 - 0.006));   // línea del pliegue: «V» con su punta al centro
+        if (v.y > yv) v.z -= 0.55 * (v.y - yv) * (v.z + bd / 2) / bd;              // arriba de la «V» la caja se inclina hacia la placa
+        P.setXYZ(i, v.x, v.y, v.z);
+      }
+      const box = mergeVertices(g); box.computeVertexNormals();
+      grab(add(rel, box, g2, 0, 0, zb + bd / 2));
+    }
     // lengüeta gris hacia el canto
-    add(rel, rbox(0.018, 0.040, 0.030, 0.003), new THREE.MeshPhysicalMaterial({ name: 'releaseTab', color: new THREE.Color('#bfc2c4'), roughness: 0.7 }), -bw / 2 - 0.006, 0.004, 0.017);
-    // palanca verde con la etiqueta «PUSH»
-    const lw = 0.058, lh = 0.054, ch = 0.016, L = new THREE.Shape();
-    L.moveTo(0, -lh / 2); L.lineTo(lw, -lh / 2); L.lineTo(lw, lh / 2); L.lineTo(ch, lh / 2); L.lineTo(0, lh / 2 - ch); L.closePath();   // esquina cortada junto a la caja
-    const lev = add(rel, new THREE.ExtrudeGeometry(L, { depth: 0.010, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelSegments: 2 }), teal, bw / 2 - 0.006, -0.008, 0.012);
-    grab(lev);
-    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256; const c2 = cv.getContext('2d');
-    c2.fillStyle = '#eef4d4'; c2.fillRect(0, 0, 256, 256);
-    c2.save(); c2.translate(128, 128); c2.rotate(-Math.PI / 2); c2.font = '900 74px Arial, sans-serif'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
-    c2.lineWidth = 7; c2.strokeStyle = '#101214'; c2.strokeText('PUSH', 0, 4); c2.fillStyle = '#eef4d4'; c2.fillText('PUSH', 0, 4); c2.restore();
-    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
-    const lab = new THREE.Shape(), m = 0.007; lab.moveTo(m, -lh / 2 + m); lab.lineTo(lw - m, -lh / 2 + m); lab.lineTo(lw - m, lh / 2 - m); lab.lineTo(ch + m * 0.6, lh / 2 - m); lab.lineTo(m, lh / 2 - ch - m * 0.4); lab.closePath();
-    const lg = new THREE.ShapeGeometry(lab, 4); { const P = lg.attributes.position, U = lg.attributes.uv; for (let i = 0; i < P.count; i++) U.setXY(i, P.getX(i) / lw, (P.getY(i) + lh / 2) / lh); }
-    add(rel, lg, new THREE.MeshStandardMaterial({ name: 'releaseLabel', map: tex, emissive: new THREE.Color('#c9f2a0'), emissiveIntensity: 0.18, roughness: 0.5 }), bw / 2 - 0.006, -0.008, 0.0237, { shadow: false });
+    add(rel, rbox(0.030, 0.052, 0.038, 0.004), new THREE.MeshPhysicalMaterial({ name: 'releaseTab', color: new THREE.Color('#bfc2c4'), roughness: 0.7 }), -bw / 2 - 0.008, 0.003, 0.023);
+    // palanca verde (sale del costado de la caja, un poco más abajo que ella) con la etiqueta «PUSH»
+    const lw = 0.072, lh = 0.096, pr = 0.007, L = new THREE.Shape();
+    L.moveTo(-0.010, -lh / 2 + 0.0115); L.lineTo(0, -lh / 2 + 0.0115); L.lineTo(0.018, -lh / 2); L.lineTo(lw - pr, -lh / 2);
+    L.quadraticCurveTo(lw, -lh / 2, lw, -lh / 2 + pr); L.lineTo(lw, lh / 2 - pr); L.quadraticCurveTo(lw, lh / 2, lw - pr, lh / 2);
+    L.lineTo(0.022, lh / 2); L.lineTo(0, lh / 2 - 0.014); L.lineTo(-0.010, lh / 2 - 0.014); L.closePath();
+    const pad = new THREE.Group(); pad.name = 'PalancaPush'; pad.position.set(bw / 2, -0.012, 0.030); pad.rotation.y = 0.07; rel.add(pad);   // la punta libre, un poco hacia la puerta
+    grab(add(pad, new THREE.ExtrudeGeometry(L, { depth: 0.011, bevelEnabled: true, bevelThickness: 0.0016, bevelSize: 0.0016, bevelSegments: 2, curveSegments: 6 }), teal));
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = 384; const c2 = cv.getContext('2d');
+    c2.fillStyle = '#eef3d2'; c2.fillRect(0, 0, 256, 384);
+    c2.save(); c2.translate(128, 192); c2.rotate(-Math.PI / 2); c2.font = '900 96px Arial, sans-serif'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+    c2.lineJoin = 'round'; c2.lineWidth = 8; c2.strokeStyle = '#101214'; c2.strokeText('PUSH', 0, 4); c2.fillStyle = '#eef3d2'; c2.fillText('PUSH', 0, 4); c2.restore();
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    const x0 = 0.010, x1 = lw - 0.009, y0 = -lh / 2 + 0.009, y1 = lh / 2 - 0.009, lab = new THREE.Shape();
+    lab.moveTo(x0, -lh / 2 + 0.018); lab.lineTo(0.024, y0); lab.lineTo(x1, y0); lab.lineTo(x1, y1); lab.lineTo(0.026, y1); lab.lineTo(x0, lh / 2 - 0.020); lab.closePath();
+    const lg = new THREE.ShapeGeometry(lab, 4); { const P = lg.attributes.position, U = lg.attributes.uv; for (let i = 0; i < P.count; i++) U.setXY(i, (P.getX(i) - x0) / (x1 - x0), (P.getY(i) - y0) / (y1 - y0)); }
+    add(pad, lg, new THREE.MeshStandardMaterial({ name: 'releaseLabel', map: tex, emissive: new THREE.Color('#c9f2a0'), emissiveIntensity: 0.2, roughness: 0.5 }), 0, 0, 0.011 + 0.0016 + 0.0004, { shadow: false });
   }
 
   // ---------- bisagras reversibles, como la foto del componente (pieza 30) ----------

@@ -1,14 +1,12 @@
-// Inicio: un recorrido que cruza la puerta. Afuera (blanco) la vaivén en 3D; al bajar abre y la cámara entra al
-// interior (azul marino), donde están las tres puertas, las piezas y CDS; al final se sale otra vez a cotizar.
-// Solo un visor 3D (brief §8: no cargar todos los visores en Inicio); se descarga después del texto.
+// Inicio: un recorrido que cruza la puerta. Fase 14 · la entrada es «el umbral» (src/home/umbral.js): una vaivén que
+// abre con el scroll (o con el dedo) y del otro lado, sin pantallas vacías, las tres puertas. Después vienen los
+// capítulos, el escáner, las piezas, CDS y cotizar. El Inicio ya no carga ningún visor 3D.
 import '../styles/home.css';
 import { mountSite, url, contacto } from '../ui/site.js';
 import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
-import { intro, splitLines, revealOnView, playLines } from '../ui/cine.js';
-import vaivenBin from '../models/vaiven.bin?url';
-import vaivenBinz from '../models/vaiven.binz?url';
-import { modelRequest } from '../core/modelLoad.js';
+import { splitLines, revealOnView, playLines } from '../ui/cine.js';
+import { mountUmbral } from '../home/umbral.js';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 import { mountFrio } from '../home/frio.js';
@@ -25,62 +23,13 @@ function pic(f, sizes, { eager = false, alt = f.alt } = {}) {
   return `<picture><source type="image/avif" srcset="${set('avif')}" sizes="${sizes}"><img src="${url('img/inicio/' + mid.webp)}" srcset="${set('webp')}" sizes="${sizes}" width="${f.ancho}" height="${f.alto}" alt="${alt}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></picture>`;
 }
 
-// ---------- intro y entrada del título ----------
-const hx = $('#hx'), gl = $('#hxGl'), loadEl = $('#hxLoad');
-const firstVisit = !document.documentElement.classList.contains('sin-intro');
-if (firstVisit) splitLines($('#hxTitle'));     // en visitas siguientes el título se ve de inmediato, sin animarlo
-const curtain = intro(firstVisit ? $('#intro') : null, { onOpen: () => { if (firstVisit) playLines($('#hxTitle')); hx.classList.add('is-shown'); } });
-// grano fino de película sobre la escena (se genera aquí: no se descarga nada)
-try {
-  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), img = g.createImageData(160, 160);
-  // Fase 12 · el grano ya lleva su transparencia (5 %): va en el mismo fondo que la viñeta, una capa menos sobre el 3D
-  for (let i = 0; i < img.data.length; i += 4) { const v = 96 + Math.random() * 64; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 13; }
-  g.putImageData(img, 0, 0); hx.style.setProperty('--grain', `url(${c.toDataURL()})`);
-} catch { /* sin grano */ }
-
-// ---------- entrada 3D ----------
-const glOk = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
-const poster = (why) => {
-  // sin 3D: la foto de la vaivén ocupa el lugar de la escena y la entrada es una pantalla normal
-  if (window.__stLog) window.__stLog(`Inicio sin 3D: ${why && (why.message || why)}`);
-  curtain.ready();
-  hx.classList.remove('hx--live'); hx.classList.add('hx--still'); loadEl.hidden = true;
-  gl.innerHTML = pic(F['vaiven-frente'], '100vw', { eager: true });
-};
-const load = {
-  set(k) { loadEl.style.setProperty('--k', k.toFixed(3)); loadEl.querySelector('b').textContent = `${Math.round(k * 100)} %`; curtain.progress(k); },
-  done() { loadEl.classList.add('is-done'); curtain.ready(); },
-};
-if (glOk) {
-  // el modelo (1.2 MB) empieza a bajar ya, junto con el JavaScript del 3D, no cuando este termina de llegar
-  const response = modelRequest({ z: vaivenBinz, raw: vaivenBin });
-  if (!reducedMotion()) hx.classList.add('hx--live');           // la sección se alarga: el scroll abre la puerta
-  // el texto se reparte con el avance: el título se va, el velo azul marino llega al cruzar
-  if (!reducedMotion()) track(hx, (p) => {
-    const title = 1 - seg(p, 0.02, 0.13);
-    hx.style.setProperty('--title', title.toFixed(3)); hx.classList.toggle('is-past', title < 0.02);
-    hx.style.setProperty('--cue', (1 - seg(p, 0, 0.03)).toFixed(3));
-    hx.style.setProperty('--veil', easeInOut(seg(p, 0.78, 0.92)).toFixed(3));
-  }, { mode: 'pin', smooth: 12 });
-  import('../home/hero.js').then(({ mountHero }) => mountHero({
-    section: hx, gl, hud: $('#hxHud'), load, response,
-    readout: { el: $('#hxRead'), value: $('#hxRead b') },
-    onFail: poster,
-  })).catch((e) => { console.error(e); poster(e); });
-} else poster('este navegador no tiene WebGL');
-
-// ---------- frase: las palabras se encienden en orden de lectura ----------
+// ---------- entrada: el umbral ----------
+const hx = $('#hx');
+mountUmbral(hx);
+// el título entra por líneas al cargar (una sola vez por pestaña)
 {
-  const say = $('#say'), text = $('#sayText'), pin = $('.say__pin', say);
-  const words = text.textContent.trim().split(/\s+/);
-  text.innerHTML = words.map((w) => `<span class="w">${w}</span> `).join('');
-  const ws = $$('.w', text), n = ws.length;
-  const pinned = () => getComputedStyle(pin).position === 'sticky';
-  track(say, (p) => {
-    const L = (pinned() ? seg(p, 0.06, 0.66) : seg(p, 0.15, 0.95)) * n;
-    ws.forEach((w, i) => w.style.setProperty('--on', Math.min(1, Math.max(0, L - i)).toFixed(2)));
-    say.style.setProperty('--lead', (pinned() ? seg(p, 0.62, 0.78) : 1).toFixed(2));
-  }, { mode: () => (pinned() ? 'pin' : 'enter'), smooth: 12 });
+  let seen = false; try { seen = sessionStorage.getItem('st.intro') === '1'; sessionStorage.setItem('st.intro', '1'); } catch { /* sin almacenamiento */ }
+  if (!seen && !reducedMotion()) { splitLines($('#hxTitle')); playLines($('#hxTitle')); }
 }
 
 // ---------- cifras: cuentan hasta su valor al entrar ----------
@@ -148,11 +97,6 @@ import('../ui/floaters.js').then(({ mountFloaters }) => {
   const layer = (host, cls = '') => { const d = document.createElement('div'); d.className = `flo-layer ${cls}`; host.prepend(d); return d; };
   const narrow = () => innerWidth < 700;
   const sz = (w) => (narrow() ? Math.max(300, w) : Math.min(1100, w) * 0.62);
-  const say = $('.say__pin');
-  if (say) mountFloaters(layer(say), [
-    { key: 'corrediza-39', x: 0.1, y: 0.16, s: 0.25, r: -14, z: 1 }, { key: 'corrediza-37', x: 0.9, y: 0.2, s: 0.22, r: 12, z: 0.8 },
-    { key: 'vaiven-02', x: 0.12, y: 0.86, s: 0.28, r: 8, z: 0.9 }, { key: 'abatible-27', x: 0.88, y: 0.84, s: 0.25, r: -8, z: 1.1 },
-  ], { size: sz, dark: true, parallax: 40, edge: 0.3 });
   const stats = $('.stats');
   if (stats) mountFloaters(layer(stats), [
     { key: 'abatible-35', x: 0.95, y: 0.22, s: 0.25, r: 30, z: 0.9 }, { key: 'abatible-23', x: 0.04, y: 0.8, s: 0.2, r: -10, z: 1 },

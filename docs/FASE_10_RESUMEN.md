@@ -659,3 +659,44 @@ Google Ads, fase 1». En el sitio:
 - **De qué anuncio vino:** WhatsApp y el correo de cotización terminan con «Vengo de: anuncio de Google · …».
 - **Barra del celular** de cada puerta: botón «Llamar».
 Prueba: `/home/claude/f12/ads13.py` (30/30).
+
+# Fase 14 · liberador de la abatible a su tamaño real y entrada nueva del Inicio («el umbral»)
+
+## Liberador interior de la abatible
+ST indicó que la chapa de adentro es más grande. Con las fotos (caja, placa con dos tornillos y palanca «PUSH») se
+rehízo a su tamaño real (`src/viewers/abatible.js`, grupo `Liberador`):
+- caja gris de **14.5 × 9 × 5.8 cm** (antes 10 × 6.2 × 4.2), con la parte de arriba doblada hacia la placa sobre un
+  pliegue en «V» con la punta al centro, como en la foto de lado (antes el pliegue era una «Λ» de dos tiras);
+- placa vertical con un tornillo hexagonal arriba y otro abajo de la caja, con su arandela;
+- palanca verde de 7.2 × 9.6 cm con las dos esquinas del lado de la caja cortadas y la etiqueta luminosa «PUSH»;
+- lengüeta gris hacia el canto, que termina antes del empaque. Todo junto mide ~24 × 15 cm.
+El modelo de «Verla en tu espacio» se volvió a exportar (`python3 scripts/build-ar.py --solo abatible`) y «Por dentro»
+señala el liberador nuevo.
+
+## Entrada del Inicio: «el umbral»
+Quien probó el sitio dijo que al bajar todo se volvía azul y había que seguir bajando: la entrada medía 2.5 pantallas
+(la cámara cruzaba a un interior azul marino vacío) y luego venía la frase azul (1.7 pantallas más). Ahora:
+- **Afuera**: el muro, el piso y la vaivén de inoxidable, de frente. Son tres imágenes (marco, hoja izquierda y hoja
+  derecha) dibujadas con el mismo modelo 3D (`scripts/build-umbral.py` desde `lab/umbral.html`); el Inicio ya **no
+  carga three.js ni el modelo** (≈ 2 MB menos) y funciona igual sin WebGL. Las piezas del muro se acomodan alrededor
+  de la puerta: por el vano y las ventanillas se ve lo que hay adentro.
+- **Al bajar** (0.9 de pantalla en total): las hojas abren hacia adentro con CSS 3D sobre su bisagra, como hojas
+  pesadas (resorte con amortiguamiento); un brillo cruza el inoxidable y la cara se oscurece al alejarse de la luz. El
+  aire frío sale como vaho blanco a ras de piso (`scripts/build-vaho.py`), la vista camina hacia la puerta y la cruza
+  en una bocanada de vaho.
+- **Adentro**: la cámara fría, clara (hielo, no azul marino), con las tres puertas: en el teléfono una lista con su
+  imagen; desde tableta, de pie sobre el piso y a escala entre ellas. Cada una lleva a su página en 3D. Abajo, el
+  enlace a las puertas CDS.
+- **La puerta se empuja**: con la puerta cerrada, tocar una hoja la abre un poco, arrastrar su orilla hacia la
+  bisagra la abre más y con el ratón basta pasarlo rápido. Regresa sola y pasa un poco del centro hacia afuera antes de
+  quedarse quieta (doble acción). Al cargar, la puerta «respira» una vez. En Android, un toque corto de vibración.
+- Se quitaron la cortina azul con el logo, la vista térmica de la entrada y la frase azul. Se quedan el termómetro
+  (baja de 30 °C al entrar) y la escarcha (bajo 0 °C, más adelante).
+- Solo se animan `transform` y `opacity`; el vaho se mueve solo mientras hay vaho y la entrada está a la vista. Con el
+  procesador 4 veces más lento: ~1 ms de JavaScript por cuadro, 60 cuadros por segundo y sin tareas largas.
+- Movimiento reducido o sin JavaScript: la puerta cerrada en la primera pantalla y las tres puertas debajo.
+- Con el teclado, al llegar a las puertas de adentro se cruza la puerta para que se vean.
+
+Pruebas: `/home/claude/f14/flow14.py` (33/33: tamaño del liberador, entrada en teléfono y computadora, empujar,
+diez tamaños de pantalla, sin azul marino en ninguna parte de la entrada, movimiento reducido, sin JavaScript, axe).
+Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` y `f12/smoke.py` a la entrada nueva.

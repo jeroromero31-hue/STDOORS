@@ -1,0 +1,67 @@
+{
+ "origen": "scripts/build-umbral.py",
+ "vaiven": {
+  "w": 2306,
+  "h": 2274,
+  "caja": {
+   "x0": -1.281000018119812,
+   "x1": 1.281000018119812,
+   "y0": 0,
+   "y1": 2.5269999504089355
+  },
+  "ejes": {
+   "izq": -1.145,
+   "der": 1.145
+  },
+  "marco": {
+   "1153": "vaiven-marco-1153.webp",
+   "2306": "vaiven-marco-2306.webp"
+  },
+  "izqRect": [
+   0.05074,
+   0.04749,
+   0.44883,
+   0.9314
+  ],
+  "izq": {
+   "518": "vaiven-izq-518.webp",
+   "1035": "vaiven-izq-1035.webp"
+  },
+  "derRect": [
+   0.50043,
+   0.04749,
+   0.44883,
+   0.9314
+  ],
+  "der": {
+   "518": "vaiven-der-518.webp",
+   "1035": "vaiven-der-1035.webp"
+  }
+ },
+ "fila": {
+  "abatible": {
+   "ancho": 523,
+   "alto": 1008,
+   "img": {
+    "262": "fila-abatible-262.webp",
+    "523": "fila-abatible-523.webp"
+   }
+  },
+  "corrediza": {
+   "ancho": 1043,
+   "alto": 792,
+   "img": {
+    "522": "fila-corrediza-522.webp",
+    "1043": "fila-corrediza-1043.webp"
+   }
+  },
+  "vaiven": {
+   "ancho": 909,
+   "alto": 998,
+   "img": {
+    "454": "fila-vaiven-454.webp",
+    "909": "fila-vaiven-909.webp"
+   }
+  }
+ }
+}

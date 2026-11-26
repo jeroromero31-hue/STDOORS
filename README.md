@@ -60,6 +60,8 @@ node scripts/comprimir-modelos.mjs                          # → src/models/*.b
 python3 scripts/build-flotantes.py                          # → public/img/flotantes/ (recortes de piezas) y src/data/flotantes.json
 python3 scripts/render-escaner.py                           # → public/img/inicio/escaner/ y src/data/escaner.json (lab/escaner.html)
 python3 scripts/build-ar.py                                 # → public/ar/*.glbz y src/data/ar.json: modelos para «Verla en tu espacio» con su movimiento, franjas rígidas y productos (lab/ar.html; servidor de desarrollo en :5199)
+python3 scripts/build-umbral.py                             # → public/img/umbral/ y src/data/umbral.json: la vaivén de la entrada del Inicio (marco y hojas) y la fila de puertas (lab/umbral.html; servidor de desarrollo en :5199)
+python3 scripts/build-vaho.py                               # → public/img/umbral/vaho-*.webp: el vaho blanco de la entrada
 ```
 
 Con render por software (sin GPU) cada cuadro tarda unos 20 s; sin `--nuevo` continúa donde se quedó.
@@ -138,7 +140,7 @@ src/ui/preview.js        dibujo en vivo de la puerta a escala, con acabado y opc
 src/ui/usdzTap.js        comportamientos de Quick Look: en iPhone la puerta se abre y se cierra al tocarla
 src/ui/usdzAnim.js       exportador USDZ de three.js con línea de tiempo por tramos y comportamientos
 src/ui/ar.js / arResize.js  vista 3D y cámara: a la medida sin estirar herrajes, con el acabado elegido
-src/home/*               Inicio: hero 3D, vaho, escáner, secuencia CDS, avance con el scroll
+src/home/*               Inicio: entrada «el umbral» (umbral.js), termómetro y escarcha, escáner, secuencia CDS, avance con el scroll
 src/ui/cine.js           Intro con la marca (Inicio), títulos por líneas, scroll suave (Lenis) y cursor en todo el sitio
 src/core/thermal.js      «Ver el frío»: vista térmica ilustrativa de cualquier puerta (cada visor describe sus huecos)
 src/core/xray.js         «Rayos X»: la puerta transparente, con sus piezas de adentro a la vista
