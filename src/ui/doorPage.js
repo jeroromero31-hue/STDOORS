@@ -2,7 +2,7 @@
 // El contenido vive en el HTML; aquí solo va el comportamiento.
 import { Raycaster } from 'three';
 import '../styles/door.css';
-import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS } from './site.js';
+import { mountSite, solicitud, toast, url, createSheet, doorCards, DOORS, contacto } from './site.js';
 import { partPicture } from './picture.js';
 import { vano } from './vano.js';
 import { frostLayer, preloadFrost } from '../home/frio.js';
@@ -462,7 +462,10 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     })).catch((e) => console.error(e));
     // celular: botón fijo abajo hasta llegar a la sección de cotizar
     const bar = document.createElement('div'); bar.className = 'cta-bar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Cotizar');
-    bar.innerHTML = `<a class="btn" href="#cotizar">${familia === 'cds' ? 'Cotizar el juego' : 'Cotizar a la medida'}</a>${$('#arBtn') ? `<button type="button" class="cta-bar__ar" aria-label="Verla en tu espacio con la cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>` : ''}`;
+    // Fase 13 · llamar en un toque desde la barra (cuenta como contacto en Google Ads: llamada_click)
+    const tel = contacto.telefono.replace(/[^+\d]/g, '');
+    bar.dataset.where = 'barra-celular';
+    bar.innerHTML = `<a class="btn" href="#cotizar">${familia === 'cds' ? 'Cotizar el juego' : 'Cotizar a la medida'}</a><a class="cta-bar__call" href="tel:${tel}" aria-label="Llamar a ST"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.6 2.8 4.4 3.4c-.7.2-1.1.9-1 1.6.9 5.7 5.3 10.1 11 11 .7.1 1.4-.3 1.6-1l.6-2.2c.2-.6-.1-1.2-.7-1.5l-2.4-1c-.5-.2-1.1-.1-1.5.3l-.8.9a9 9 0 0 1-4.2-4.2l.9-.8c.4-.4.5-1 .3-1.5l-1-2.4c-.3-.6-.9-.9-1.5-.7Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></a>${$('#arBtn') ? `<button type="button" class="cta-bar__ar" aria-label="Verla en tu espacio con la cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>` : ''}`;
     document.body.append(bar);
     const barAr = bar.querySelector('.cta-bar__ar'); if (barAr) barAr.onclick = () => $('#arBtn').click();
     bar.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); $('#cotizar').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); setTimeout(() => $('#cotizar input, #cotizar .chip')?.focus({ preventScroll: true }), 700); });

@@ -805,6 +805,8 @@ model-viewer.in-ar .arv__xr { display: grid; }
   .cta-bar { display: flex; gap: 8px; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40; transform: translateY(140%); transition: transform 320ms var(--ease-out); pointer-events: none; }
   .cta-bar.is-on:not(.is-away) { transform: none; pointer-events: auto; }
   .cta-bar .btn { flex: 1; width: 100%; justify-content: center; box-shadow: 0 12px 30px rgba(5, 30, 50, .28); }
+  .cta-bar__call { flex: none; width: 52px; display: grid; place-items: center; border-radius: 999px; background: #fff; color: var(--c-navy); box-shadow: 0 12px 30px rgba(5, 30, 50, .28); }
+  .cta-bar__call svg { width: 22px; height: 22px; }
   .cta-bar__ar { flex: none; width: 52px; display: grid; place-items: center; border-radius: 999px; border: 0; background: #fff; color: var(--c-navy); box-shadow: 0 12px 30px rgba(5, 30, 50, .28); cursor: pointer; }
   .cta-bar__ar svg { width: 24px; height: 24px; }
   html.menu-open .cta-bar { display: none; }
@@ -910,3 +912,12 @@ model-viewer.in-ar .arv__xr { display: grid; }
 .q-fin [data-acabado=hygienicWhite] i { background: radial-gradient(circle at 35% 30%, #fff, #e6e9e6 70%); }
 .q-fin [data-acabado=stainless] i { background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, transparent 1px 3px), linear-gradient(160deg, #d9dcde, #a7acaf 55%, #c9ccce); }
 .q-fin [data-acabado=blackMetal] i { background: radial-gradient(circle at 35% 30%, #3b3e42, #1b1c1e 65%); }
+
+/* Fase 13 · bienvenida para quien llega de un anuncio: lo que buscó y el botón para hacerlo */
+.adw { background: var(--c-ice, #eaf4f8); border-bottom: 1px solid var(--c-line); }
+.adw__in { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); padding-block: 10px; padding-right: 48px; }
+.adw__t { margin: 0; flex: 1 1 20rem; font-size: var(--t-sm); font-weight: var(--w-medium); color: var(--c-ink); }
+.adw__b { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.adw__call svg { width: 16px; height: 16px; margin-right: 6px; }
+.adw__x { position: absolute; right: var(--pad-x, 16px); top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; background: none; font-size: 22px; line-height: 1; color: var(--c-ink-soft); cursor: pointer; border-radius: 999px; }
+.adw__x:focus-visible { outline: 3px solid var(--c-tech); }

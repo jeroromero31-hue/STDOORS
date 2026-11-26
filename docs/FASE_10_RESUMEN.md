@@ -644,3 +644,18 @@ enviar). Ahora ese tamaño solo sirve para la barra de avance, y si la descarga 
 red antes de rendirse. Diagnóstico: cualquier página con `?debug=1` muestra abajo el navegador, la tarjeta gráfica y
 los errores (`?debug=0` lo quita). El video de la CDS se codificó con 4 cuadros de referencia (más compatible con los
 decodificadores de los teléfonos).
+
+
+# Fase 13 · Google Ads: medición y botones que responden al anuncio
+
+Estrategia de la fase 1 (una campaña de búsqueda, $3,000 MXN al mes, todo México): documento «ST Doors · Estrategia de
+Google Ads, fase 1». En el sitio:
+- **Eventos** (`src/ui/track.js`, a `dataLayer`): principales `whatsapp_click`, `llamada_click`, `cotizacion_enviada`;
+  secundarios `agregar_solicitud`, `ar_abrir`, `ficha_pieza`, `correo_click`, `cotizacion_copiada`, `anuncio_boton`.
+- **Google Tag Manager** se carga solo con su clave en `src/data/marketing.json` («gtm»); sin clave no se carga nada.
+- **Visita de anuncio** (`utm_*` o `gclid`, se recuerda 30 días): una línea arriba con lo que buscó y su botón
+  (cámara fría → cotizar a la medida; refacciones → encontrar mi pieza; CDS → cotizar el juego) y «Llamar».
+  El grupo sale de `utm_content` (camara, refacciones, cds, vaiven).
+- **De qué anuncio vino:** WhatsApp y el correo de cotización terminan con «Vengo de: anuncio de Google · …».
+- **Barra del celular** de cada puerta: botón «Llamar».
+Prueba: `/home/claude/f12/ads13.py` (30/30).

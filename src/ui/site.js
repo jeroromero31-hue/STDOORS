@@ -10,6 +10,7 @@ import '../styles/components.css';
 import contacto from '../data/contacto.json';
 import { revealSpecs, revealCascade, bumpCount } from './motion.js';
 import { smoothScroll, cursor, revealOnView } from './cine.js';
+import { captureAd, loadTags, watchClicks, track, fromAd, adGroup } from './track.js';
 
 const BASE = import.meta.env.BASE_URL;
 export { contacto };
@@ -41,7 +42,7 @@ export const solicitud = {
   all() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return memory; } },
   save(list) { memory = list; try { localStorage.setItem(KEY, JSON.stringify(list)); } catch { /* modo privado */ } emit(); },
   has(id) { return this.all().some((x) => x.id === id); },
-  add(item) { const l = this.all(); if (!l.some((x) => x.id === item.id)) { l.push(item); this.save(l); } },
+  add(item) { const l = this.all(); if (!l.some((x) => x.id === item.id)) { l.push(item); this.save(l); track('agregar_solicitud', { id: item.id }); } },
   remove(id) { this.save(this.all().filter((x) => x.id !== id)); },
   update(id, patch) { this.save(this.all().map((x) => (x.id === id ? { ...x, ...patch } : x))); },
   clear() { this.save([]); },
@@ -139,6 +140,31 @@ function foldWatch() {
   });
 }
 
+// ---------- Fase 13 · bienvenida para quien llega de un anuncio ----------
+// El anuncio prometió algo; la página lo dice arriba con un botón que lleva directo a hacerlo («mensaje que coincide»).
+// Solo aparece si la visita viene de un anuncio de Google y el grupo del anuncio corresponde a esta página.
+const WELCOME = {
+  camara: { donde: (page, door) => page === 'industriales' && door !== 'vaiven', texto: 'Puertas para cámara fría hechas a la medida de tu vano.', boton: 'Cotizar a la medida', ir: ['#cotizar', '#medida', '#medidaBox', '[data-vano]'] },
+  vaiven: { donde: (page, door) => door === 'vaiven', texto: 'Puertas vaivén semi aislantes, a la medida de tu vano.', boton: 'Cotizar a la medida', ir: ['#cotizar', '#medida', '[data-vano]'] },
+  refacciones: { donde: (page) => page === 'componentes', texto: '¿No sabes cómo se llama tu pieza? Toca la zona de la puerta donde está.', boton: 'Encontrar mi pieza', ir: ['#encuentra'] },
+  cds: { donde: (page, door) => door === 'cds' || page === 'cds', texto: 'Juego de tres puertas de exhibición: Advanced, Plus o LT.', boton: 'Cotizar el juego', ir: ['#cotizar'] },
+};
+function adWelcome(page, header) {
+  const g = adGroup(), w = g && WELCOME[g];
+  if (!w || !fromAd() || !w.donde(page, document.body.dataset.door)) return;
+  try { if (sessionStorage.getItem('st.ad.cerrado') === g) return; } catch { /* sin almacenamiento */ }
+  const bar = document.createElement('aside'); bar.className = 'adw'; bar.setAttribute('aria-label', 'Para lo que buscabas'); bar.dataset.where = 'bienvenida-anuncio';
+  const tel = contacto.telefono.replace(/[^+\d]/g, '');
+  bar.innerHTML = `<div class="wrap adw__in"><p class="adw__t">${w.texto}</p><p class="adw__b"><a class="btn btn--sm" href="#" data-adw-go>${w.boton}</a><a class="btn btn--sm btn--line adw__call" href="tel:${tel}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.6 2.8 4.4 3.4c-.7.2-1.1.9-1 1.6.9 5.7 5.3 10.1 11 11 .7.1 1.4-.3 1.6-1l.6-2.2c.2-.6-.1-1.2-.7-1.5l-2.4-1c-.5-.2-1.1-.1-1.5.3l-.8.9a9 9 0 0 1-4.2-4.2l.9-.8c.4-.4.5-1 .3-1.5l-1-2.4c-.3-.6-.9-.9-1.5-.7Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Llamar</a></p><button type="button" class="adw__x" aria-label="Cerrar">×</button></div>`;
+  header.after(bar);
+  bar.querySelector('[data-adw-go]').onclick = (e) => {
+    e.preventDefault(); track('anuncio_boton', { grupo: g });
+    const t = w.ir.map((sel) => document.querySelector(sel)).find(Boolean);
+    if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); else location.href = url('cotizar/');
+  };
+  bar.querySelector('.adw__x').onclick = () => { bar.remove(); try { sessionStorage.setItem('st.ad.cerrado', g); } catch { /* sin almacenamiento */ } };
+}
+
 // ---------- marco de página ----------
 // Fase 12B · diagnóstico en pantalla: abre cualquier página con ?debug=1 (se recuerda en la pestaña; ?debug=0 lo quita).
 // Muestra el navegador, la tarjeta gráfica y cualquier error, para poder ver qué pasa en un teléfono sin computadora.
@@ -168,6 +194,7 @@ function debugPanel() {
 
 export function mountSite(page) {
   debugPanel();
+  captureAd(); loadTags(); watchClicks();               // Fase 13 · medición y contexto del anuncio (src/ui/track.js)
   // los enlaces escritos en el HTML como "/ruta/" siguen funcionando si el sitio se publica en una subcarpeta
   if (BASE !== '/') document.querySelectorAll('a[href^="/"]').forEach((a) => a.setAttribute('href', url(a.getAttribute('href'))));
   const header = document.createElement('header');
@@ -183,6 +210,7 @@ export function mountSite(page) {
     </div>`;
   const skip = document.createElement('a'); skip.className = 'skip'; skip.href = '#main'; skip.textContent = 'Ir al contenido';
   document.body.prepend(skip, header);
+  adWelcome(page, header);
   // Fase 10I · menú del celular: las cuatro puertas con su foto (un toque para llegar a cualquiera), Componentes, Cotizar
   // con lo que llevas y el contacto. En computadora, al pasar por «Industriales» se despliegan las tres puertas.
   const here = document.body.dataset.door || page;

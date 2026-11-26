@@ -1,6 +1,7 @@
 // Cotizar: la solicitud se edita aquí y se envía por un canal real (correo o WhatsApp) que abre el propio usuario.
 // No hay servidor configurado, así que la página no finge un envío: abre el programa con el texto listo o lo copia.
 import { solicitud, contacto, toast, url } from './site.js';
+import { track, adRef } from './track.js';
 import catalog from '../data/components.json';
 import { FAM_NAME, famOf, defaults, toCm, describe, plano, CDS_W, CDS_H, CDS_MOD } from './medida.js';
 import { vano } from './vano.js';
@@ -206,7 +207,8 @@ export function mountQuote() {
   form.onsubmit = async (e) => {
     e.preventDefault(); form.dataset.tried = '1';
     if (!check()) { const bad = $('[aria-invalid=true]', form); bad && bad.focus(); $('#qStatus').textContent = 'Revisa los campos marcados.'; return; }
-    const t = text(), status = $('#qStatus');
+    const t = text() + adRef(), status = $('#qStatus');
+    track(via === 'copiar' ? 'cotizacion_copiada' : 'cotizacion_enviada', { via, partidas: solicitud.all().length });
     if (via === 'copiar') {
       try { await navigator.clipboard.writeText(t); status.textContent = `Texto copiado. Pégalo en un correo a ${contacto.correo} o en el mensaje que prefieras.`; }
       catch { $('.q-preview').open = true; const r = document.createRange(); r.selectNodeContents($('#qText')); getSelection().removeAllRanges(); getSelection().addRange(r); status.textContent = 'No se pudo copiar solo: el texto quedó seleccionado abajo para que lo copies.'; }

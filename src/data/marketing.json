@@ -1,0 +1,4 @@
+{
+  "nota": "Fase 13 · medición de Google Ads y Analytics. gtm: la clave del contenedor de Google Tag Manager (GTM-XXXXXXX); mientras sea null no se carga nada de Google. Los eventos ya se mandan a dataLayer: whatsapp_click, llamada_click, cotizacion_enviada (principales); agregar_solicitud, ar_abrir, ficha_pieza, correo_click (secundarios).",
+  "gtm": null
+}

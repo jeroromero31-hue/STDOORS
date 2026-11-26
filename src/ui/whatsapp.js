@@ -4,10 +4,12 @@
 import contacto from '../data/contacto.json';
 import { describe, FAM_NAME } from './medida.js';
 import { url } from './site.js';
+import { adRef } from './track.js';
 
 export const WA_NUMBER = contacto.whatsapp || null;
 export const waLabel = () => (WA_NUMBER ? 'Escribir por WhatsApp' : 'Mandar por WhatsApp');
-export const waHref = (text) => `https://wa.me/${WA_NUMBER || ''}?text=${encodeURIComponent(text)}`;
+// Fase 13 · al final del mensaje, de qué anuncio vino (si vino de uno): ST sabe qué grupo trajo el contacto
+export const waHref = (text) => `https://wa.me/${WA_NUMBER || ''}?text=${encodeURIComponent(text + adRef())}`;
 const here = () => `${location.origin}${location.pathname}`;
 
 // ctx.tipo: 'medida' { fam, cfg } · 'pieza' { pieza, cantidad, puerta } · 'texto' { texto }

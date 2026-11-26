@@ -21,6 +21,7 @@ import ar from '../data/ar.json';
 import { createSheet, url, toast } from './site.js';
 import { describe, defaults } from './medida.js';
 import { resizeGlb, mapPoint } from './arResize.js';
+import { track } from './track.js';
 
 const NOMBRE = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' };
 // acabados que se pueden ver en la cámara (los mismos de la página de cada puerta)
@@ -140,6 +141,7 @@ const link = (fam, size) => {
 
 export async function openAR(fam, cfg0 = {}) {
   const meta = ar.puertas[fam]; if (!meta) return;
+  track('ar_abrir', { puerta: fam });
   const cfg = { ...defaults(fam), ...Object.fromEntries(Object.entries(cfg0 || {}).filter(([, v]) => v !== '' && v != null)) };
   if (!sheet) { sheet = createSheet('Verla en tu espacio'); sheet.el.classList.add('sheet--ar'); }
   let size = sizeFor(fam, cfg);

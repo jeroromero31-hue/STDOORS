@@ -1,6 +1,7 @@
 // Catálogo de componentes: búsqueda, filtros por puerta y tipo, ficha con foto ampliable y enlaces a la puerta 3D.
 // Al abrir no se listan las 76 piezas: primero se elige una puerta o se busca (brief §6).
 import { url, solicitud, toast, createSheet } from './site.js';
+import { track } from './track.js';
 import { partPicture } from './picture.js';
 import data from '../data/components.json';
 import en3d from '../data/piezas-3d.json';
@@ -108,7 +109,7 @@ export function mountCatalog() {
   // Fase 10I · ficha técnica: número grande, foto sobre retícula con su cota, datos, dónde va en la puerta, cantidad,
   // copiar la referencia y piezas de la misma puerta
   function openSheet(p) {
-    const wasOpen = !!sheetPiece; sheetPiece = p;
+    const wasOpen = !!sheetPiece; if (sheetPiece !== p) track('ficha_pieza', { pieza: p.numero || '', id: p.id }); sheetPiece = p;
     const i = list.indexOf(p), prev = i > 0 ? list[i - 1] : null, next = i >= 0 && i < list.length - 1 ? list[i + 1] : null;
     const doors3d = in3d(p), dim = dimOf(p.nombre);
     const fam0 = p.familias.find((f) => spot(p, f)) || null, sp = fam0 && spot(p, fam0);
