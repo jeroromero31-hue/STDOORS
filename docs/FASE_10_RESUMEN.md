@@ -636,3 +636,11 @@ ST lo abrió en la computadora (GitHub Pages) y el Inicio iba trabado.
   En una laptop con pantalla de densidad 2 el 3D del Inicio pasaba de 5.2 a 2.1 millones de píxeles por cuadro (en la
   prueba, 2.3 veces más rápido). Quieta, la escena se sigue dibujando nítida a la densidad de la pantalla (y a 1.5× en
   pantallas de densidad 1, como antes).
+
+## Fase 12B · iPhone: el Inicio salía con la foto en vez del 3D
+En el iPhone de ST (GitHub Pages) la entrada mostraba la foto de respaldo, recortada. La descarga del modelo se tomaba
+como error si llegaban más bytes de los que anunciaba el servidor (pasa cuando el servidor o la red comprimen al
+enviar). Ahora ese tamaño solo sirve para la barra de avance, y si la descarga falla se pide otra vez directo de la
+red antes de rendirse. Diagnóstico: cualquier página con `?debug=1` muestra abajo el navegador, la tarjeta gráfica y
+los errores (`?debug=0` lo quita). El video de la CDS se codificó con 4 cuadros de referencia (más compatible con los
+decodificadores de los teléfonos).

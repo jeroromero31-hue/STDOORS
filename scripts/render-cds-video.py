@@ -52,7 +52,7 @@ def encode(n, fps, tmp):
         d = os.path.join(tmp, name); out = os.path.join(VID, f'cds-{name}.mp4'); webm = os.path.join(VID, f'cds-{name}.webm')
         src = ['-framerate', str(fps), '-i', os.path.join(d, '%03d.png')]
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', *src, '-c:v', 'libx264', '-preset', 'veryslow', '-tune', 'animation', '-crf', str(crf), '-pix_fmt', 'yuv420p',
-                        '-profile:v', 'high', '-level', '4.1', '-g', str(n), '-x264-params', f'keyint={n}:min-keyint={n}:scenecut=0', '-movflags', '+faststart', '-an', out], check=True)   # un solo cuadro clave: sin «pulso» de calidad a media toma
+                        '-profile:v', 'high', '-level', '4.1', '-g', str(n), '-x264-params', f'keyint={n}:min-keyint={n}:scenecut=0:ref=4:bframes=3', '-movflags', '+faststart', '-an', out], check=True)   # un solo cuadro clave: sin «pulso» de calidad a media toma
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', *src, '-c:v', 'libvpx-vp9', '-crf', '36', '-b:v', '0', '-pix_fmt', 'yuv420p',
                         '-row-mt', '1', '-deadline', 'good', '-cpu-used', '4', '-g', str(n), '-an', webm], check=True)
         for tag, i in (('inicio', 0), ('fin', n - 1)):

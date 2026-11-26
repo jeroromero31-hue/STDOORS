@@ -140,7 +140,34 @@ function foldWatch() {
 }
 
 // ---------- marco de página ----------
+// Fase 12B · diagnóstico en pantalla: abre cualquier página con ?debug=1 (se recuerda en la pestaña; ?debug=0 lo quita).
+// Muestra el navegador, la tarjeta gráfica y cualquier error, para poder ver qué pasa en un teléfono sin computadora.
+function debugPanel() {
+  let on = false;
+  try { const q = new URLSearchParams(location.search).get('debug'); if (q === '1') sessionStorage.setItem('st.debug', '1'); if (q === '0') sessionStorage.removeItem('st.debug'); on = sessionStorage.getItem('st.debug') === '1'; } catch { /* sin almacenamiento */ }
+  const lines = [];
+  const box = on ? document.createElement('pre') : null;
+  if (box) {
+    box.setAttribute('aria-hidden', 'true');
+    box.style.cssText = 'position:fixed;left:6px;right:6px;bottom:6px;z-index:9999;max-height:38vh;overflow:auto;margin:0;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.82);color:#9fe8f2;font:11px/1.35 ui-monospace,Menlo,monospace;white-space:pre-wrap;pointer-events:auto';
+    document.body.append(box);
+  }
+  const log = (m) => { lines.push(`${(performance.now() / 1000).toFixed(1)}s ${m}`); if (box) box.textContent = lines.join('\n'); };
+  window.__stLog = log;
+  if (!on) return;
+  let gpu = '';
+  try { const c = document.createElement('canvas'), g = c.getContext('webgl2') || c.getContext('webgl'); if (g) { const e = g.getExtension('WEBGL_debug_renderer_info'); gpu = e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER); } else gpu = 'sin WebGL'; } catch (e) { gpu = 'WebGL: ' + e.message; }
+  log(`${navigator.userAgent}`); log(`pantalla ${innerWidth}×${innerHeight} @${devicePixelRatio} · GPU ${gpu}`);
+  addEventListener('error', (e) => log(`ERROR ${e.message} ${(e.filename || '').split('/').pop()}:${e.lineno}`));
+  addEventListener('unhandledrejection', (e) => log(`PROMESA ${e.reason && (e.reason.message || e.reason)}`));
+  const ce = console.error.bind(console), cw = console.warn.bind(console);
+  console.error = (...a) => { log('console.error ' + a.map((x) => (x && x.message) || String(x)).join(' ')); ce(...a); };
+  console.warn = (...a) => { log('console.warn ' + a.map((x) => (x && x.message) || String(x)).join(' ')); cw(...a); };
+  addEventListener('st:model-progress', (e) => { if (e.detail === 1) log('modelo 3D descargado'); });
+}
+
 export function mountSite(page) {
+  debugPanel();
   // los enlaces escritos en el HTML como "/ruta/" siguen funcionando si el sitio se publica en una subcarpeta
   if (BASE !== '/') document.querySelectorAll('a[href^="/"]').forEach((a) => a.setAttribute('href', url(a.getAttribute('href'))));
   const header = document.createElement('header');

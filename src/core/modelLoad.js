@@ -4,24 +4,39 @@
 export async function loadModel({ z, raw, bytes, onProgress, response }) {
   const tell = (k) => { if (onProgress) onProgress(k); dispatchEvent(new CustomEvent('st:model-progress', { detail: k })); };
   const canZ = typeof DecompressionStream === 'function' && !!z;
-  const r = await (response || fetch(canZ ? z : raw));
-  if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`);
-  const total = +r.headers.get('content-length') || 0;
-  let buf;
-  if (r.body && r.body.getReader && total) {
-    const out = new Uint8Array(total), reader = r.body.getReader(); let n = 0;
+  const url = canZ ? z : raw;
+  const unzip = async (buf) => {
+    const head = new Uint8Array(buf, 0, 2);
+    if (head[0] === 0x1f && head[1] === 0x8b) {                  // gzip (si el servidor ya lo descomprimió, llega tal cual)
+      buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    }
+    if (bytes && buf.byteLength !== bytes) throw new Error(`El modelo llegó incompleto (${buf.byteLength} de ${bytes} bytes)`);
+    return buf;
+  };
+  const read = async (r) => {
+    if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`);
+    // Fase 12B · el tamaño que dice el servidor solo sirve para la barra de avance: si el servidor comprime al enviar
+    // (GitHub Pages, algunos CDN), llegan más bytes de los que anuncia; antes eso se tomaba como error y el Inicio
+    // se quedaba con la foto en vez del 3D
+    const total = +r.headers.get('content-length') || 0;
+    if (!(r.body && r.body.getReader)) return r.arrayBuffer();
+    const reader = r.body.getReader(), parts = []; let n = 0;
     for (;;) {
       const { done, value } = await reader.read(); if (done) break;
-      if (n + value.length > total) throw new Error('El modelo llegó con más datos de los esperados');
-      out.set(value, n); n += value.length; tell(0.95 * n / total);
+      parts.push(value); n += value.length; if (total) tell(Math.min(0.95, 0.95 * n / total));
     }
-    buf = n === total ? out.buffer : out.buffer.slice(0, n);
-  } else buf = await r.arrayBuffer();
-  const head = new Uint8Array(buf, 0, 2);
-  if (head[0] === 0x1f && head[1] === 0x8b) {                    // gzip (si el servidor ya lo descomprimió, llega tal cual)
-    buf = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+    const out = new Uint8Array(n); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+    return out.buffer;
+  };
+  let buf;
+  try { buf = await unzip(await read(await (response || fetch(url)))); }
+  catch (e) {
+    // segundo intento, directo de la red y sin leerlo por partes (caché vieja del teléfono, conexión cortada…)
+    console.warn('Modelo 3D: se vuelve a pedir', e && e.message);
+    const r = await fetch(url, { cache: 'reload' });
+    if (!r.ok) throw new Error(`No se pudo descargar el modelo (HTTP ${r.status})`);
+    buf = await unzip(await r.arrayBuffer());
   }
-  if (bytes && buf.byteLength !== bytes) throw new Error('El modelo llegó incompleto');
   tell(1);
   return buf;
 }

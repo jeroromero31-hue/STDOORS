@@ -57,6 +57,7 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   canvas.setAttribute('tabindex', '0');
   container.append(canvas);
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+  canvas.addEventListener('webglcontextlost', () => { if (window.__stLog) window.__stLog('WebGL: el navegador quitó el contexto 3D (memoria)'); });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;  // conserva el blanco sanitario como blanco
   renderer.toneMappingExposure = 1.0;

@@ -25,7 +25,7 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
   // igual de nítida a pantalla completa y dibuja casi el doble de rápido que «alta».
   const q = guessQuality(), forced = new URLSearchParams(location.search).get('calidad');
   const stage = createStage(gl, { fov: 30, quality: q === 'alta' && !forced ? 'media' : q });
-  if (!stage) { onFail('sin-webgl'); return null; }
+  if (!stage) { onFail('no se pudo crear el lienzo 3D (WebGL)'); return null; }
   const { camera, controls, canvas } = stage;
   controls.enabled = false;                                // aquí la cámara la mueve el scroll, no el puntero
   canvas.removeAttribute('tabindex'); canvas.style.pointerEvents = 'none';
@@ -214,8 +214,9 @@ export function mountHero({ section, gl, hud, readout, load, onFail, response })
     stage.precompile();                                       // Fase 12: sombreadores en paralelo (ya con la luz del Inicio)
     if (viewer.thermal && thermo && !reducedMotion()) thermal = createThermal(stage, viewer.thermal);
     ready = true; load.done(); stage.invalidate(60);
+    if (window.__stLog) window.__stLog(`Inicio 3D listo · calidad ${stage.quality} · densidad ${stage.renderer.getPixelRatio().toFixed(2)}`);
     gl.classList.add('is-ready');
-  }, (err) => { console.error(err); stage.renderer.setAnimationLoop(null); onFail('modelo'); });
+  }, (err) => { console.error(err); stage.renderer.setAnimationLoop(null); onFail(`modelo: ${err && err.message}`); });
 
   // el avance del scroll mueve todo; cuando la sección está quieta, la escena deja de dibujarse (stage.js)
   // Con «movimiento reducido» la puerta se queda cerrada y quieta, con sus etiquetas.

@@ -40,8 +40,9 @@ try {
 
 // ---------- entrada 3D ----------
 const glOk = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch { return false; } })();
-const poster = () => {
+const poster = (why) => {
   // sin 3D: la foto de la vaivén ocupa el lugar de la escena y la entrada es una pantalla normal
+  if (window.__stLog) window.__stLog(`Inicio sin 3D: ${why && (why.message || why)}`);
   curtain.ready();
   hx.classList.remove('hx--live'); hx.classList.add('hx--still'); loadEl.hidden = true;
   gl.innerHTML = pic(F['vaiven-frente'], '100vw', { eager: true });
@@ -65,8 +66,8 @@ if (glOk) {
     section: hx, gl, hud: $('#hxHud'), load, response,
     readout: { el: $('#hxRead'), value: $('#hxRead b') },
     onFail: poster,
-  })).catch((e) => { console.error(e); poster(); });
-} else poster();
+  })).catch((e) => { console.error(e); poster(e); });
+} else poster('este navegador no tiene WebGL');
 
 // ---------- frase: las palabras se encienden en orden de lectura ----------
 {
