@@ -626,3 +626,13 @@ dedo sobre el vidrio no gira la cámara ni mueve la página; la jaladera sigue a
 ligera, sombras al girar y al abrir, resolución dinámica, «Por dentro» y liberador, cotas centradas, escarcha en lienzo
 y derretir, escáner con transformaciones, calculadora retirada, USDZ < 6 MB, video a 60 cuadros sin saltos ni
 repetidos) y la cadena de regresión de las fases anteriores (con las pruebas de la calculadora cambiadas a «ya no está»).
+
+## Fase 12B · computadora: el Inicio ya no se traba
+ST lo abrió en la computadora (GitHub Pages) y el Inicio iba trabado.
+- **Sin scroll suave por JavaScript (Lenis).** Movía la página desde el hilo principal: cada vez que el 3D tardaba un
+  cuadro, toda la página se detenía. Ahora el scroll es el del navegador (con rueda y trackpad también es suave) y lo que
+  sigue al scroll conserva su inercia propia.
+- **Tope de píxeles mientras algo se mueve:** a lo más ~2.1 millones por cuadro en computadora (1.4 en el teléfono).
+  En una laptop con pantalla de densidad 2 el 3D del Inicio pasaba de 5.2 a 2.1 millones de píxeles por cuadro (en la
+  prueba, 2.3 veces más rápido). Quieta, la escena se sigue dibujando nítida a la densidad de la pantalla (y a 1.5× en
+  pantallas de densidad 1, como antes).

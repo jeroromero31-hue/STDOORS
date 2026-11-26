@@ -1,11 +1,9 @@
 // Fase 10D/10E · Animación de cine para todo el sitio (Lusion / Active Theory / Apple):
 //   · intro: pantalla azul marino con la marca; al estar lista la puerta 3D se abre como una vaivén
 //   · títulos que entran por líneas (cada línea sube desde una ranura)
-//   · scroll suave con inercia en computadora (Lenis); en pantallas táctiles, el scroll nativo
+//   · scroll nativo en todos lados (Fase 12B: se quitó Lenis, trababa la página cuando el 3D tardaba)
 //   · cursor con anillo que crece sobre lo que se puede tocar y dice qué hace
 // Todo se apaga con «reducir movimiento».
-import Lenis from 'lenis';
-import 'lenis/dist/lenis.css';
 import { reducedMotion } from '../home/scrub.js';
 
 const fine = () => matchMedia('(pointer: fine)').matches;
@@ -58,13 +56,10 @@ export function revealOnView(el) {
 }
 
 // ---------- scroll suave ----------
-export function smoothScroll() {
-  if (window.__lenis) return window.__lenis;
-  if (quiet() || !fine()) return null;
-  const lenis = new Lenis({ autoRaf: true, lerp: 0.085, wheelMultiplier: 0.95, anchors: true });
-  window.__lenis = lenis;
-  return lenis;
-}
+// Fase 12B · ya no hay scroll suave por JavaScript (Lenis): movía la página desde el hilo principal, así que cada vez
+// que el 3D tardaba un cuadro la página entera se trababa. El scroll nativo lo mueve el navegador aparte y siempre va
+// fluido (con rueda o trackpad también es suave); lo que sigue al scroll ya trae su propia inercia (src/home/scrub.js).
+export function smoothScroll() { return null; }
 
 // ---------- cursor ----------
 export function cursor() {

@@ -96,8 +96,13 @@ export function createStage(container, { quality = guessQuality(), fov = 32, fal
   try { const v = +sessionStorage.getItem('st.drs'); if (v >= 0.55 && v <= 1 && !QUALITY[new URLSearchParams(location.search).get('calidad')]) drs = v; } catch { /* sin almacenamiento */ }
   stage.cap = 0;
   const capped = (r) => (stage.cap ? Math.min(r, stage.cap) : r);
-  const baseRatio = () => { const Q = QUALITY[stage.quality]; return capped(Math.max(0.75, Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio) * drs)); };
-  const idleRatio = () => capped(Math.min(devicePixelRatio || 1, 2.5));
+  // Fase 12B · tope de píxeles mientras algo se mueve: en una pantalla grande (o de laptop con densidad 2) el lienzo a
+  // 1.25–2× pasaba de 3 a 8 millones de píxeles por cuadro y la tarjeta gráfica integrada no alcanzaba (se trababa el
+  // Inicio). Al moverse se dibujan a lo más ~2.1 millones (1.4 en el teléfono); quieta, el cuadro nítido es como antes.
+  const BUDGET = matchMedia('(pointer: coarse)').matches ? 1.4e6 : 2.1e6;
+  const budget = (r) => { const a = Math.max(1, container.clientWidth * container.clientHeight); return Math.min(r, Math.sqrt(BUDGET / a)); };
+  const baseRatio = () => { const Q = QUALITY[stage.quality]; return capped(Math.max(0.75, budget(Math.min(Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1), Q.pixelRatio)) * drs)); };
+  const idleRatio = () => { const Q = QUALITY[stage.quality]; return capped(Math.min(2.5, Math.max(devicePixelRatio || 1, Q.minPixelRatio || 1))); };
   let sharp = false;
   stage.setSharp = (on) => {
     on = on && idleRatio() > baseRatio() + 0.05; if (on === sharp) return false;
