@@ -801,3 +801,16 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   - Cotizar: lo que pides a la izquierda; tus datos y el envío a la derecha.
   - Todo lo que antes se abría encima de la página (fichas, «Verla en tu espacio») se abre en la página derecha.
 - **La bisagra:** en el pliegue hay una bisagra («Toca la bisagra»); al tocarla se abren «Los dos lados».
+- **Revisión del modo plegable (14E, segunda pasada)** con las medidas del Duo (951 × 537):
+  - Inicio: la izquierda ya no carga los capítulos de pantalla completa (se cortaban en el pliegue); ahora es una lista
+    que se despliega con lo de cada puerta (qué es, sus datos y el botón al 3D), luego «Hecha a la medida de tu vano» y
+    el cierre. La puerta de la derecha es grande (sin el texto, que va a la izquierda) y abajo dice qué hacer con ella.
+    El termómetro del recorrido no se muestra en este modo.
+  - Cada puerta: al pasar de los pasos a piezas, ficha y cotizar, el 3D quita sus efectos y regresa a la vista general.
+    El texto de los pasos es más grande. La barra de secciones cabe en su página.
+  - Industriales: la puerta de la derecha sigue también a los planos «El espacio que pide cada una»; sin las imágenes
+    repetidas a la izquierda.
+  - Componentes, CDS, Cotizar: rejillas y comparadores en una columna, como en el teléfono; avisos en la página izquierda.
+  - Bisagra más delgada; su etiqueta solo la primera vez en la visita.
+  - Revisado en las 8 páginas: nada cruza el pliegue, sin desbordes, botones de 44 px o más, sin textos de menos de 12 px
+    y axe sin fallas (`f14e/modocheck.py`).

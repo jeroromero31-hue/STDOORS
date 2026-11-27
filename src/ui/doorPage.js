@@ -435,6 +435,15 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       io = new IntersectionObserver(onBlock, { rootMargin: `-${line - 1}px 0px -${H - line - 1}px 0px` });
       blocks.forEach((el) => io.observe(el));
     };
+    // Fase 14E · modo plegable: el 3D se queda a la derecha toda la página. Al pasar de los pasos a lo que sigue (piezas,
+    // ficha, cotizar) se quitan los efectos y la puerta vuelve a su vista general, cerrada; al regresar, manda el paso.
+    new IntersectionObserver(([e]) => {
+      if (!pleg() || e.isIntersecting) return;
+      if (e.boundingClientRect.top > 0) return;                     // la puerta aún no llega: arriba de la página
+      if (xray && xray.on) setXray(false); if (thermal && thermal.on) setCold(false); if (state.inside) insideBtn.click();
+      currentBlock = null; blocks.forEach((b) => b.classList.remove('is-current'));
+      rig.go('general', 1.1); motion.step({ open: '0' });
+    }, { rootMargin: '-50% 0px -50% 0px' }).observe(door);
     watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); }); addEventListener('st:libro', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
     // desde el catálogo: ?pieza=<id> entra a «Ver por dentro» con esa pieza señalada
     const want = new URLSearchParams(location.search).get('pieza');

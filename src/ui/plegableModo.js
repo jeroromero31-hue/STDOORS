@@ -22,37 +22,60 @@ function hingeEl() {
   const b = document.createElement('button');
   b.type = 'button'; b.className = 'pleg-hinge';
   b.setAttribute('aria-label', 'Los dos lados: la puerta vista desde afuera y desde adentro de la cámara, con el pliegue como pared');
-  b.innerHTML = '<i></i><i></i><i></i><span>Toca la bisagra</span>';
+  let first = true; try { first = sessionStorage.getItem('st.bisagra') !== '1'; sessionStorage.setItem('st.bisagra', '1'); } catch { /* sin almacenamiento */ }
+  b.innerHTML = `<i></i><i></i><i></i>${first ? '<span>Toca la bisagra: afuera y adentro</span>' : ''}`;
   b.onclick = () => import('./pliegue.js').then((m) => m.openPliegue()).catch(() => {});
   return b;
 }
 
 // ---------- Inicio ----------
-const DOORS = [
-  { i: 0, id: 'abatible', nombre: 'Abatible', t: '−18 °C', uso: 'Congelación y refrigeración' },
-  { i: 1, id: 'corrediza', nombre: 'Corrediza', t: '2 °C', uso: 'Vanos anchos y montacargas' },
-  { i: 2, id: 'vaiven', nombre: 'Vaivén', t: '10 °C', uso: 'Cocinas y pasillos' },
-  { i: 3, id: 'cds', nombre: 'CDS Legacy', t: '3 °C', uso: 'Exhibición en tienda' },
-];
+// Izquierda: las cuatro puertas como lista que se despliega (lo de cada capítulo del Inicio: qué es, cómo cierra, sus
+// datos y el botón al 3D), luego «Hecha a la medida de tu vano» y el cierre. Derecha: esa puerta en el pasillo, grande;
+// se abre al tocarla y su pantalla marca cómo sube la temperatura. Lo demás del Inicio (la entrada, los capítulos y el
+// escáner) está pensado para la pantalla completa y no se muestra en este modo.
+const T = { abatible: '−18 °C', corrediza: '2 °C', vaiven: '10 °C', cds: '3 °C' };
+function door(id) {
+  if (id === 'cds') return { id, nombre: 'CDS Legacy', kind: 'Exhibición Reach-In, por juego', lead: 'Se quedan abiertas a 90° para surtir y se cierran solas.',
+    spec: [['Modelos', 'Advanced, Plus o LT'], ['Medidas', '23", 26" o 30" × 73"'], ['Acabado', 'Negro; cromo bajo pedido']], href: url('cds/'), cta: 'Abrir las CDS en 3D' };
+  const ch = $(`.ch[data-door="${id}"]`); if (!ch) return null;
+  const a = $('.ch__t .btn', ch);
+  return { id, nombre: $('h2', ch).textContent.trim(), kind: $('.ch__kind', ch).textContent.trim(), lead: $('.ch__lead', ch).textContent.trim(),
+    spec: $$('.ch__spec > div', ch).map((d) => [$('dt', d).textContent.trim(), $('dd', d).textContent.trim()]), href: a.getAttribute('href'), cta: a.textContent.trim() };
+}
 function home() {
   const hx = $('#hx'), inn = $('#adentro'); if (!hx || !inn) return;
+  const ds = ['abatible', 'corrediza', 'vaiven', 'cds'].map(door).filter(Boolean);
   const left = document.createElement('section');
   left.className = 'pleg-home wrap'; left.setAttribute('aria-labelledby', 'plegHomeT');
   left.innerHTML = `
     <h1 id="plegHomeT">El frío se queda de su lado.</h1>
-    <p class="t-lead">Elige una puerta aquí; se abre en la otra mitad de tu pantalla.</p>
+    <p class="t-lead">Elige una puerta y tócala del otro lado del pliegue: se abre y su temperatura empieza a subir.</p>
     <ol class="pleg-list" aria-label="Puertas">
-      ${DOORS.map((d) => `<li><button type="button" class="pleg-list__b" data-i="${d.i}" aria-pressed="${d.i === 0}"><b>${d.nombre}</b><span>${d.uso}</span><em>${d.t}</em></button></li>`).join('')}
-    </ol>
-    <p class="row"><a class="btn" href="${url('industriales/')}">Puertas industriales</a><a class="btn btn--line" href="${url('cds/')}">Puertas CDS</a></p>`;
+      ${ds.map((d, i) => `<li class="pleg-item${i ? '' : ' is-on'}">
+        <button type="button" class="pleg-list__b" data-i="${i}" aria-expanded="${!i}" aria-controls="plegD${i}"><b>${d.nombre}</b><span>${d.kind}</span><em>${T[d.id]}</em></button>
+        <div class="pleg-item__d" id="plegD${i}"${i ? ' hidden' : ''}>
+          <p>${d.lead}</p>
+          <dl>${d.spec.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
+          <a class="btn btn--sm" href="${d.href}">${d.cta}</a>
+        </div></li>`).join('')}
+    </ol>`;
   hx.before(left); undo.push(() => left.remove());
   move(inn, pane);
+  const foot = document.createElement('div'); foot.className = 'pleg-pane__foot';
+  foot.innerHTML = '<p>Tócala para abrirla. Si se queda abierta, sube la temperatura.</p><a class="btn btn--sm btn--line" href="#"></a>';
+  pane.append(foot);
   const P = () => window.__pasillo;
+  const sel = (n, scroll) => {
+    $$('.pleg-item', left).forEach((li, i) => { const on = i === n; li.classList.toggle('is-on', on); $('.pleg-list__b', li).setAttribute('aria-expanded', String(on)); $('.pleg-item__d', li).hidden = !on; });
+    const a = $('a', foot); a.href = ds[n].href; a.textContent = ds[n].cta;
+    if (scroll && P()) P().center(n);
+  };
+  sel(0, false);
   requestAnimationFrame(() => { if (P()) { P().layout(); P().center(0, false); P().greet && P().greet(); } });
-  const sync = (n) => $$('.pleg-list__b', left).forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.i === n)));
-  $$('.pleg-list__b', left).forEach((b) => { b.onclick = () => { const p = P(); if (!p) return; p.center(+b.dataset.i); sync(+b.dataset.i); }; });
+  $$('.pleg-list__b', left).forEach((b) => { b.onclick = () => sel(+b.dataset.i, true); });
   const track = $('.pas__track', inn);
-  const onScroll = () => { const p = P(); if (p) sync(p.nearest()); };
+  let t = 0;
+  const onScroll = () => { clearTimeout(t); t = setTimeout(() => { const p = P(); if (p) { const n = p.nearest(); if (!$$('.pleg-item', left)[n].classList.contains('is-on')) sel(n, false); } }, 120); };
   if (track) { track.addEventListener('scroll', onScroll, { passive: true }); undo.push(() => track.removeEventListener('scroll', onScroll)); }
   undo.push(() => requestAnimationFrame(() => P() && P().layout()));
 }
@@ -69,8 +92,10 @@ function industriales() {
   }).join('');
   pane.append(show);
   const set = (i) => $$('.pleg-show__f', show).forEach((f) => { const on = +f.dataset.i === i; if (on && !f.classList.contains('is-on')) { f.classList.remove('is-scan'); void f.offsetWidth; f.classList.add('is-scan'); } f.classList.toggle('is-on', on); });
-  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) set(list.indexOf(e.target)); }), { rootMargin: '-45% 0px -45% 0px' });
-  list.forEach((li) => io.observe(li)); undo.push(() => io.disconnect());
+  // la puerta de la derecha es la que estás leyendo: su tarjeta y, más abajo, su plano «El espacio que pide cada una»
+  const plans = $$('#indPlans > *'), idx = (t) => (list.includes(t) ? list.indexOf(t) : plans.indexOf(t));
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) set(idx(e.target)); }), { rootMargin: '-45% 0px -45% 0px' });
+  [...list, ...plans].forEach((el) => io.observe(el)); undo.push(() => io.disconnect());
 }
 
 // ---------- Componentes ----------
