@@ -21,20 +21,62 @@
         <p class="hx__lead">Puertas para cámaras frigoríficas y puertas de exhibición Reach-In. Ábrelas y recórrelas en 3D.</p>
         <p class="row hx__cta"><a class="btn" href="/industriales/">Puertas industriales</a><a class="btn btn--line" href="/cds/">Puertas CDS</a></p>
       </div>
-      <!-- Adentro: lo que hay del otro lado de la puerta -->
+      <!-- pasillo:inicio -->
+      <!-- Adentro: el pasillo de las cámaras (Fase 14B, scripts/build-pasillo-html.py). Cada puerta se abre a su manera al
+           tocarla y la pantalla de arriba marca cómo sube la temperatura del cuarto si se queda abierta (temperaturas de
+           ejemplo). En el teléfono se recorre con el dedo; en la computadora se ve el pasillo a lo largo. -->
       <div class="hx__in" id="adentro">
-        <div class="hx__room" aria-hidden="true"><i class="hx__mist"></i></div>
-        <div class="wrap hx__inT">
+        <div class="wrap pas__head">
           <h2 id="adentroT">Un solo trabajo: que el frío no se escape.</h2>
-          <p>Hay tres maneras de lograrlo. Toca una para abrirla en 3D.</p>
+          <p>Cuatro puertas, cuatro maneras de abrir. Tócalas y mira cómo sube la temperatura si se quedan abiertas.</p>
         </div>
-        <ul class="hx__row" aria-labelledby="adentroT">
-        <li class="hx__pu" data-door="abatible"><a href="/industriales/abatible/" data-cur="Abrir"><span class="hx__pic" style="--w:523;--h:1008"><img src="/img/umbral/fila-abatible-262.webp" srcset="/img/umbral/fila-abatible-262.webp 262w, /img/umbral/fila-abatible-523.webp 523w" sizes="(min-width: 900px) 24vw, 34vw" width="523" height="1008" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Abatible</b><span>Gira sobre bisagras</span></span></a></li>
-        <li class="hx__pu" data-door="corrediza"><a href="/industriales/corrediza/" data-cur="Abrir"><span class="hx__pic" style="--w:1043;--h:792"><img src="/img/umbral/fila-corrediza-522.webp" srcset="/img/umbral/fila-corrediza-522.webp 522w, /img/umbral/fila-corrediza-1043.webp 1043w" sizes="(min-width: 900px) 24vw, 34vw" width="1043" height="792" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Corrediza</b><span>Corre colgada de un riel</span></span></a></li>
-        <li class="hx__pu" data-door="vaiven"><a href="/industriales/vaiven/" data-cur="Abrir"><span class="hx__pic" style="--w:909;--h:998"><img src="/img/umbral/fila-vaiven-454.webp" srcset="/img/umbral/fila-vaiven-454.webp 454w, /img/umbral/fila-vaiven-909.webp 909w" sizes="(min-width: 900px) 24vw, 34vw" width="909" height="998" alt="" loading="lazy" decoding="async"></span><span class="hx__pt"><b>Vaivén</b><span>Abre hacia los dos lados</span></span></a></li>
-        </ul>
-        <p class="hx__cds"><a href="/cds/">¿Es para una tienda? Puertas de exhibición CDS</a></p>
+        <div class="pas__track" tabindex="-1">
+          <ul class="pas__row" aria-labelledby="adentroT">
+          <li class="pas" data-door="abatible" data-t="-18" style="--mw:1.14;--mh:2.07;--ar:479/869">
+            <div class="pas__unit">
+              <p class="pas__disp" aria-hidden="true"><span class="pas__led">−18.0</span><span class="pas__u">°C</span><span class="pas__room">Congelación</span></p>
+              <button type="button" class="pas__door" aria-pressed="false" aria-label="Abrir la puerta abatible" data-cur="Abrir">
+                <span class="pas__back" style="left:6.219%;top:4.452%;width:86.309%;height:93.782%"><i></i></span><span class="pas__fx pas__fx--fijo" style="left:0.835%;top:0.921%;width:98.330%;height:98.159%"><img src="/img/pasillo/abatible-fijo-236.webp" srcset="/img/pasillo/abatible-fijo-236.webp 236w, /img/pasillo/abatible-fijo-471.webp 471w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"></span><span class="pas__mv" data-k="hoja" style="left:5.219%;top:3.452%;width:88.309%;height:95.282%;transform-origin:2.02% 50%"><img src="/img/pasillo/abatible-hoja-212.webp" srcset="/img/pasillo/abatible-hoja-212.webp 212w, /img/pasillo/abatible-hoja-423.webp 423w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__spill"><i></i><i></i></span>
+              </button>
+            </div>
+            <div class="pas__txt"><h3>Abatible</h3><p>Gira sobre bisagras. Cámaras de refrigeración y congelación.</p><a class="pas__go" href="/industriales/abatible/">Ábrela en 3D</a></div>
+          </li>
+          <li class="pas" data-door="corrediza" data-t="2" style="--mw:4.316;--mh:3.137;--ar:1813/1318;--viaje:0.44486">
+            <div class="pas__unit">
+              <p class="pas__disp" aria-hidden="true"><span class="pas__led">2.0</span><span class="pas__u">°C</span><span class="pas__room">Refrigeración</span></p>
+              <button type="button" class="pas__door" aria-pressed="false" aria-label="Abrir la puerta corrediza" data-cur="Abrir">
+                <span class="pas__back" style="left:5.082%;top:8.284%;width:45.049%;height:90.230%"><i></i></span><span class="pas__fx pas__fx--fijo" style="left:3.420%;top:3.642%;width:92.940%;height:93.323%"><img src="/img/pasillo/corrediza-fijo-842.webp" srcset="/img/pasillo/corrediza-fijo-842.webp 842w, /img/pasillo/corrediza-fijo-1685.webp 1685w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"></span><span class="pas__mv" data-k="hoja" style="left:4.082%;top:7.284%;width:47.049%;height:91.730%;transform-origin:52.65% 50%"><img src="/img/pasillo/corrediza-hoja-426.webp" srcset="/img/pasillo/corrediza-hoja-426.webp 426w, /img/pasillo/corrediza-hoja-853.webp 853w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__fx pas__fx--frente" style="left:0.441%;top:2.807%;width:99.062%;height:11.457%"><img src="/img/pasillo/corrediza-frente-898.webp" srcset="/img/pasillo/corrediza-frente-898.webp 898w, /img/pasillo/corrediza-frente-1796.webp 1796w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"></span><span class="pas__spill"><i></i><i></i></span>
+              </button>
+            </div>
+            <div class="pas__txt"><h3>Corrediza</h3><p>Corre colgada de un riel. Vanos anchos y paso de montacargas.</p><a class="pas__go" href="/industriales/corrediza/">Ábrela en 3D</a></div>
+          </li>
+          <li class="pas" data-door="vaiven" data-t="10" style="--mw:2.562;--mh:2.527;--ar:1076/1061">
+            <div class="pas__unit">
+              <p class="pas__disp" aria-hidden="true"><span class="pas__led">10.0</span><span class="pas__u">°C</span><span class="pas__room">Preparación</span></p>
+              <button type="button" class="pas__door" aria-pressed="false" aria-label="Abrir la puerta vaivén" data-cur="Abrir">
+                <span class="pas__back" style="left:6.019%;top:5.713%;width:87.962%;height:91.714%"><i></i></span><span class="pas__mv" data-k="izq" style="left:5.019%;top:4.713%;width:44.981%;height:93.214%;transform-origin:3.00% 50%"><img src="/img/pasillo/vaiven-izq-242.webp" srcset="/img/pasillo/vaiven-izq-242.webp 242w, /img/pasillo/vaiven-izq-484.webp 484w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__mv" data-k="der" style="left:50.000%;top:4.713%;width:44.981%;height:93.214%;transform-origin:97.00% 50%"><img src="/img/pasillo/vaiven-der-242.webp" srcset="/img/pasillo/vaiven-der-242.webp 242w, /img/pasillo/vaiven-der-484.webp 484w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__fx pas__fx--fijo" style="left:0.465%;top:0.471%;width:99.071%;height:99.057%"><img src="/img/pasillo/vaiven-fijo-533.webp" srcset="/img/pasillo/vaiven-fijo-533.webp 533w, /img/pasillo/vaiven-fijo-1066.webp 1066w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"></span><span class="pas__spill"><i></i><i></i></span>
+              </button>
+            </div>
+            <div class="pas__txt"><h3>Vaivén</h3><p>Abre hacia los dos lados y regresa sola. Cocinas y pasillos.</p><a class="pas__go" href="/industriales/vaiven/">Ábrela en 3D</a></div>
+          </li>
+          <li class="pas" data-door="cds" data-t="3" style="--mw:2.558;--mh:2.212;--ar:1074/929">
+            <div class="pas__unit">
+              <p class="pas__disp" aria-hidden="true"><span class="pas__led">3.0</span><span class="pas__u">°C</span><span class="pas__room">Bebidas</span></p>
+              <button type="button" class="pas__door" aria-pressed="false" aria-label="Abrir las puertas CDS" data-cur="Abrir">
+                <span class="pas__fx pas__fx--fijo" style="left:1.397%;top:1.399%;width:97.207%;height:97.201%"><img src="/img/pasillo/cds-fijo-522.webp" srcset="/img/pasillo/cds-fijo-522.webp 522w, /img/pasillo/cds-fijo-1044.webp 1044w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"></span><span class="pas__mv" data-k="p0" style="left:2.886%;top:4.413%;width:30.819%;height:90.527%;transform-origin:2.77% 50%"><img src="/img/pasillo/cds-p0-166.webp" srcset="/img/pasillo/cds-p0-166.webp 166w, /img/pasillo/cds-p0-331.webp 331w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__mv" data-k="p1" style="left:34.637%;top:4.413%;width:30.726%;height:90.527%;transform-origin:2.39% 50%"><img src="/img/pasillo/cds-p1-165.webp" srcset="/img/pasillo/cds-p1-165.webp 165w, /img/pasillo/cds-p1-330.webp 330w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__mv" data-k="p2" style="left:66.294%;top:4.413%;width:30.912%;height:90.527%;transform-origin:2.29% 50%"><img src="/img/pasillo/cds-p2-166.webp" srcset="/img/pasillo/cds-p2-166.webp 166w, /img/pasillo/cds-p2-332.webp 332w" sizes="(min-width: 900px) 40vw, 80vw" alt="" loading="lazy" decoding="async" draggable="false"><i class="pas__shade"></i></span><span class="pas__spill"><i></i><i></i></span>
+              </button>
+            </div>
+            <div class="pas__txt"><h3>CDS Legacy</h3><p>Exhibición Reach-In en juego de tres. Se quedan abiertas a 90°.</p><a class="pas__go" href="/cds/">Ábrelas en 3D</a></div>
+          </li>
+          </ul>
+        </div>
+        <div class="wrap pas__nav">
+          <button type="button" class="pas__arrow" data-dir="-1" aria-label="Puerta anterior"></button>
+          <p class="pas__tabs" role="group" aria-label="Ir a una puerta"><button type="button" data-i="0" aria-pressed="true">Abatible</button><button type="button" data-i="1" aria-pressed="false">Corrediza</button><button type="button" data-i="2" aria-pressed="false">Vaivén</button><button type="button" data-i="3" aria-pressed="false">CDS</button></p>
+          <button type="button" class="pas__arrow" data-dir="1" aria-label="Puerta siguiente"></button>
+        </div>
       </div>
+      <!-- pasillo:fin -->
       <!-- Afuera: muro, piso y la puerta. Se acerca con el scroll hasta que cruzas -->
       <div class="hx__out" aria-hidden="true">
         <i class="hx__w" data-w="t"></i><i class="hx__w" data-w="l"></i><i class="hx__w" data-w="r"></i><i class="hx__w hx__floor" data-w="f"></i>

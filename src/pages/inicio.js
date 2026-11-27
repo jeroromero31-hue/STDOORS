@@ -7,6 +7,7 @@ import { partPicture } from '../ui/picture.js';
 import { track, seg, easeInOut, easeOut, reducedMotion } from '../home/scrub.js';
 import { splitLines, revealOnView, playLines } from '../ui/cine.js';
 import { mountUmbral } from '../home/umbral.js';
+import { mountPasillo } from '../home/pasillo.js';
 import fotos from '../data/inicio-fotos.json';
 import catalog from '../data/components.json';
 import { mountFrio } from '../home/frio.js';
@@ -25,6 +26,7 @@ function pic(f, sizes, { eager = false, alt = f.alt } = {}) {
 
 // ---------- entrada: el umbral ----------
 const hx = $('#hx');
+mountPasillo($('#adentro'));          // el pasillo se acomoda primero: la entrada mide su lugar ya con él
 mountUmbral(hx);
 // el título entra por líneas al cargar (una sola vez por pestaña)
 {

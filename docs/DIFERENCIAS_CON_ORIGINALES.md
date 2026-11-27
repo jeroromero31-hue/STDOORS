@@ -390,3 +390,5 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
 - **Entrada del Inicio:** la vaivén ya no es el visor 3D sino tres imágenes del mismo modelo (inoxidable, de frente),
   que giran con CSS 3D; la apertura de hoja llega a 92° (tope, de canto) en vez de los 63° del original, porque aquí
   la vista cruza la puerta. El vaho es una ilustración.
+- **Pasillo del Inicio (14B):** las cuatro puertas de frente, en capas del mismo 3D; las temperaturas de las pantallas
+  son de ejemplo (no son datos de catálogo). La CDS abre una puerta a la vez a 90°.

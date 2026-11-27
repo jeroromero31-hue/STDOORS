@@ -32,19 +32,21 @@ export function mountFrio() {
   const maxY = () => document.documentElement.scrollHeight - innerHeight;
 
   // ---------- termómetro ----------
-  const th = document.createElement('div');
-  th.className = 'ftermo';
+  // Fase 14B · ya no va pegado a la orilla de la pantalla (se encimaba sobre las puertas y el texto): es una lectura
+  // compacta en la barra de arriba, junto a «Cotizar». Al tocarla abre los capítulos debajo de la barra.
+  const th = document.createElement('li');
+  th.className = 'ftermo nav__keep';
   th.innerHTML = `
-    <button type="button" class="ftermo__btn" aria-expanded="false" aria-controls="ftermoList" aria-label="30°C: termómetro del recorrido, Afuera. Toca para ver los capítulos">
-      <span class="ftermo__tube" aria-hidden="true"><i class="ftermo__hg"></i>${chs.map((c) => `<b style="--y:${((30 - c.t) / 50).toFixed(3)}"></b>`).join('')}</span>
-      <span class="ftermo__bulb" aria-hidden="true"></span>
-      <span class="ftermo__read" aria-hidden="true"><b>30</b>°C</span>
+    <button type="button" class="ftermo__btn" aria-expanded="false" aria-controls="ftermoList" aria-label="30°C: termómetro del recorrido, ${chs[0].name}. Toca para ver los capítulos">
+      <span class="ftermo__tube" aria-hidden="true"><i class="ftermo__hg"></i></span>
+      <span class="ftermo__read" aria-hidden="true"><b>30</b>°</span>
     </button>
     <div class="ftermo__panel" id="ftermoList" hidden>
       <p class="ftermo__h">Baja a −20 °C</p>
       <ol class="ftermo__list">${chs.map((c, i) => `<li><button type="button" data-ch="${i}"><span class="ftermo__t">${c.t > 0 ? c.t : c.t === 0 ? '0' : '−' + Math.abs(c.t)}°</span><span>${c.name}</span></button></li>`).join('')}</ol>
     </div>`;
-  document.body.append(th);
+  const keep = document.querySelector('.nav .nav__links .nav__keep');
+  if (keep) keep.before(th); else { th.classList.add('ftermo--float'); document.body.append(th); }
   const fl = frostLayer({ tip: matchMedia('(pointer: coarse)').matches ? 'Bajo cero: toca la escarcha y tu dedo la derrite.' : 'Bajo cero: pasa el cursor por la escarcha y se derrite.' });
   const btn = $('.ftermo__btn', th), panel = $('.ftermo__panel', th), read = $('.ftermo__read b', th);
 
@@ -72,7 +74,7 @@ export function mountFrio() {
     if (lastT >= 0 && T < 0 && !crossed) { crossed = true; try { navigator.vibrate && navigator.vibrate(12); } catch { /* sin vibración */ } }
     if (T > 2) crossed = false;
     lastT = T;
-    th.classList.add('is-live'); clearTimeout(idle); idle = setTimeout(() => th.classList.remove('is-live'), 1400);
+    th.classList.add('is-live'); clearTimeout(idle); idle = setTimeout(() => th.classList.remove('is-live'), 700);
   };
   const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
   addEventListener('scroll', onScroll, { passive: true });

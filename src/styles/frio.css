@@ -1,38 +1,37 @@
 /* Fase 11B · «Baja a −20 °C»: termómetro del recorrido, escarcha en las orillas y recorrido de 60 s */
 
-/* ---------- termómetro ---------- */
-.ftermo { --k: 0; --hot: #e8694a; --cold: #16b9cb; position: fixed; right: env(safe-area-inset-right, 0px); top: 54%; z-index: 45; transform: translateY(-50%); }
-.ftermo__btn { position: relative; display: grid; justify-items: end; padding-right: 5px !important; width: 44px; height: min(40svh, 320px); padding: 6px 0 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.ftermo__tube { position: relative; width: 7px; height: calc(100% - 26px); border-radius: 7px; background: rgba(255, 255, 255, .55);
-  box-shadow: 0 0 0 1.5px rgba(5, 47, 73, .32), 0 2px 10px rgba(5, 47, 73, .18); }
-.ftermo__hg { position: absolute; left: 1px; right: 1px; bottom: -4px; height: calc((1 - var(--k)) * 100% + 4px); border-radius: 6px;
-  background: color-mix(in oklab, var(--hot) calc((1 - var(--k)) * 100%), var(--cold)); transition: height 120ms linear; }
-.ftermo__tube b { position: absolute; left: 50%; top: calc(var(--y) * 100%); width: 11px; height: 2px; margin-left: -5.5px; border-radius: 2px; background: rgba(5, 47, 73, .45); }
-.ftermo__bulb { width: 17px; height: 17px; margin-top: -3px; margin-right: -5px; border-radius: 50%; background: color-mix(in oklab, var(--hot) calc((1 - var(--k)) * 100%), var(--cold));
-  box-shadow: 0 0 0 1.5px rgba(5, 47, 73, .32), 0 0 0 4px rgba(255, 255, 255, .55); }
-.ftermo.is-cold .ftermo__bulb { box-shadow: 0 0 0 1.5px rgba(5, 47, 73, .32), 0 0 14px 3px rgba(22, 185, 203, .55); }
-/* lectura junto al mercurio: aparece mientras te mueves o con los capítulos abiertos */
-.ftermo__read { position: absolute; right: 26px; top: calc(6px + var(--k) * (100% - 32px)); transform: translate(0, -50%); padding: 4px 9px; border-radius: 999px;
-  background: var(--c-navy); color: #fff; font-size: var(--t-xs); font-weight: var(--w-medium); white-space: nowrap; font-variant-numeric: tabular-nums;
-  opacity: 0; transition: opacity 260ms var(--ease-out); pointer-events: none; }
-.ftermo__read b { font-size: var(--t-sm); font-weight: var(--w-heavy); margin-right: 1px; }
-.ftermo.is-cold .ftermo__read b { color: #9fe8f2; }
-.ftermo.is-live .ftermo__read, .ftermo.is-open .ftermo__read, .ftermo__btn:focus-visible .ftermo__read { opacity: 1; }
-.ftermo__btn:focus-visible { outline: 3px solid var(--c-tech); outline-offset: 2px; border-radius: 12px; }
-@media (min-width: 900px) { .ftermo { right: 14px; } .ftermo__read { opacity: .92; } }
-html.menu-open .ftermo, html.menu-open .frost { display: none; }   /* sin :has(): obliga a recalcular estilos en cada cambio */
+/* ---------- termómetro: una lectura compacta en la barra de arriba (Fase 14B) ----------
+   Antes era un tubo pegado a la orilla derecha: se encimaba sobre las puertas y el texto. Ahora va junto a «Cotizar»;
+   el mercurio y el número bajan con el scroll y al tocarlo se abren los capítulos debajo de la barra. */
+.ftermo { --k: 0; --hot: #E8694A; --cold: #16B9CB; --hg: color-mix(in oklab, var(--hot) calc((1 - var(--k)) * 100%), var(--cold)); position: relative; list-style: none; }
+.ftermo__btn { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: var(--tap); padding: 0 13px 0 12px; border: 0; background: none; color: var(--c-ink); font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ftermo__btn::before { content: ""; position: absolute; inset: 5px 0; border-radius: 999px; border: 1px solid var(--c-line); background: rgba(255, 255, 255, .75); transition: border-color 300ms, box-shadow 300ms; }
+.ftermo__tube { position: relative; flex: none; width: 6px; height: 15px; margin-bottom: 5px; border-radius: 3px; background: rgba(12, 38, 54, .08); box-shadow: inset 0 0 0 1px rgba(12, 38, 54, .28); }
+.ftermo__tube::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--hg); box-shadow: 0 0 0 1px rgba(12, 38, 54, .22); }
+.ftermo__hg { position: absolute; left: 1px; right: 1px; bottom: 0; height: calc((1 - var(--k)) * 100%); border-radius: 2px; background: var(--hg); transition: height 120ms linear; }
+.ftermo__read { position: relative; font-size: var(--t-sm); font-weight: var(--w-medium); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ftermo__read b { font-weight: var(--w-heavy); }
+.ftermo.is-live .ftermo__btn::before { border-color: var(--c-line-strong); }
+.ftermo.is-cold .ftermo__btn::before { border-color: rgba(22, 185, 203, .65); box-shadow: 0 0 14px -2px rgba(22, 185, 203, .45); }
+.ftermo.is-cold .ftermo__read { color: #0A7684; }
+.ftermo.is-open .ftermo__btn::before { border-color: var(--c-ink); }
+.ftermo__btn:focus-visible { outline: 3px solid var(--c-tech); outline-offset: 0; border-radius: 999px; }
+/* sin barra (no debería pasar): arriba a la derecha */
+.ftermo--float { position: fixed; z-index: 45; top: 12px; right: 12px; }
+html.menu-open .frost { display: none; }   /* sin :has(): obliga a recalcular estilos en cada cambio */
 
-/* capítulos */
-.ftermo__panel { position: absolute; right: 50px; top: 50%; transform: translateY(-50%); width: min(78vw, 300px); max-height: 80svh; overflow: auto; padding: var(--s-4);
-  border-radius: 20px; background: #fff; color: var(--c-ink); box-shadow: 0 24px 60px -18px rgba(5, 47, 73, .45), 0 0 0 1px var(--c-line); animation: ftermo-in 260ms var(--ease-out); }
+/* capítulos: se abren debajo de la barra */
+.ftermo__panel { position: absolute; right: 0; top: calc(100% + 8px); width: min(86vw, 300px); max-height: 76svh; overflow: auto; padding: var(--s-4);
+  border-radius: 20px; background: #fff; color: var(--c-ink); box-shadow: 0 24px 60px -18px rgba(5, 47, 73, .45), 0 0 0 1px var(--c-line); animation: ftermo-in 220ms var(--ease-out); }
 .ftermo__panel[hidden] { display: none; }
-@keyframes ftermo-in { from { opacity: 0; transform: translate(10px, -50%); } }
+@keyframes ftermo-in { from { opacity: 0; transform: translateY(-6px); } }
 .ftermo__h { margin: 0 0 var(--s-3); font-size: var(--t-lg); font-weight: var(--w-heavy); letter-spacing: -0.01em; }
 .ftermo__list { list-style: none; margin: 0; padding: 0; }
 .ftermo__list button { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); align-items: center; width: 100%; min-height: 44px; padding: 0 4px; border: 0; border-bottom: 1px solid var(--c-line); background: none; color: var(--c-ink); font: inherit; text-align: left; cursor: pointer; }
 .ftermo__list li:last-child button { border-bottom: 0; }
 .ftermo__list button:hover { background: var(--c-ice); }
 .ftermo__t { font-weight: var(--w-heavy); font-variant-numeric: tabular-nums; color: var(--c-tech); }
+@media (max-width: 380px) { .ftermo__btn { padding: 0 10px 0 9px; gap: 6px; } }
 
 /* ---------- escarcha: se forma en las orillas bajo 0 °C ---------- */
 .frost.is-off { display: none; }   /* sin escarcha no se pinta nada */

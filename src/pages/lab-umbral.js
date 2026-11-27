@@ -25,7 +25,8 @@ const make = {
   cds: () => createCDS(stage),
 };
 const viewer = make[puerta]();
-if (viewer.setFinish && puerta !== 'corrediza') try { viewer.setFinish('stainless'); } catch { /* acabado no disponible */ }
+const acabado = q.get('acabado') || 'stainless';
+if (viewer.setFinish && puerta !== 'corrediza') try { viewer.setFinish(acabado); } catch { /* acabado no disponible */ }
 
 const hideBackdrop = () => scene.traverse((o) => { if (o.name === 'MuroYPiso' || o.name === 'SombraDeContacto' || o.name === 'Vaho') o.visible = false; });
 const shown = (m) => { for (let a = m; a; a = a.parent) if (!a.visible) return false; return true; };
@@ -42,6 +43,7 @@ const draw = (cam, w, h) => {
 
 window.__ready = (async () => {
   if (viewer.ready) await viewer.ready;
+  if (puerta === 'cds' && viewer.setLED) viewer.setLED(true);
   await new Promise((r) => setTimeout(r, 1500));
   hideBackdrop();
   return true;
@@ -88,3 +90,39 @@ window.fila = (w = 900, h = 900) => {
   return draw(stage.camera, w, h);
 };
 window.__viewer = viewer;
+
+// Fase 14B · modo «capas»: cada puerta de frente (misma cámara suave que «hojas»), en capas con fondo transparente:
+// lo fijo y lo que se mueve, para el pasillo del Inicio. Devuelve cada capa con el mismo encuadre y dónde caen los ejes.
+const CAPAS = {
+  abatible: () => ({ hoja: [scene.getObjectByName('PivoteHoja')] }),
+  corrediza: () => ({ hoja: [scene.getObjectByName('Hoja')], frente: [scene.getObjectByName('TapaRiel')] }),
+  vaiven: () => ({ izq: [scene.getObjectByName('HojaIzquierda')], der: [scene.getObjectByName('HojaDerecha')] }),
+  cds: () => Object.fromEntries(viewer.doors.map((d, i) => [`p${i}`, [d.pivot]])),
+};
+window.capas = (ppm = 400, fov = 38, exposure = 0.95) => {
+  renderer.toneMappingExposure = exposure;
+  const root = scene.getObjectByName({ abatible: 'Abatible', corrediza: 'Corrediza', vaiven: 'Vaiven', cds: 'CDS' }[puerta]);
+  if (puerta === 'vaiven') root.traverse((m) => { if (m.isMesh && /glass/i.test([].concat(m.material).map((x) => x.name).join(' '))) m.visible = false; });
+  const groups = CAPAS[puerta](), all = boxOf(root);
+  const W = all.max.x - all.min.x, H = all.max.y - all.min.y, cx = (all.min.x + all.max.x) / 2, cy = (all.min.y + all.max.y) / 2;
+  const cam = new THREE.PerspectiveCamera(fov, W / H, 0.1, 60);
+  cam.position.set(cx, cy, all.max.z + (H / 2) / Math.tan(THREE.MathUtils.degToRad(fov / 2))); cam.lookAt(cx, cy, all.max.z);
+  cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+  const w = Math.round(W * ppm), h = Math.round(H * ppm);
+  const under = (o, gs) => { for (let a = o; a; a = a.parent) if (gs.includes(a)) return true; return false; };
+  const moving = Object.values(groups).flat();
+  const shot = (gs) => {
+    const vis = [];
+    root.traverse((o) => { if (!o.isMesh && !o.isInstancedMesh) return; const keep = gs ? under(o, gs) : !under(o, moving); vis.push([o, o.visible]); o.visible = o.visible && keep; });
+    const url = draw(cam, w, h); vis.forEach(([o, v]) => { o.visible = v; }); return url;
+  };
+  // ejes: el pivote de cada grupo que gira, en fracciones del encuadre
+  const px = (v) => { const p = v.clone().project(cam); return [+((p.x + 1) / 2).toFixed(5), +((1 - p.y) / 2).toFixed(5)]; };
+  const ejes = {};
+  for (const [k, gs] of Object.entries(groups)) { const v = new THREE.Vector3(); gs[0].getWorldPosition(v); ejes[k] = px(v); }
+  // la corrediza corre TRAVEL m hacia +x: en fracción del ancho
+  const out = { fijo: shot(null), w, h, metros: [+W.toFixed(3), +H.toFixed(3)], ejes, piso: px(new THREE.Vector3(cx, 0, all.max.z))[1] };
+  for (const [k, gs] of Object.entries(groups)) out[k] = shot(gs);
+  if (puerta === 'corrediza') out.recorrido = +(1.92 / W).toFixed(5);
+  return out;
+};

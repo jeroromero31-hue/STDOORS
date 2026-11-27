@@ -704,3 +704,29 @@ Pruebas: `/home/claude/f14/flow14.py` (33/33: tamaño del liberador, entrada en 
 diez tamaños de pantalla, sin azul marino en ninguna parte de la entrada, movimiento reducido, sin JavaScript, axe).
 Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos en el termómetro), `f9/duo_pages.py` y
 `f12/smoke.py` a la entrada nueva. Cadena completa (`/home/claude/f14/chain14.sh`, 23 pruebas): todo bien.
+
+# Fase 14B · el pasillo de las cámaras, termómetro en la barra y enlaces del sitio publicado
+
+- **Enlaces (404 en el sitio publicado):** en GitHub Pages los enlaces escritos en el HTML quedaban con la subcarpeta
+  dos veces (`/STDOORS/STDOORS/…`): el build ya la pone y `site.js` la volvía a poner. Ahora solo la pone si falta.
+- **Del otro lado de la vaivén, el pasillo** (`src/home/pasillo.js`, `scripts/build-pasillo.py`,
+  `scripts/build-pasillo-html.py`): un muro de paneles con las **cuatro puertas instaladas, CDS incluida**, de frente y
+  a escala entre ellas (imágenes en capas del mismo modelo 3D: lo fijo y lo que se mueve). Arriba de cada una, la
+  pantalla de su cuarto con dígitos rojos de LED (temperaturas de ejemplo: congelación −18 °C, refrigeración 2 °C,
+  preparación 10 °C, bebidas 3 °C).
+  - Tocar una puerta la abre **a su manera**: la abatible gira hacia ti y se queda; la corrediza sube de su asiento y
+    corre sobre el riel (misma cinemática que el 3D); la vaivén abre hacia adentro y regresa sola pasando del centro;
+    en la CDS abre la puerta que tocaste y se queda a 90°. Detrás, el cuarto frío (anaqueles, luz blanca y vaho).
+  - Abierta, la pantalla **sube** (ámbar a partir de +1.2 °C, parpadea a partir de +4 °C) y sale vaho a ras de piso;
+    cerrada, se recupera despacio. Es la idea de la marca a la vista: el frío se queda de su lado si la puerta cierra.
+  - Al llegar, las pantallas se encienden («88.8») y las puertas a la vista se asoman un poco.
+  - Teléfono: una puerta por vista, cada una a su tamaño, con la siguiente asomando; se recorre con el dedo o con las
+    pestañas. Computadora y teléfonos acostados: el pasillo a lo largo, a escala; si caben las cuatro no hay flechas, si
+    no, flechas, pestañas y arrastrar con el ratón. El muro se queda y el piso corre: se siente la profundidad.
+  - Cada puerta es un botón (abrir/cerrar, con su estado) y abajo su enlace «Ábrela en 3D».
+- **Termómetro:** ya no va pegado a la orilla derecha (se encimaba sobre las puertas y el texto). Es una lectura
+  compacta en la barra de arriba, junto a «Cotizar», con su mercurio; al tocarla abre los capítulos debajo de la barra.
+- Pruebas: `f14/flow14.py` 44/44 (cada puerta abre a su manera, la pantalla sube, la vaivén regresa sola, la CDS abre
+  la puerta tocada a 90°, pestañas, la siguiente asoma, termómetro en la barra, diez tamaños de pantalla, sin azul
+  marino, movimiento reducido, sin JavaScript, axe). Se adaptaron `f10/home.py` y siguen bien `f10/hero_sizes.py`,
+  `f10/axe_home.py`, `f11/flow11b.py`, `f7/flow.py` (sin saltos al cargar) y `f9/duo_pages.py`.

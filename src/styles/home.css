@@ -19,55 +19,96 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 .hx { --fb: 132px; --top: 300px; --dw: min(94vw, 58svh); --persp: 900px; --run: 90svh; position: relative; background: var(--c-wall); color: var(--c-ink); }
 .hx__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
 
-/* ----- adentro: la cámara fría ----- */
-.hx__in { position: absolute; inset: 0; z-index: 0; display: flex; flex-direction: column; color: var(--c-ink); background: #EEF5F8; transform-origin: 50% 50%; }
-.hx__room { --fl: 89%; --pj: 26vw; position: absolute; inset: 0; pointer-events: none;
+/* ----- adentro: el pasillo de las cámaras (Fase 14B) -----
+   Un muro de paneles blancos con cuatro puertas instaladas, a escala, de pie sobre un piso pulido; arriba de cada una
+   la pantalla de su cuarto (temperatura de ejemplo, como los controladores de una cámara real). Tocar una puerta la abre
+   a su manera; la pantalla sube si se queda abierta y sale vaho a ras de piso. El muro y el piso corren con el pasillo;
+   la luz del techo se queda (se siente la profundidad). */
+.hx__in { --txtH: 160px; --pj: 120px; position: absolute; inset: 0; z-index: 0; display: flex; flex-direction: column; color: var(--c-ink); transform-origin: 50% 50%;
   background:
-    radial-gradient(80% 42% at 50% 0%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 72%),
-    linear-gradient(180deg, transparent calc(var(--fl) - 2px), rgba(12, 38, 54, .12) calc(var(--fl) - 2px) var(--fl), transparent var(--fl)),
-    linear-gradient(180deg, transparent var(--fl), #DDE9EF var(--fl), #F3F8FA 100%),
-    repeating-linear-gradient(90deg, rgba(12, 38, 54, 0) 0 calc(var(--pj) - 1px), rgba(12, 38, 54, .06) calc(var(--pj) - 1px) var(--pj)),
-    linear-gradient(180deg, #F5FAFC, #E6F0F4 var(--fl)); }
-/* vaho quieto a ras del piso de adentro */
-.hx__mist { position: absolute; left: -12%; right: -12%; top: calc(var(--fl) - 15%); height: 27%; background: var(--vaho-banco, none) center bottom / 100% 100% no-repeat; opacity: .5; }
-.hx__inT { position: relative; z-index: 1; display: grid; gap: 10px; justify-items: start; padding-top: calc(var(--nav-h) + clamp(12px, 2.6vh, 32px)); }
-.hx__inT h2 { font-size: clamp(2rem, 1.1rem + 3.9vw, 4.6rem); line-height: .98; letter-spacing: -0.035em; max-width: 13ch; }
-.hx__inT p { margin: 0; font-size: var(--t-md); color: var(--c-ink-soft); max-width: 34ch; }
-.hx__cds { position: relative; z-index: 1; margin: 0; padding: 14px max(var(--pad-x), 52px) 0 var(--pad-x); font-size: var(--t-sm); }
-.hx__cds a { display: inline-flex; align-items: center; min-height: 44px; color: var(--c-tech); font-weight: var(--w-medium); text-underline-offset: .22em; }
-/* las tres puertas: en el teléfono una lista (puerta a la izquierda, nombre a la derecha) */
-.hx__row { position: relative; z-index: 1; list-style: none; margin: clamp(10px, 2.6vh, 28px) 0 0; padding: 0 max(var(--pad-x), 52px) 0 var(--pad-x); display: grid; }
-.hx__pu a { display: grid; grid-template-columns: clamp(104px, 34vw, 150px) minmax(0, 1fr); align-items: end; gap: 16px; padding: 9px 0; color: inherit; text-decoration: none; border-bottom: 1px solid rgba(12, 38, 54, .1); }
-.hx__pu:first-child a { border-top: 1px solid rgba(12, 38, 54, .1); }
-.hx__pic { position: relative; height: clamp(84px, 15svh, 150px); display: flex; align-items: flex-end; justify-content: center; }
-.hx__pic img { position: relative; z-index: 1; display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; transition: transform 400ms var(--ease-out); }
-.hx__pic::after { content: ""; position: absolute; left: 4%; right: 4%; bottom: -6px; height: 12px; border-radius: 50%; background: radial-gradient(closest-side, rgba(12, 38, 54, .26), rgba(12, 38, 54, 0)); }
-.hx__pt { display: grid; gap: 2px; padding-bottom: 8px; }
-.hx__pt b { font-size: var(--t-xl); font-weight: var(--w-heavy); letter-spacing: -0.02em; line-height: 1.05; }
-.hx__pt > span { font-size: var(--t-sm); color: var(--c-ink-soft); }
-.hx__pu a:hover .hx__pic img, .hx__pu a:focus-visible .hx__pic img { transform: translateY(-5px); }
-.hx__pu a:focus-visible { outline: 3px solid var(--c-tech); outline-offset: 4px; border-radius: 6px; }
-/* desde tableta: las tres de pie sobre el piso, a escala entre ellas, con su nombre en el piso */
-@media (min-width: 700px) {
-  .hx__room { --fl: 76%; --pj: 12vw; }
-  .hx__row { --ppm: min(11svh, calc((100vw - 2 * var(--pad-x) - 8vw) / 7)); position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 24%; margin: 0; padding: 0; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 4vw; }
-  .hx__pu a { position: relative; display: block; padding: 0; border: 0 !important; }
-  .hx__pic { height: calc(var(--m, 2.4) * var(--ppm)); }
-  .hx__pu[data-door="abatible"] { --m: 2.07; }
-  .hx__pu[data-door="corrediza"] { --m: 2.75; }
-  .hx__pu[data-door="vaiven"] { --m: 2.53; }
-  .hx__pt { position: absolute; left: 50%; top: calc(100% + 16px); width: max-content; max-width: 16rem; transform: translateX(-50%); justify-items: center; text-align: center; padding: 0; }
-  .hx__inT p { font-size: var(--t-lg); }
-  .hx__cds { position: absolute; left: 0; right: 0; bottom: 7%; padding: 0 var(--pad-x); text-align: center; }
-}
-/* horizontal: el título a la izquierda (alineado con el menú) y las puertas a la derecha */
-@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  .hx__room { --fl: 74%; --pj: 9.5vw; }
-  .hx__in { --wl: max(0px, (100vw - var(--max)) / 2); --colw: min(36rem, 34vw); }
-  .hx__inT { position: absolute; left: 0; right: 0; top: 0; bottom: 26%; align-content: center; gap: 16px; padding-top: var(--nav-h); }
-  .hx__inT > * { max-width: var(--colw); }
-  .hx__row { --ppm: min(10.6svh, calc((100vw - var(--wl) - var(--pad-x) - var(--colw) - 3vw - var(--pad-x) - 6vw) / 7)); left: calc(var(--wl) + var(--pad-x) + var(--colw) + 3vw); bottom: 26%; gap: 3vw; }
-  .hx__cds { top: 74%; bottom: auto; max-width: var(--max); margin-inline: auto; padding: 18px var(--pad-x) 0; text-align: left; }
+    repeating-linear-gradient(90deg, rgba(12, 38, 54, 0) 0 calc(var(--pj) - 1px), rgba(12, 38, 54, .065) calc(var(--pj) - 1px) var(--pj)) 50% 0 / auto,
+    linear-gradient(180deg, #F7FAFC, #E7EEF2); }
+.hx__in::before { content: ""; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 46%; pointer-events: none;
+  background: radial-gradient(64% 100% at 50% 0%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 72%); }
+.pas__head { position: relative; z-index: 3; display: grid; gap: 6px; justify-items: start; padding-top: calc(var(--nav-h) + clamp(10px, 2.2vh, 30px)); }
+.pas__head h2 { font-size: clamp(1.7rem, 1rem + 3vw, 3.7rem); line-height: 1; letter-spacing: -0.032em; max-width: 15ch; }
+.pas__head p { margin: 0; font-size: var(--t-sm); color: var(--c-ink-soft); max-width: 44ch; }
+/* el muro (con sus juntas) se queda quieto y el piso corre con las puertas: al recorrer el pasillo se siente la profundidad */
+.pas__track { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; margin-top: 4px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none; outline: none;
+  background:
+    linear-gradient(180deg, rgba(12, 38, 54, .16), rgba(12, 38, 54, 0) 3px) 0 calc(100% - var(--txtH)) / 100% 10px no-repeat,
+    linear-gradient(180deg, #D7E0E5 0, #E8EEF1 30%, #F1F5F7 100%) 0 100% / 100% var(--txtH) no-repeat;
+  background-attachment: local; }
+.pas__track::-webkit-scrollbar { display: none; }
+.pas__row { --gap: 0px; position: relative; z-index: 1; display: flex; height: 100%; width: max-content; min-width: 100%; margin: 0; padding: 0 calc(var(--trackW, 100vw) * .08); gap: var(--gap); list-style: none; }
+.pas { --k: var(--ppm, 110px); position: relative; flex: none; width: calc(var(--trackW, 100vw) * .84); display: grid; grid-template-rows: minmax(0, 1fr) var(--txtH); justify-items: center; scroll-snap-align: center; }
+.pas__unit { position: relative; z-index: 1; align-self: end; display: grid; justify-items: center; gap: 12px; }
+/* sombra de contacto sobre el piso */
+.pas__unit::after { content: ""; position: absolute; left: 4%; right: 4%; bottom: -9px; height: 18px; border-radius: 50%; background: radial-gradient(closest-side, rgba(12, 38, 54, .3), rgba(12, 38, 54, 0)); z-index: -1; }
+/* la pantalla del cuarto: dígitos rojos de LED, como los controladores de cámara */
+.pas__disp { position: relative; z-index: 2; margin: 0; display: grid; grid-template-columns: auto auto; align-items: baseline; justify-content: center; column-gap: 3px; min-width: 92px; padding: 6px 12px 5px; border-radius: 7px;
+  background: linear-gradient(180deg, #1C2125, #0F1215); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), 0 8px 18px -10px rgba(0, 0, 0, .6); color: #FF4B3E; font-variant-numeric: tabular-nums; line-height: 1; }
+.pas__led { font-size: 1.35rem; font-weight: var(--w-bold); font-style: italic; letter-spacing: .03em; text-shadow: 0 0 7px rgba(255, 75, 62, .75); }
+.pas__u { font-size: .8rem; font-weight: var(--w-bold); opacity: .85; }
+.pas__room { grid-column: 1 / -1; margin-top: 4px; font-size: 12px; font-weight: var(--w-medium); letter-spacing: .01em; color: rgba(255, 255, 255, .62); text-align: center; }
+.pas.is-warm .pas__led { color: #FFB43E; text-shadow: 0 0 8px rgba(255, 180, 62, .8); }
+.pas.is-alarm .pas__led { animation: pas-blink 1s steps(2, start) infinite; }
+@keyframes pas-blink { to { opacity: .35; } }
+/* la puerta: botón que la abre o la cierra */
+.pas__door { position: relative; display: block; width: calc(var(--mw) * var(--k)); aspect-ratio: var(--ar); margin: 0; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; perspective: calc(var(--mw) * var(--k) * 3); -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
+.pas__door:focus-visible { outline: 3px solid var(--c-tech); outline-offset: 6px; border-radius: 4px; }
+.pas__fx, .pas__mv, .pas__back { position: absolute; display: block; pointer-events: none; }
+.pas__fx img, .pas__mv img { display: block; width: 100%; height: 100%; -webkit-user-drag: none; user-select: none; }
+.pas__mv { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+/* las que abren hacia ti se ven también por su cara de adentro */
+.pas[data-door="cds"] .pas__mv, .pas[data-door="abatible"] .pas__mv { -webkit-backface-visibility: visible; backface-visibility: visible; }
+.js .pas__mv { will-change: transform; }
+.pas__shade { position: absolute; inset: 0; opacity: 0; background: linear-gradient(90deg, rgba(10, 30, 42, .1), rgba(10, 30, 42, .5)); }
+.pas__mv[data-k="der"] .pas__shade { background: linear-gradient(270deg, rgba(10, 30, 42, .1), rgba(10, 30, 42, .5)); }
+/* vidrio de la CDS: un reflejo en diagonal */
+.pas[data-door="cds"] .pas__mv::after { content: ""; position: absolute; inset: 5% 9%; background: linear-gradient(112deg, rgba(255, 255, 255, 0) 28%, rgba(255, 255, 255, .2) 42%, rgba(255, 255, 255, 0) 56%); }
+/* detrás de cada puerta, el cuarto frío: luz blanca, anaqueles y vaho */
+.pas__back { overflow: hidden; background:
+    repeating-linear-gradient(180deg, rgba(100, 130, 146, 0) 0 19%, rgba(100, 130, 146, .32) 19% 20.5%),
+    repeating-linear-gradient(90deg, rgba(100, 130, 146, 0) 0 31%, rgba(100, 130, 146, .26) 31% 33%),
+    radial-gradient(90% 70% at 50% 18%, #FFFFFF, #E3F0F6 58%, #C8DDE7); }
+.pas__back i { position: absolute; left: -30%; right: -30%; bottom: -10%; height: 70%; background: var(--vaho-banco, none) 50% 100% / 100% 100% no-repeat; opacity: .9; }
+/* vaho que sale a ras de piso al abrir */
+.pas__spill { position: absolute; z-index: 3; left: -40%; right: -40%; bottom: -8%; height: 38%; opacity: 0; pointer-events: none; transform-origin: 50% 100%; }
+.pas__spill i { position: absolute; inset: 0; background: var(--vaho-banco, none) 50% 100% / 100% 100% no-repeat; }
+.pas__spill i + i { inset: 22% 14% -4% 10%; transform: scaleX(-1); opacity: .8; }
+.pas__txt { position: relative; z-index: 3; display: grid; justify-items: center; align-content: start; gap: 2px; padding: 18px 16px 0; text-align: center; max-width: 30rem; }
+.pas__txt h3 { font-size: var(--t-xl); font-weight: var(--w-heavy); letter-spacing: -0.02em; line-height: 1.05; }
+.pas__txt p { margin: 0; font-size: var(--t-sm); color: var(--c-ink-soft); max-width: 32ch; }
+.pas__go { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; margin-top: 6px; border-radius: 999px; border: 1px solid var(--c-line-strong); color: var(--c-ink); font-size: var(--t-sm); font-weight: var(--w-bold); text-decoration: none; transition: background var(--d-ui), color var(--d-ui), border-color var(--d-ui); }
+.pas__go:hover, .pas.is-open .pas__go { background: var(--c-ink); border-color: var(--c-ink); color: #fff; }
+/* recorrer el pasillo: pestañas (y flechas en pantallas anchas) */
+.pas__nav { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 10px; padding-top: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.pas__tabs { margin: 0; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(12, 38, 54, .07); }
+.pas__tabs button { min-height: 44px; padding: 0 14px; border: 0; border-radius: 999px; background: none; color: var(--c-ink); font: inherit; font-size: var(--t-sm); font-weight: var(--w-medium); cursor: pointer; transition: background var(--d-ui), color var(--d-ui); }
+.pas__tabs button[aria-pressed="true"] { background: var(--c-ink); color: #fff; }
+.pas__arrow { display: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--c-line-strong); background: #fff; cursor: pointer; position: relative; }
+.pas__arrow::before { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; border: solid var(--c-ink); border-width: 2px 2px 0 0; transform: translate(-65%, -50%) rotate(45deg); }
+.pas__arrow[data-dir="-1"]::before { transform: translate(-35%, -50%) rotate(-135deg); }
+.pas__arrow:disabled { opacity: .35; cursor: default; }
+@media (max-width: 380px) { .pas__tabs button { padding: 0 10px; } }
+/* pantallas anchas: el pasillo a lo largo, todas a la misma escala; se recorre arrastrando, con las flechas o las pestañas */
+.pas--wide .pas__track { scroll-snap-type: x proximity; cursor: grab; }
+.pas--wide .pas__track.is-drag { cursor: grabbing; scroll-snap-type: none; }
+.pas--wide .pas { width: max(calc(var(--mw) * var(--k) + 24px), 13.5rem); }
+.pas--wide .pas__txt { padding-inline: 6px; }
+.pas--wide .pas__txt p { font-size: var(--t-xs); }
+.pas--wide .pas__row { --gap: calc(var(--ppm, 110px) * 0.3); padding: 0 max(48px, calc((var(--trackW, 100vw) - var(--rowW, 0px)) / 2)); }
+.pas--wide .pas__arrow { display: block; }
+/* si las cuatro caben a la vista, no hace falta recorrer */
+.pas--fits .pas__nav { visibility: hidden; }
+.pas--fits .pas__track { cursor: auto; }
+@media (min-width: 700px) and (min-aspect-ratio: 5/4) {
+  .hx__in { --txtH: 152px; }
+  /* el título en dos renglones a la izquierda y el texto a su derecha: más alto para el pasillo */
+  .pas__head { grid-template-columns: minmax(0, auto) minmax(0, 28rem); align-items: end; column-gap: clamp(32px, 5vw, 96px); justify-content: start; }
+  .pas__head h2 { font-size: clamp(1.6rem, 0.6rem + 2.4vw, 3.2rem); }
+  .pas__head p { font-size: var(--t-md); padding-bottom: 4px; }
 }
 
 /* ----- afuera: muro, piso y puerta ----- */
@@ -157,19 +198,14 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 @media (prefers-reduced-motion: reduce) {
   .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
   .hx__out, .hx__copy { bottom: auto; height: max(100svh, 560px); }
-  .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
+  .hx__in { position: relative; inset: auto; height: max(100svh, 600px); }
   .hx__cue { display: none; }
 }
 html:not(.js) .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
 html:not(.js) .hx__out, html:not(.js) .hx__copy { bottom: auto; height: max(100svh, 560px); }
-html:not(.js) .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
+html:not(.js) .hx__in { position: relative; inset: auto; height: max(100svh, 600px); }
 html:not(.js) .hx__cue { display: none; }
-@media (min-width: 900px) {
-  html:not(.js) .hx__in { min-height: max(100svh, 560px); }
-}
-@media (min-width: 900px) and (prefers-reduced-motion: reduce) {
-  .hx__in { min-height: max(100svh, 560px); }
-}
+
 
 /* ---------- adentro ---------- */
 .inside { background: var(--c-navy); color: var(--c-on-navy); }

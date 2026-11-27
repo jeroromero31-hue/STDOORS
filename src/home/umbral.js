@@ -24,8 +24,10 @@ const rad = (d) => (d * Math.PI) / 180;
 export function mountUmbral(section) {
   const $ = (s) => section.querySelector(s);
   const pin = $('.hx__pin'), out = $('.hx__out'), door = $('.hx__door'), inn = $('.hx__in'), copy = $('.hx__copy');
-  const veil = $('.hx__veil'), spill = $('.hx__spill'), gap = $('.hx__gap'), cue = $('.hx__cue'), inT = $('.hx__inT'), cds = $('.hx__cds');
-  const labels = [...section.querySelectorAll('.hx__pt')];   // por el vano se ven las puertas; sus nombres llegan al entrar
+  const veil = $('.hx__veil'), spill = $('.hx__spill'), gap = $('.hx__gap'), cue = $('.hx__cue');
+  // Fase 14B · adentro está el pasillo: por el vano se ven sus puertas; el título, los textos y las pestañas llegan al entrar
+  const late = [...section.querySelectorAll('.pas__head, .pas__txt, .pas__nav')];
+  let arrived = false;
   if (!pin || !out || !door) return null;
   const walls = Object.fromEntries([...section.querySelectorAll('.hx__w')].map((w) => [w.dataset.w, w]));
   const leaves = [...section.querySelectorAll('.hx__leaf')].map((el, i) => ({
@@ -190,8 +192,9 @@ export function mountUmbral(section) {
         inn.classList.remove('is-here');
         setT(inn, `translate3d(${((L.cx - L.W / 2) * (1 - k)).toFixed(1)}px, ${((L.cy - L.H / 2) * (1 - k)).toFixed(1)}px, 0) scale(${(0.72 + 0.28 * k).toFixed(4)})`);
       }
-      const inK = seg(P, 0.6, 0.86); setO(inT, inK); labels.forEach((el) => setO(el, inK)); setO(cds, inK);
+      const inK = seg(P, 0.6, 0.86); late.forEach((el) => setO(el, inK));
       section.classList.toggle('is-in', P > 0.9);
+      if (P > 0.9 && !arrived) { arrived = true; document.dispatchEvent(new CustomEvent('umbral:adentro')); }
       // la bocanada de vaho al cruzar el vano
       const vv = seg(P, 0.48, 0.7) * (1 - seg(P, 0.76, 0.95));
       setO(veil, vv * 0.9); veil.style.visibility = vv < 0.005 ? 'hidden' : 'visible';
