@@ -115,8 +115,8 @@ function fastNav() {
 // puerta en la derecha, con el pliegue en medio (html.is-libro; src/styles/door.css y src/ui/doorPage.js).
 const isPhoneUA = () => /iPhone|Android.+Mobile/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 // Fase 14D · cómo se sabe que es un plegable abierto (cualquiera basta, siempre con pantalla táctil):
-//  · el iPhone Duo abierto: su pantalla interior mide 1148 × 807 puntos (de las capturas del propietario; Safari se
-//    presenta ahí como en iPad, así que no se puede saber por el navegador)
+//  · la ventana es más grande que la pantalla que reporta el teléfono (el iPhone Duo abierto reporta la de afuera,
+//    466 × 678, con una ventana de 951 × 537; Safari se presenta ahí como en iPad)
 //  · el sitio ya vio plegarse este teléfono (la pantalla cambió de tamaño sin girar) y ahora está en la pantalla grande
 //  · ?plegable=1 en la dirección lo activa en este teléfono (?plegable=0 lo quita; ?plegable=info muestra las medidas)
 //  · Android o iPhone con el lado corto de 580 px o más y el largo de 1000 o menos (Galaxy Fold, Pixel Fold)
@@ -130,6 +130,10 @@ const lsSet = (k, v) => { try { if (v === null) localStorage.removeItem(k); else
 export const foldOpen = () => {
   const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
   const touch = navigator.maxTouchPoints > 0 && matchMedia('(pointer: coarse)').matches; if (!touch) return false;
+  // el iPhone Duo abierto sigue dando las medidas de la pantalla de afuera (466 × 678) con una ventana más grande que
+  // ellas (951 × 537 de lado): una ventana que no cabe en la pantalla que reporta solo pasa con el teléfono abierto
+  const W = Math.max(innerWidth, innerHeight), H = Math.min(innerWidth, innerHeight);
+  if (H >= 500 && (W > b * 1.3 || H > a * 1.3)) return true;
   if (FOLD_SCREENS.some(([x, y]) => Math.abs(b - x) <= 16 && Math.abs(a - y) <= 16)) return true;
   if (lsGet('st.plegable') === '1' && a >= 560) return true;
   return isPhoneUA() && a >= 580 && b <= 1000;
@@ -179,8 +183,10 @@ function foldWatch() {
   if (new URLSearchParams(location.search).get('plegable') === 'info') setTimeout(() => { const d = document.createElement('p'); d.className = 'toast is-on'; d.style.cssText = 'max-width:90vw;white-space:normal'; d.setAttribute('role', 'status'); d.textContent = `Pantalla ${screen.width} × ${screen.height} · ventana ${innerWidth} × ${innerHeight} · ×${devicePixelRatio} · táctil ${navigator.maxTouchPoints} · ${foldOpen() ? 'plegable abierto' : 'no detectado'}`; document.body.append(d); setTimeout(() => d.remove(), 20000); }, 800);
   // la primera vez en la visita con el teléfono abierto: la puerta se abre al llegar
   if (foldOpen()) { let seen = false; try { seen = sessionStorage.getItem('st.libro') === '1'; sessionStorage.setItem('st.libro', '1'); } catch { /* sin almacenamiento */ } if (!seen) setTimeout(() => foldFx('Se abre como tu teléfono'), 350); }
+  let wasOpen = foldOpen();
   addEventListener('resize', () => {
     libro();
+    const isOpen = foldOpen(), flip = isOpen !== wasOpen; wasOpen = isOpen;
     const w = innerWidth, s = scr(), o = ori();
     const jump = Math.abs(w - lastW) / Math.max(1, lastW);
     const screenJump = Math.abs(s[0] - lastS[0]) / Math.max(1, lastS[0]);
@@ -190,6 +196,8 @@ function foldWatch() {
     // la pantalla misma cambió de tamaño sin girar: es un plegable; se recuerda en este teléfono
     if (screenJump >= 0.22 && !rotated && navigator.maxTouchPoints > 0) { lsSet('st.plegable', '1'); libro(); }
     lastW = w; lastS = s; lastO = o;
+    // plegar o desplegar: la pantalla cambia de tamaño o (iPhone Duo) la ventana pasa a ser más grande que la pantalla
+    if (flip && !zoomed && !document.hidden && performance.now() - t0 > 1200) { lastW = w; foldFx(isOpen ? 'Se abre como tu teléfono' : ''); return; }
     if (jump < 0.22 || screenJump < 0.22 || rotated || zoomed || performance.now() - t0 < 1200 || document.hidden) return;
     foldFx(opened ? 'Se abre como tu teléfono' : '');
   });

@@ -780,3 +780,7 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   su pantalla interior (1148 × 807 puntos, de las capturas del propietario). También cuenta si el sitio ya vio plegarse el
   teléfono (la pantalla cambia de tamaño sin girar; se recuerda) o si se abre con `?plegable=1` (`?plegable=0` lo quita y
   `?plegable=info` muestra las medidas de la pantalla). Las tabletas (iPad Air 1180 × 820, iPad mini 1133 × 744) no entran.
+- **Corrección con la medida real del iPhone Duo (captura con `?plegable=info`):** abierto, reporta la pantalla de afuera
+  (466 × 678) con una ventana de 951 × 537. Se reconoce porque la ventana es más grande que la pantalla que reporta (más de
+  1.3 veces y con el lado corto de 500 px o más); al plegarlo o desplegarlo cambia eso, y ahí se juega la animación de
+  las hojas (aunque el teléfono diga que giró).
