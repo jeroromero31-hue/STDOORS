@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cotizar — ST Doors</title>
+<meta name="description" content="Revisa las puertas y piezas que agregaste y envíanos tu solicitud de cotización.">
+<link rel="icon" href="/STDOORS/favicon.png">
+  <script type="module" crossorigin src="/STDOORS/assets/cotizar_index-DItAfOso.js"></script>
+  <link rel="modulepreload" crossorigin href="/STDOORS/assets/site-C67a6W2T.js">
+  <link rel="modulepreload" crossorigin href="/STDOORS/assets/components-B2rbAM6X.js">
+  <link rel="modulepreload" crossorigin href="/STDOORS/assets/medida-saRpYh7o.js">
+  <link rel="modulepreload" crossorigin href="/STDOORS/assets/whatsapp-LpAXtEJc.js">
+  <link rel="modulepreload" crossorigin href="/STDOORS/assets/vano-Bt4-vY2k.js">
+  <link rel="stylesheet" crossorigin href="/STDOORS/assets/site-CUB9UA8Z.css">
+  <meta name="theme-color" content="#052F49">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_MX">
+  <meta property="og:site_name" content="ST Doors">
+  <meta property="og:title" content="Cotizar — ST Doors">
+  <meta property="og:description" content="Revisa las puertas y piezas que agregaste y envíanos tu solicitud de cotización.">
+</head>
+<body data-page="cotizar">
+<main id="main" class="wrap q-page">
+  <header class="q-head stack">
+    <h1>Tu solicitud</h1>
+    <p class="t-lead">Revisa tu puerta: cambia el acabado o la medida y mírala al momento. Luego dinos cómo contactarte y te respondemos con la cotización.</p>
+  </header>
+
+  <div class="q-grid">
+    <section class="q-list" aria-labelledby="qListT">
+      <div class="q-list__head"><h2 id="qListT" class="t-h3">Productos</h2><button class="link t-small" id="qClearAll" hidden>Vaciar solicitud</button></div>
+      <div class="q-plan" id="qPlan" aria-live="polite" hidden>
+        <div class="q-plan__grid" aria-hidden="true"></div>
+        <p class="q-plan__t">Plano de tu solicitud</p>
+        <dl class="q-plan__n">
+          <div><dt>Puertas</dt><dd data-k="p">0</dd></div>
+          <div><dt>Piezas</dt><dd data-k="c">0</dd></div>
+          <div><dt>Unidades</dt><dd data-k="u">0</dd></div>
+        </dl>
+        <i class="q-plan__scan" aria-hidden="true"></i>
+      </div>
+      <ul class="q-items" id="qItems"></ul>
+      <div class="q-empty stack" id="qEmpty" hidden>
+        <a class="q-route" href="/STDOORS/#medida"><span class="q-route__rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Arma tu puerta a la medida</b><span>Elige la puerta, su acabado y tu medida, y mírala al momento.</span></a>
+        <p>O agrega aquí abajo una puerta a la medida, busca piezas en <a class="link" href="/STDOORS/componentes/">Componentes</a> o escríbenos directamente con el formulario.</p>
+      </div>
+      <!-- Fase 10H · las puertas industriales se fabrican a la medida del vano; las CDS van por juego -->
+      <div class="q-add" id="qAdd">
+        <p class="q-add__t" id="qAddT">Agregar una puerta a la medida</p>
+        <div class="q-add__b" role="group" aria-labelledby="qAddT">
+          <button type="button" data-add="abatible"><img src="/STDOORS/img/puertas/abatible.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Abatible</span></button>
+          <button type="button" data-add="corrediza"><img src="/STDOORS/img/puertas/corrediza.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Corrediza</span></button>
+          <button type="button" data-add="vaiven"><img src="/STDOORS/img/puertas/vaiven.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Vaivén</span></button>
+          <button type="button" data-add="cds"><img src="/STDOORS/img/puertas/cds.webp" alt="" width="640" height="480" loading="lazy" decoding="async"><span>Juego CDS</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="q-form-wrap" aria-labelledby="qFormT">
+      <h2 id="qFormT" class="t-h3">Tus datos</h2>
+      <form class="q-form" id="qForm" novalidate>
+        <label class="field">Nombre<input name="nombre" autocomplete="name" required aria-describedby="e-nombre"><span class="field__error" id="e-nombre" hidden></span></label>
+        <label class="field"><span>Empresa <span class="field__hint">(opcional)</span></span><input name="empresa" autocomplete="organization"></label>
+        <label class="field"><span>Ciudad <span class="field__hint">(opcional)</span></span><input name="ciudad" autocomplete="address-level2"></label>
+        <div class="q-pair">
+          <label class="field">Teléfono<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="e-telefono"><span class="field__error" id="e-telefono" hidden></span></label>
+          <label class="field">Correo<input name="correo" type="email" autocomplete="email" aria-describedby="e-correo"><span class="field__error" id="e-correo" hidden></span></label>
+        </div>
+        <p class="field__hint t-small">Déjanos al menos un teléfono o un correo.</p>
+        <label class="field"><span>Detalles <span class="field__hint">(opcional)</span></span><textarea name="mensaje" rows="4" placeholder="Fecha en que lo necesitas, si es instalación nueva o reemplazo, acceso al lugar…"></textarea></label>
+        <div class="q-send stack" style="--stack:12px">
+          <p class="t-small t-soft" id="qHow"></p>
+          <div class="row">
+            <button class="btn" type="submit" data-via="correo">Abrir correo con la solicitud</button>
+            <button class="btn btn--line" type="submit" data-via="whatsapp" hidden>Enviar por WhatsApp</button>
+            <button class="btn btn--line" type="submit" data-via="copiar">Copiar texto</button>
+          </div>
+          <p class="q-status t-small" id="qStatus" role="status"></p>
+          <details class="q-preview"><summary>Ver el texto que se enviará</summary><pre id="qText"></pre></details>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+</body>
+</html>
