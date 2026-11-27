@@ -814,3 +814,13 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   - Bisagra más delgada; su etiqueta solo la primera vez en la visita.
   - Revisado en las 8 páginas: nada cruza el pliegue, sin desbordes, botones de 44 px o más, sin textos de menos de 12 px
     y axe sin fallas (`f14e/modocheck.py`).
+
+## Fase 14F · se quita el modo plegable
+
+- A pedido del propietario se quitó todo lo de plegables de las fases 14C a 14E: el botón «Modo plegable», el sitio
+  partido en dos, «Los dos lados», la bisagra, la detección del iPhone Duo (`?plegable=`), el modo libro y la entrada
+  con las hojas. Se borraron `src/ui/plegableModo.js`, `src/styles/plegable.css`, `src/ui/pliegue.js` y
+  `src/ui/pliegue.css`. En un plegable el sitio se ve igual que en cualquier pantalla de su tamaño.
+- Se quedan los arreglos que no eran del modo: el Inicio sin pasillo tras los cristales, «Baja para entrar» sin
+  encimarse, el título a la medida en pantallas horizontales bajas, los efectos que se quitan al bajar y la vaivén de
+  una hoja.

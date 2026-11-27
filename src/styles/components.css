@@ -675,26 +675,18 @@ body:has(> main:first-child) { padding-top: var(--nav-h); }
 @media (prefers-reduced-motion: reduce) { .pz__spot::after { animation: none; } }
 
 /* ---------- Fase 10I · plegables: animación al plegar / desplegar y pantalla doble ---------- */
-.foldfx { position: fixed; inset: 0; z-index: 9999; pointer-events: none; perspective: 1500px; visibility: hidden; overflow: hidden; }
+.foldfx { position: fixed; inset: 0; z-index: 9999; pointer-events: none; perspective: 1400px; visibility: hidden; display: grid; place-items: center; }
 .foldfx.is-on { visibility: visible; }
-/* Fase 14C · las dos hojas de la vaivén: llegan del frente, se juntan en la bisagra del teléfono y siguen hacia atrás */
-.foldfx i { position: absolute; top: 0; bottom: 0; width: 50.2%; overflow: hidden; background: #9aa3a9; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-.foldfx i img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; display: block; }
-.foldfx i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5, 47, 73, 0), rgba(5, 47, 73, .18)); }
-.foldfx__l { left: 0; transform-origin: 0 50%; transform: rotateY(92deg); }
-.foldfx__r { right: 0; transform-origin: 100% 50%; transform: rotateY(-92deg); }
-.foldfx__r::after { transform: scaleX(-1); }
-.foldfx__vaho { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; margin: -70vmax 0 0 -70vmax; border-radius: 50%; opacity: 0;
-  background: radial-gradient(closest-side, rgba(244, 249, 252, .95), rgba(234, 244, 250, .6) 45%, rgba(234, 244, 250, 0) 72%); }
-.foldfx__t { position: absolute; left: 0; right: 0; bottom: max(28px, env(safe-area-inset-bottom)); margin: 0; text-align: center; font-weight: var(--w-bold); font-size: var(--t-md); color: #fff; text-shadow: 0 2px 14px rgba(4, 20, 34, .55); opacity: 0; }
-.foldfx.is-on .foldfx__l { animation: fold-l 1400ms cubic-bezier(.5, 0, .3, 1) both; }
-.foldfx.is-on .foldfx__r { animation: fold-r 1400ms cubic-bezier(.5, 0, .3, 1) both; }
-.foldfx.is-on .foldfx__vaho { animation: fold-vaho 1400ms ease-out both; }
-.foldfx.is-on .foldfx__t { animation: fold-t 1400ms ease both; }
-@keyframes fold-l { 0% { transform: rotateY(92deg); } 26%, 46% { transform: none; } 100% { transform: rotateY(-96deg); } }
-@keyframes fold-r { 0% { transform: rotateY(-92deg); } 26%, 46% { transform: none; } 100% { transform: rotateY(96deg); } }
-@keyframes fold-vaho { 0%, 44% { opacity: 0; transform: scale(.2); } 62% { opacity: .85; } 100% { opacity: 0; transform: scale(1); } }
-@keyframes fold-t { 0%, 18% { opacity: 0; transform: translateY(6px); } 28%, 46% { opacity: 1; transform: none; } 58%, 100% { opacity: 0; } }
+.foldfx i { position: absolute; top: 0; bottom: 0; width: 50.5%; background: linear-gradient(90deg, #052F49, #0C4569); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.foldfx__l { left: 0; transform-origin: 0 50%; transform: rotateY(88deg); }
+.foldfx__r { right: 0; transform-origin: 100% 50%; transform: rotateY(-88deg); background: linear-gradient(270deg, #052F49, #0C4569) !important; }
+.foldfx img { position: relative; width: 120px; height: auto; opacity: 0; }
+.foldfx.is-on .foldfx__l { animation: fold-l 1050ms cubic-bezier(.55, 0, .25, 1) both; }
+.foldfx.is-on .foldfx__r { animation: fold-r 1050ms cubic-bezier(.55, 0, .25, 1) both; }
+.foldfx.is-on img { animation: fold-logo 1050ms ease both; }
+@keyframes fold-l { 0% { transform: rotateY(88deg); } 30%, 52% { transform: none; } 100% { transform: rotateY(88deg); } }
+@keyframes fold-r { 0% { transform: rotateY(-88deg); } 30%, 52% { transform: none; } 100% { transform: rotateY(-88deg); } }
+@keyframes fold-logo { 0%, 22% { opacity: 0; transform: scale(.9); } 34%, 50% { opacity: 1; transform: none; } 62%, 100% { opacity: 0; } }
 
 /* pantalla doble (dos pantallas lado a lado): cada mitad su contenido, nada cae en la bisagra */
 @media (horizontal-viewport-segments: 2) {

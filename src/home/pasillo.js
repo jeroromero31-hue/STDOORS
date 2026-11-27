@@ -43,7 +43,7 @@ export function mountPasillo(root) {
     const disp = (items[0] && items[0].li.querySelector('.pas__disp').offsetHeight) || 52;
     const avail = Math.max(70, th - txtH - disp - 30);                 // la pantalla de arriba, su separación y aire
     root.style.setProperty('--trackW', `${tw}px`);
-    const wide = wideQ.matches && !root.closest('.pleg-pane');            // en la página derecha del modo plegable: una puerta por vista
+    const wide = wideQ.matches;
     root.classList.toggle('pas--wide', wide);
     if (wide) {
       // a escala, lo más grande que quepa a lo alto; y si cabe a lo ancho, las cuatro a la vista (si no, se recorre)

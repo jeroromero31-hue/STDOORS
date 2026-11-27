@@ -42,9 +42,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
   // ---------- Fase 10E: cada paso va en una tarjeta (en computadora flotan sobre el escenario 3D) ----------
-  // Fase 14E · en el modo plegable (html.is-pleg) el texto va a la izquierda y el 3D en la página derecha, todo el tiempo
-  const pleg = () => document.documentElement.classList.contains('is-pleg');
-  const wideQ = matchMedia('(min-width: 901px)'), wide = { get matches() { return wideQ.matches || pleg(); } };
+  const wide = matchMedia('(min-width: 901px)');
   $$('.door__hero, .door__step').forEach((sec) => { const c = document.createElement('div'); c.className = 'door__card'; c.append(...sec.childNodes); sec.append(c); });
   const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const titles = $$('.door__step h2').map((h) => { splitLines(h); if (!reduceMo) h.classList.add('is-pre'); return h; });
@@ -104,11 +102,11 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const probe = document.createElement('i'); probe.style.cssText = 'position:fixed;left:0;top:0;width:env(viewport-segment-left 1 0, 0px);height:0;visibility:hidden;pointer-events:none';
     document.body.append(probe);
     const fitInset = () => {
-      if ((!wide.matches && !spanQ.matches) || pleg()) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }   // plegable: el 3D ya tiene su página
+      if (!wide.matches && !spanQ.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
       const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
       const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(spanQ.matches ? 0.6 : 0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
     };
-    spanQ.addEventListener('change', fitInset); addEventListener('st:libro', () => requestAnimationFrame(fitInset));
+    spanQ.addEventListener('change', fitInset);
     fitInset(); new ResizeObserver(fitInset).observe(viewerEl);
     // lectura en vivo: apertura de la hoja en grados (o recorrido, en la corrediza)
     const ro = document.createElement('p'); ro.className = 'readout'; ro.setAttribute('aria-hidden', 'true');
@@ -435,16 +433,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       io = new IntersectionObserver(onBlock, { rootMargin: `-${line - 1}px 0px -${H - line - 1}px 0px` });
       blocks.forEach((el) => io.observe(el));
     };
-    // Fase 14E · modo plegable: el 3D se queda a la derecha toda la página. Al pasar de los pasos a lo que sigue (piezas,
-    // ficha, cotizar) se quitan los efectos y la puerta vuelve a su vista general, cerrada; al regresar, manda el paso.
-    new IntersectionObserver(([e]) => {
-      if (!pleg() || e.isIntersecting) return;
-      if (e.boundingClientRect.top > 0) return;                     // la puerta aún no llega: arriba de la página
-      if (xray && xray.on) setXray(false); if (thermal && thermal.on) setCold(false); if (state.inside) insideBtn.click();
-      currentBlock = null; blocks.forEach((b) => b.classList.remove('is-current'));
-      rig.go('general', 1.1); motion.step({ open: '0' });
-    }, { rootMargin: '-50% 0px -50% 0px' }).observe(door);
-    watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); }); addEventListener('st:libro', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
+    watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
     // desde el catálogo: ?pieza=<id> entra a «Ver por dentro» con esa pieza señalada
     const want = new URLSearchParams(location.search).get('pieza');
     const node = want && hs.nodes.find((n) => n.it.piece && n.it.piece.id === want);
