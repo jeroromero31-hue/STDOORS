@@ -196,7 +196,8 @@ export function mountSite(page) {
   debugPanel();
   captureAd(); loadTags(); watchClicks();               // Fase 13 · medición y contexto del anuncio (src/ui/track.js)
   // los enlaces escritos en el HTML como "/ruta/" siguen funcionando si el sitio se publica en una subcarpeta
-  if (BASE !== '/') document.querySelectorAll('a[href^="/"]').forEach((a) => a.setAttribute('href', url(a.getAttribute('href'))));
+  // (Fase 14: sin repetir la subcarpeta: el build ya la pone en el HTML; antes quedaba /STDOORS/STDOORS/… y daba 404)
+  if (BASE !== '/') document.querySelectorAll('a[href^="/"]').forEach((a) => { const h = a.getAttribute('href'); if (!h.startsWith(BASE)) a.setAttribute('href', url(h)); });
   const header = document.createElement('header');
   header.className = 'nav';
   header.innerHTML = `
