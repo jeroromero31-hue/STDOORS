@@ -769,3 +769,10 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   sitio con el teléfono abierto. Con el teléfono abierto, cada página de puerta se lee como libro: el texto en la mitad
   izquierda y la puerta en la derecha, con el pliegue en medio. Solo en teléfonos con pliegue (pantalla de teléfono con
   el lado corto de 580 px o más y el largo de 1000 o menos).
+- **«Los dos lados» (solo plegables, Fase 14D, `src/ui/pliegue.js`):** botón en la barra de arriba con el teléfono
+  abierto. El pliegue del teléfono es la pared: la mitad izquierda es afuera (24 °C) y la derecha es adentro de la cámara
+  (−18 °C, pantalla LED), cada una viendo de frente la misma vaivén. Al abrirla (botón o empujando la hoja de cualquier
+  lado), afuera las hojas se van hacia el frío y sale vaho; adentro vienen hacia ti y entra la luz de afuera; la
+  escarcha cruza el pliegue y las dos temperaturas se mueven. La vaivén regresa sola y el frío vuelve a su lado. La frase
+  «El frío se queda | de su lado.» queda partida por el pliegue. Con el giroscopio, las dos escenas se mueven con el
+  teléfono (en iPhone pide permiso al tocar el botón). Esc o «Salir» lo cierra.

@@ -139,8 +139,23 @@ function foldWatch() {
   const ori = () => (screen.orientation && screen.orientation.type) || (matchMedia('(orientation: landscape)').matches ? 'landscape' : 'portrait');
   let lastW = innerWidth, lastS = scr(), lastO = ori();
   const t0 = performance.now();
+  // Fase 14D · «Los dos lados» (src/ui/pliegue.js): botón en la barra de arriba, solo con el plegable abierto. El módulo
+  // se baja antes del toque: así el permiso del giroscopio del iPhone se pide dentro del mismo toque.
+  let plg = null, plgMod = null;
+  const plgButton = (on) => {
+    if (on && !plg) {
+      const keep = document.querySelector('.nav__links li.nav__keep'); if (!keep) return;
+      plg = document.createElement('li'); plg.className = 'nav__keep';
+      plg.innerHTML = `<button type="button" class="btn btn--line btn--sm nav__plg is-new" aria-label="Los dos lados: la puerta vista de afuera y de adentro, con el pliegue de tu teléfono como pared"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h6v11H3zM11 4.5h6v11h-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2.5v15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 2"/></svg><span>Los dos lados</span></button>`;
+      keep.before(plg);
+      const go = () => { plg.querySelector('button').classList.remove('is-new'); plgMod.openPliegue(); };
+      import('./pliegue.js').then((m) => { plgMod = m; }).catch(() => {});
+      plg.querySelector('button').onclick = () => (plgMod ? go() : import('./pliegue.js').then((m) => { plgMod = m; go(); }).catch(() => {}));
+    } else if (!on && plg) { plg.remove(); plg = null; }
+  };
   const libro = () => {
     const on = foldOpen() && innerWidth >= 600;
+    plgButton(on);
     if (on !== document.documentElement.classList.contains('is-libro')) { document.documentElement.classList.toggle('is-libro', on); dispatchEvent(new CustomEvent('st:libro', { detail: on })); }
   };
   libro();
