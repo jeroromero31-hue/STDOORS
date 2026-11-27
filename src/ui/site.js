@@ -72,7 +72,7 @@ export function createSheet(label) {
   let last = null;
   const api = {
     el, body: el.querySelector('[data-sheet-body]'), meta: el.querySelector('[data-sheet-meta]'),
-    open() { last = document.activeElement; el.classList.add('is-open'); scrim.classList.add('is-on'); el.querySelector('.sheet__close').focus(); document.documentElement.style.overflow = 'hidden'; },
+    open() { last = document.activeElement; el.classList.add('is-open'); scrim.classList.add('is-on'); el.querySelector('.sheet__close').focus(); if (!document.documentElement.classList.contains('is-pleg')) document.documentElement.style.overflow = 'hidden'; },
     close() { el.classList.remove('is-open'); scrim.classList.remove('is-on'); document.documentElement.style.overflow = ''; last && last.focus && last.focus(); if (api.onclose) api.onclose(); },
   };
   el.querySelector('.sheet__close').onclick = api.close; scrim.onclick = api.close;
@@ -160,29 +160,35 @@ function foldWatch() {
   const ori = () => (screen.orientation && screen.orientation.type) || (matchMedia('(orientation: landscape)').matches ? 'landscape' : 'portrait');
   let lastW = innerWidth, lastS = scr(), lastO = ori();
   const t0 = performance.now();
-  // Fase 14D · «Los dos lados» (src/ui/pliegue.js): botón en la barra de arriba, solo con el plegable abierto. El módulo
-  // se baja antes del toque: así el permiso del giroscopio del iPhone se pide dentro del mismo toque.
-  let plg = null, plgMod = null;
-  const plgButton = (on) => {
-    if (on && !plg) {
+  // Fase 14E · «Modo plegable» (src/ui/plegableModo.js): con el plegable abierto aparece solo un botón en la barra de
+  // arriba; el sitio cambia hasta que se activa (y se queda así en este teléfono hasta que se apaga). El módulo se baja
+  // antes del toque, para que el cambio sea inmediato.
+  let btnLi = null, modo = null;
+  const modoOn = () => lsGet('st.modo') === '1';
+  const ensureMod = () => (modo ? Promise.resolve(modo) : import('./plegableModo.js').then((m) => (modo = m)));
+  const button = (show) => {
+    if (show && !btnLi) {
       const keep = document.querySelector('.nav__links li.nav__keep'); if (!keep) return;
-      plg = document.createElement('li'); plg.className = 'nav__keep';
-      plg.innerHTML = `<button type="button" class="btn btn--line btn--sm nav__plg is-new" aria-label="Los dos lados: la puerta vista de afuera y de adentro, con el pliegue de tu teléfono como pared"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h6v11H3zM11 4.5h6v11h-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2.5v15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 2"/></svg><span>Los dos lados</span></button>`;
-      keep.before(plg);
-      const go = () => { plg.querySelector('button').classList.remove('is-new'); plgMod.openPliegue(); };
-      import('./pliegue.js').then((m) => { plgMod = m; }).catch(() => {});
-      plg.querySelector('button').onclick = () => (plgMod ? go() : import('./pliegue.js').then((m) => { plgMod = m; go(); }).catch(() => {}));
-    } else if (!on && plg) { plg.remove(); plg = null; }
+      btnLi = document.createElement('li'); btnLi.className = 'nav__keep';
+      btnLi.innerHTML = `<button type="button" class="btn btn--line btn--sm nav__plg" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h6v11H3zM11 4.5h6v11h-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2.5v15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 2"/></svg><span>Modo plegable</span></button>`;
+      keep.before(btnLi);
+      ensureMod().catch(() => {});
+      btnLi.querySelector('button').onclick = () => {
+        const on = !modoOn(); lsSet('st.modo', on ? '1' : null);
+        // al activarlo, las hojas de la vaivén se cierran en el pliegue y al abrirse ya está el sitio en dos
+        if (on) { foldFx('Modo plegable'); setTimeout(() => apply(), 380); } else apply();
+      };
+    } else if (!show && btnLi) { btnLi.remove(); btnLi = null; }
+    if (btnLi) { const b = btnLi.querySelector('button'), on = modoOn() && show; b.setAttribute('aria-pressed', String(on)); b.querySelector('span').textContent = on ? 'Pantalla normal' : 'Modo plegable'; }
   };
-  const libro = () => {
-    const on = foldOpen() && innerWidth >= 600;
-    plgButton(on);
-    if (on !== document.documentElement.classList.contains('is-libro')) { document.documentElement.classList.toggle('is-libro', on); dispatchEvent(new CustomEvent('st:libro', { detail: on })); }
+  const apply = () => {
+    const open = foldOpen() && innerWidth >= 600, on = open && modoOn();
+    button(open);
+    if (on || document.documentElement.classList.contains('is-pleg')) ensureMod().then((m) => { m.setModo(on); button(open); }).catch(() => {});
   };
+  const libro = apply;
   libro();
   if (new URLSearchParams(location.search).get('plegable') === 'info') setTimeout(() => { const d = document.createElement('p'); d.className = 'toast is-on'; d.style.cssText = 'max-width:90vw;white-space:normal'; d.setAttribute('role', 'status'); d.textContent = `Pantalla ${screen.width} × ${screen.height} · ventana ${innerWidth} × ${innerHeight} · ×${devicePixelRatio} · táctil ${navigator.maxTouchPoints} · ${foldOpen() ? 'plegable abierto' : 'no detectado'}`; document.body.append(d); setTimeout(() => d.remove(), 20000); }, 800);
-  // la primera vez en la visita con el teléfono abierto: la puerta se abre al llegar
-  if (foldOpen()) { let seen = false; try { seen = sessionStorage.getItem('st.libro') === '1'; sessionStorage.setItem('st.libro', '1'); } catch { /* sin almacenamiento */ } if (!seen) setTimeout(() => foldFx('Se abre como tu teléfono'), 350); }
   let wasOpen = foldOpen();
   addEventListener('resize', () => {
     libro();
@@ -197,9 +203,9 @@ function foldWatch() {
     if (screenJump >= 0.22 && !rotated && navigator.maxTouchPoints > 0) { lsSet('st.plegable', '1'); libro(); }
     lastW = w; lastS = s; lastO = o;
     // plegar o desplegar: la pantalla cambia de tamaño o (iPhone Duo) la ventana pasa a ser más grande que la pantalla
-    if (flip && !zoomed && !document.hidden && performance.now() - t0 > 1200) { lastW = w; foldFx(isOpen ? 'Se abre como tu teléfono' : ''); return; }
+    if (flip && !zoomed && !document.hidden && performance.now() - t0 > 1200) { lastW = w; if (modoOn()) foldFx(isOpen ? 'Se abre como tu teléfono' : ''); return; }
     if (jump < 0.22 || screenJump < 0.22 || rotated || zoomed || performance.now() - t0 < 1200 || document.hidden) return;
-    foldFx(opened ? 'Se abre como tu teléfono' : '');
+    if (modoOn()) foldFx(opened ? 'Se abre como tu teléfono' : '');
   });
 }
 

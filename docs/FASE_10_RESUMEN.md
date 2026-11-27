@@ -784,3 +784,20 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   (466 × 678) con una ventana de 951 × 537. Se reconoce porque la ventana es más grande que la pantalla que reporta (más de
   1.3 veces y con el lado corto de 500 px o más); al plegarlo o desplegarlo cambia eso, y ahí se juega la animación de
   las hojas (aunque el teléfono diga que giró).
+
+## Fase 14E · «Modo plegable» (solo con un botón)
+
+- Con el plegable abierto solo aparece el botón **«Modo plegable»** en la barra de arriba; nada cambia solo (se quitaron
+  la entrada automática con las hojas y la página de cada puerta partida sin pedirlo). Al activarlo, las hojas de la
+  vaivén se cierran en el pliegue y al abrirse el sitio ya está en dos; queda activo en ese teléfono hasta tocar
+  «Pantalla normal». La animación al plegar/desplegar solo corre con el modo activo.
+- **Todo el sitio en dos, partido en el pliegue** (`src/ui/plegableModo.js`, `src/styles/plegable.css`): a la izquierda
+  se lee y se elige; a la derecha se ve, y la derecha no se va.
+  - Inicio: lista de las cuatro puertas (con su temperatura) a la izquierda; el pasillo con la puerta elegida a la
+    derecha (se abre y su pantalla sube). El resto del Inicio sigue a la izquierda.
+  - Industriales: la puerta que estás leyendo aparece en grande a la derecha y se escanea a rayos X al llegar.
+  - Cada puerta y la CDS: el 3D en la página derecha durante toda la página (pasos, piezas, ficha y cotizar a la izquierda).
+  - Componentes: «Encuentra tu pieza» (la puerta que se toca) a la derecha; la ficha de la pieza se abre ahí mismo.
+  - Cotizar: lo que pides a la izquierda; tus datos y el envío a la derecha.
+  - Todo lo que antes se abría encima de la página (fichas, «Verla en tu espacio») se abre en la página derecha.
+- **La bisagra:** en el pliegue hay una bisagra («Toca la bisagra»); al tocarla se abren «Los dos lados».

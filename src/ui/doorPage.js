@@ -42,8 +42,9 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
   // ---------- Fase 10E: cada paso va en una tarjeta (en computadora flotan sobre el escenario 3D) ----------
-  // Fase 14C · un plegable abierto (html.is-libro) usa el diseño ancho: texto a la izquierda y puerta a la derecha
-  const wideQ = matchMedia('(min-width: 901px)'), wide = { get matches() { return wideQ.matches || document.documentElement.classList.contains('is-libro'); } };
+  // Fase 14E · en el modo plegable (html.is-pleg) el texto va a la izquierda y el 3D en la página derecha, todo el tiempo
+  const pleg = () => document.documentElement.classList.contains('is-pleg');
+  const wideQ = matchMedia('(min-width: 901px)'), wide = { get matches() { return wideQ.matches || pleg(); } };
   $$('.door__hero, .door__step').forEach((sec) => { const c = document.createElement('div'); c.className = 'door__card'; c.append(...sec.childNodes); sec.append(c); });
   const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const titles = $$('.door__step h2').map((h) => { splitLines(h); if (!reduceMo) h.classList.add('is-pre'); return h; });
@@ -103,9 +104,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     const probe = document.createElement('i'); probe.style.cssText = 'position:fixed;left:0;top:0;width:env(viewport-segment-left 1 0, 0px);height:0;visibility:hidden;pointer-events:none';
     document.body.append(probe);
     const fitInset = () => {
-      if (!wide.matches && !spanQ.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
-      const libro = !wideQ.matches && !spanQ.matches;                       // plegable abierto: la puerta va en la mitad derecha
-      const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : libro ? v.left + v.width / 2 - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
+      if ((!wide.matches && !spanQ.matches) || pleg()) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }   // plegable: el 3D ya tiene su página
+      const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
       const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(spanQ.matches ? 0.6 : 0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
     };
     spanQ.addEventListener('change', fitInset); addEventListener('st:libro', () => requestAnimationFrame(fitInset));
