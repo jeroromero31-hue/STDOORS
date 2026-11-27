@@ -526,6 +526,16 @@ ${ array.join( '' ) }
 
 }
 
+// Fase 14B · el mapa de normales se guarda de 0 a 1: hay que pasarlo a −1…1 (y con la fuerza del material). Sin esto
+// Quick Look lo leía tal cual y las superficies se veían manchadas, con la luz torcida (el blanco de la abatible).
+function normalRemap( material ) {
+
+	const k = material.normalScale ? material.normalScale.x : 1;
+	return `float4 inputs:scale = (${ ( 2 * k ).toFixed( 4 ) }, ${ ( 2 * k ).toFixed( 4 ) }, 2, 1)
+			float4 inputs:bias = (${ ( - k ).toFixed( 4 ) }, ${ ( - k ).toFixed( 4 ) }, -1, 0)`;
+
+}
+
 function buildMaterial( material, textures, quickLookCompatible = false ) {
 
 	// https://graphics.pixar.com/usd/docs/UsdPreviewSurface-Proposal.html
@@ -605,6 +615,7 @@ function buildMaterial( material, textures, quickLookCompatible = false ) {
 			asset inputs:file = @textures/Texture_${ id }.png@
 			float2 inputs:st.connect = </Materials/Material_${ material.id }/Transform2d_${ mapType }.outputs:result>
 			${ color !== undefined ? 'float4 inputs:scale = ' + buildColor4( color ) : '' }
+			${ mapType === 'normal' ? normalRemap( material ) : '' }
 			token inputs:sourceColorSpace = "${ texture.colorSpace === NoColorSpace ? 'raw' : 'sRGB' }"
 			token inputs:wrapS = "${ WRAPPINGS[ texture.wrapS ] }"
 			token inputs:wrapT = "${ WRAPPINGS[ texture.wrapT ] }"

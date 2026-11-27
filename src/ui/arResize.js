@@ -108,7 +108,7 @@ export function resizeGlb(buf, meta, fam, size, acabado = null) {
   const src = parseGlb(buf);
   const bin = new Uint8Array(src.bin);            // copia
   const json = JSON.parse(JSON.stringify(src.json));
-  if (acabado) finishGlb(json, fam, acabado);
+  finishGlb(json, fam, acabado || FINISH_MAT[fam]);   // sin elección, el acabado de fábrica (también pasa por aquí)
   if (!m) return { bytes: buildGlb(json, bin), map: null };
   const scene = json.scenes[json.scene || 0];
   for (const ni of scene.nodes) {
@@ -170,16 +170,21 @@ export function resizeGlb(buf, meta, fam, size, acabado = null) {
 // estos mismos bytes, Quick Look también lo lleva.
 const lin = (hex) => [1, 3, 5].map((i) => { const c = parseInt(hex.slice(i, i + 2), 16) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
 export const FINISH_PBR = {
-  hygienicWhite: { color: '#eceeea', metal: 0, rough: 0.46, keepNormal: true },
+  // Fase 14B · blanco sanitario como pintura lisa: sin la textura de relieve ni la laca (en la cámara del iPhone se
+  // veía manchado y en Android, como plástico brillante)
+  hygienicWhite: { color: '#eceeea', metal: 0, rough: 0.55 },
   blackMetal: { color: '#1c1d1f', metal: 0.3, rough: 0.5 },
   stainless: { color: '#c3c7ca', metal: 1, rough: 0.45 },
+  // Fase 14C · CDS en cromo (bajo pedido): marco, puertas y jaladeras; en negro se queda como viene del modelo
+  cromo: { color: '#e2e6e9', metal: 1, rough: 0.08 },
 };
-const FINISH_MAT = { abatible: 'hygienicWhite', vaiven: 'blackMetal' };
+const FINISH_MAT = { abatible: 'hygienicWhite', vaiven: 'blackMetal', cds: 'cds-acabado' };
 export function finishGlb(json, fam, acabado) {
   const base = FINISH_MAT[fam], look = FINISH_PBR[acabado];
   if (!base || !look) return;
   const idx = (json.materials || []).findIndex((x) => x.name === base);
   if (idx < 0) return;
+  if (fam === 'cds') { json.materials.forEach((x) => { if (x.name === base) { const pbr = x.pbrMetallicRoughness || (x.pbrMetallicRoughness = {}); pbr.baseColorFactor = [...lin(look.color), 1]; pbr.metallicFactor = look.metal; pbr.roughnessFactor = look.rough; delete pbr.metallicRoughnessTexture; if (x.extensions) { delete x.extensions.KHR_materials_clearcoat; if (!Object.keys(x.extensions).length) delete x.extensions; } } }); return; }
   const paint = (mat) => {
     const pbr = mat.pbrMetallicRoughness || (mat.pbrMetallicRoughness = {});
     pbr.baseColorFactor = [...lin(look.color), 1]; pbr.metallicFactor = look.metal; pbr.roughnessFactor = look.rough;
@@ -188,8 +193,8 @@ export function finishGlb(json, fam, acabado) {
     if (mat.extensions) { delete mat.extensions.KHR_materials_clearcoat; if (!Object.keys(mat.extensions).length) delete mat.extensions; }
     if (acabado === 'blackMetal') (mat.extensions ||= {}).KHR_materials_clearcoat = { clearcoatFactor: 0.1, clearcoatRoughnessFactor: 0.55 };
   };
-  // abatible: el marco cambia solo con inoxidable; si no, la hoja lleva su propio material
-  const leafOnly = fam === 'abatible' && acabado !== 'stainless';
+  // abatible: con negro solo cambia la hoja (el marco queda blanco); con blanco o inoxidable, marco y hoja
+  const leafOnly = fam === 'abatible' && acabado === 'blackMetal';   // en blanco, marco y hoja son el mismo blanco liso
   if (!leafOnly) { paint(json.materials[idx]); return; }
   const copy = JSON.parse(JSON.stringify(json.materials[idx])); copy.name = `${base}-hoja`; paint(copy);
   const ni = json.materials.push(copy) - 1;
