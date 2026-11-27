@@ -102,6 +102,37 @@ function view(json, bin, ai) {
   return { a, f, n, stride };
 }
 
+// Fase 14C · vaivén de una hoja: sin la hoja derecha (nodo y pistas), con el poste derecho recorrido ONE_LEAF m hasta
+// el canto libre de la izquierda (como src/viewers/vaiven.js) y los nudillos de la derecha reducidos a un punto
+export const ONE_LEAF = 1.175;
+function oneLeaf(json, bin) {
+  const scene = json.scenes[json.scene || 0];
+  const right = scene.nodes.find((ni) => /^mov/.test(json.nodes[ni].name || '') && ((json.nodes[ni].translation || [0])[0] > 0));
+  if (right !== undefined) {
+    scene.nodes = scene.nodes.filter((n) => n !== right);
+    (json.animations || []).forEach((an) => { an.channels = an.channels.filter((c) => c.target.node !== right); });
+  }
+  for (const ni of scene.nodes) {
+    const node = json.nodes[ni]; if (/^(mov|prod)/.test(node.name || '')) continue;
+    const o = node.translation || [0, 0, 0];
+    for (const ci of node.children || []) {
+      const child = json.nodes[ci]; if (child.mesh === undefined) continue;
+      for (const prim of json.meshes[child.mesh].primitives) {
+        const frame = /frame/.test((json.materials[prim.material] || {}).name || '');
+        const { a, f, stride } = view(json, bin, prim.attributes.POSITION);
+        let park = null; const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < a.count; i++) {
+          const k = i * stride, x = f[k] + o[0];
+          if (frame && x > 1.1) f[k] -= ONE_LEAF;
+          else if (!frame && x > 0) { park ||= [f[k] - ONE_LEAF, f[k + 1], f[k + 2]]; f[k] = park[0]; f[k + 1] = park[1]; f[k + 2] = park[2]; }
+          for (let j = 0; j < 3; j++) { const val = f[k + j]; if (val < min[j]) min[j] = val; if (val > max[j]) max[j] = val; }
+        }
+        a.min = min; a.max = max;
+      }
+    }
+  }
+}
+
 // GLB con la puerta a la medida (bytes nuevos; el original no se toca)
 export function resizeGlb(buf, meta, fam, size, acabado = null) {
   const m = mapperFor(meta, fam, size);
@@ -109,6 +140,7 @@ export function resizeGlb(buf, meta, fam, size, acabado = null) {
   const bin = new Uint8Array(src.bin);            // copia
   const json = JSON.parse(JSON.stringify(src.json));
   finishGlb(json, fam, acabado || FINISH_MAT[fam]);   // sin elección, el acabado de fábrica (también pasa por aquí)
+  if (meta.hojas === 1) oneLeaf(json, bin);
   if (!m) return { bytes: buildGlb(json, bin), map: null };
   const scene = json.scenes[json.scene || 0];
   for (const ni of scene.nodes) {

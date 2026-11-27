@@ -43,7 +43,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     const v = vano.get();
     if (fam === 'cds') return cdsFix({ ...defaults('cds'), ...(v.cds || {}) });
     const fins = ACABADOS_DE[fam] || [];
-    return { ...defaults(fam), ancho: v.ancho || '', alto: v.alto || '', ...(fam === 'vaiven' ? { hojas: v.hojas || 2 } : {}), ...(fins.length ? { acabado: fins.includes(v.acabado) ? v.acabado : fins[0] } : {}) };
+    return { ...defaults(fam), ancho: v.ancho || '', alto: v.alto || '', ...(fam === 'vaiven' ? { hojas: v.hojas || 1 } : {}), ...(fins.length ? { acabado: fins.includes(v.acabado) ? v.acabado : fins[0] } : {}) };
   };
   const uid = Math.random().toString(36).slice(2, 7);
   host.classList.add('vano');

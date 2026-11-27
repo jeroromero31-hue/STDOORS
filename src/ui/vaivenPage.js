@@ -2,6 +2,11 @@
 // Las dos hojas se abren de golpe como si pasara alguien con un carro, se quedan un momento y regresan solas al centro,
 // pasándose un poco del otro lado antes de quedar quietas (vaivén). Con la vista térmica se ve cuánto frío sale en un paso.
 export function mountVaivenExtras({ viewer, stage, live, door }) {
+  // Fase 14C · «Hojas: Una / Dos» del 3D es la misma elección que en «A tu medida» y en Cotizar
+  document.querySelectorAll('.door__ctl .chip[data-k="hojas"]').forEach((b) => b.addEventListener('click', () => {
+    import('./vano.js').then(({ vano }) => vano.set({ hojas: +b.dataset.v }, 'puerta')).catch(() => {});
+  }));
+  if (viewer.hojas) import('./vano.js').then(({ vano }) => { if (vano.get().hojas !== viewer.hojas) vano.set({ hojas: viewer.hojas }, 'puerta'); }).catch(() => {});
   const btn = document.querySelector('[data-paso-btn]');
   if (!btn || !viewer.hinges) return;
   const [hl, hr] = viewer.hinges;

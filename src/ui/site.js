@@ -109,8 +109,27 @@ function fastNav() {
 }
 
 // ---------- Fase 10I · plegables (Duo): al plegar o desplegar, la pantalla se cierra y se abre como una puerta vaivén ----------
-// Un cambio brusco de ancho (más de 22 % de una vez: plegar, desplegar o girar el teléfono) tapa el reacomodo con dos hojas
-// azul marino que se juntan en la bisagra y vuelven a abrir. Cambiar el tamaño de una ventana arrastrando no lo dispara.
+// Fase 14C · solo en plegables y con las hojas de verdad: las dos hojas de la vaivén (las mismas del Inicio) llegan del
+// frente, se juntan en la bisagra del teléfono, sale una bocanada de vaho y siguen de largo hacia atrás, como una vaivén.
+// Además, con el teléfono abierto, las páginas de cada puerta se leen «como libro»: el texto en la mitad izquierda y la
+// puerta en la derecha, con el pliegue en medio (html.is-libro; src/styles/door.css y src/ui/doorPage.js).
+const isPhoneUA = () => /iPhone|Android.+Mobile/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+// pantalla interior de un plegable: un teléfono con el lado corto de 580 px o más (ningún teléfono sin pliegue llega) y el
+// largo de 1000 o menos (los iPad empiezan en 1133)
+export const foldOpen = () => { const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height); return isPhoneUA() && matchMedia('(pointer: coarse)').matches && a >= 580 && b <= 1000; };
+function foldFx(caption) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let fx = document.querySelector('.foldfx');
+  if (!fx) {
+    fx = document.createElement('div'); fx.className = 'foldfx'; fx.setAttribute('aria-hidden', 'true');
+    const img = (k) => `<img src="${url(`img/umbral/vaiven-${k}-518.webp`)}" srcset="${url(`img/umbral/vaiven-${k}-518.webp`)} 518w, ${url(`img/umbral/vaiven-${k}-1035.webp`)} 1035w" sizes="50vw" alt="" decoding="async">`;
+    fx.innerHTML = `<i class="foldfx__l">${img('izq')}</i><i class="foldfx__r">${img('der')}</i><b class="foldfx__vaho"></b><p class="foldfx__t"></p>`;
+    document.body.append(fx);
+  }
+  fx.querySelector('.foldfx__t').textContent = caption || '';
+  fx.classList.remove('is-on'); void fx.offsetWidth; fx.classList.add('is-on');
+  clearTimeout(foldFx.t); foldFx.t = setTimeout(() => fx.classList.remove('is-on'), 1500);
+}
 function foldWatch() {
   // Fase 10J · solo con un plegado de verdad. Antes bastaba con que cambiara el ancho de la ventana, y en Android eso pasa
   // también cuando algo de la página se sale por un lado (Chrome agranda la ventana para mostrarlo), al hacer zoom o al
@@ -118,25 +137,26 @@ function foldWatch() {
   // girar el teléfono, sin zoom y no en los primeros segundos de la página.
   const scr = () => [screen.width, screen.height];
   const ori = () => (screen.orientation && screen.orientation.type) || (matchMedia('(orientation: landscape)').matches ? 'landscape' : 'portrait');
-  let lastW = innerWidth, lastS = scr(), lastO = ori(), t = 0;
+  let lastW = innerWidth, lastS = scr(), lastO = ori();
   const t0 = performance.now();
+  const libro = () => {
+    const on = foldOpen() && innerWidth >= 600;
+    if (on !== document.documentElement.classList.contains('is-libro')) { document.documentElement.classList.toggle('is-libro', on); dispatchEvent(new CustomEvent('st:libro', { detail: on })); }
+  };
+  libro();
+  // la primera vez en la visita con el teléfono abierto: la puerta se abre al llegar
+  if (foldOpen()) { let seen = false; try { seen = sessionStorage.getItem('st.libro') === '1'; sessionStorage.setItem('st.libro', '1'); } catch { /* sin almacenamiento */ } if (!seen) setTimeout(() => foldFx('Se abre como tu teléfono'), 350); }
   addEventListener('resize', () => {
+    libro();
     const w = innerWidth, s = scr(), o = ori();
     const jump = Math.abs(w - lastW) / Math.max(1, lastW);
     const screenJump = Math.abs(s[0] - lastS[0]) / Math.max(1, lastS[0]);
     const rotated = o.split('-')[0] !== lastO.split('-')[0];
     const zoomed = window.visualViewport && Math.abs(visualViewport.scale - 1) > 0.05;
+    const opened = s[0] * s[1] > lastS[0] * lastS[1];
     lastW = w; lastS = s; lastO = o;
     if (jump < 0.22 || screenJump < 0.22 || rotated || zoomed || performance.now() - t0 < 1200 || document.hidden) return;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let fx = document.querySelector('.foldfx');
-    if (!fx) {
-      fx = document.createElement('div'); fx.className = 'foldfx'; fx.setAttribute('aria-hidden', 'true');
-      fx.innerHTML = `<i class="foldfx__l"></i><i class="foldfx__r"></i><img src="${url('img/marca/st-logo-blanco.png')}" alt="" width="120" height="49">`;
-      document.body.append(fx);
-    }
-    fx.classList.remove('is-on'); void fx.offsetWidth; fx.classList.add('is-on');
-    clearTimeout(t); t = setTimeout(() => fx.classList.remove('is-on'), 1100);
+    foldFx(opened ? 'Se abre como tu teléfono' : '');
   });
 }
 

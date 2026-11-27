@@ -39,14 +39,22 @@ const OMIT = new Set(['static/gasket']);
 // Cajas de encuadre (m): marco con las hojas cerradas, entreabiertas y abiertas hacia el frente
 const W = 1.2495 + VAIVEN.frame.shift + 0.01, H = 2.5205 + VAIVEN.frame.lift + 0.01;
 const BOX = { closed: [-W, 0, -0.10, W, H, 0.10], ajar: [-W, 0, -0.10, W, H, 0.62], open: [-W, 0, -0.10, W, H, 1.16] };
+// Fase 14C · una hoja: el poste derecho (cara interior en x = 1.176 m) se recorre hasta 1 mm del canto libre de la hoja
+// izquierda (su empaque llega a x = −0.001 m): 1.175 m. Las cajas de encuadre se angostan lo mismo.
+const ONE_SHIFT = 1.175;
+const box1 = (b) => [b[0], b[1], b[2], b[3] - ONE_SHIFT, b[4], b[5]];
 
 // opts.onProgress(0…1): avance de la descarga del modelo (la usa la entrada del Inicio)
 // opts.response: una descarga del modelo ya iniciada (el Inicio la empieza junto con el JavaScript, no después)
-export function createVaiven(stage, reg, { onProgress, response } = {}) {
+// opts.hojas: 1 o 2 (Fase 14C). Con una hoja se queda la izquierda y el poste derecho se recorre hasta su canto libre.
+export function createVaiven(stage, reg, { onProgress, response, hojas: hojas0 = 2 } = {}) {
   const { root, slots } = createRig();
-  // el marco queda dentro del vano del muro; detrás, el interior azul marino
-  const backdrop = createBackdrop(stage, { opening: { left: -(1.24 + VAIVEN.frame.shift), right: 1.24 + VAIVEN.frame.shift, top: 2.51 + VAIVEN.frame.lift }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
-  root.add(backdrop.group);
+  // el marco queda dentro del vano del muro; detrás, el interior azul marino. Un muro para dos hojas y otro para una.
+  const R0 = 1.24 + VAIVEN.frame.shift, TOP = 2.51 + VAIVEN.frame.lift;
+  const backdrop2 = createBackdrop(stage, { opening: { left: -R0, right: R0, top: TOP }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
+  const backdrop1 = createBackdrop(stage, { opening: { left: -R0, right: R0 - ONE_SHIFT, top: TOP }, halfWidth: 12, height: 6, floorDepth: 14, interiorDepth: 1.6 });
+  root.add(backdrop2.group, backdrop1.group);
+  const backdrop = { setInside: (on) => { backdrop1.setInside(on); backdrop2.setInside(on); } };
 
   // ---------- materiales ----------
   // La cara de la hoja usa el registro compartido. Todo lo demás sale de la tabla del original, con su misma clase
@@ -99,7 +107,7 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, po, nv * 3), 3));
       geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(buf, no, nv * 3), 3));
       geo.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, io, ni), 1));
-      if (grupo === 'static' && (material === 'frame' || material === 'frame-light')) widenFrame(geo, material === 'frame-light');
+      if (grupo === 'static' && (material === 'frame' || material === 'frame-light')) { widenFrame(geo, material === 'frame-light'); geo.userData.x0 = geo.attributes.position.array.slice(); }
       const panel = manifest.materiales[material].superficie === 'acabado';
       if (panel) finishUV(geo);                                 // los acabados compartidos llevan textura: necesitan UV
       const add = (g, parent, name, hinge) => {
@@ -117,6 +125,7 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       } else add(geo, slots[grupo], `${grupo}/${material}/${i}`, hingeOf[grupo]);
     }
     applyFinish(finish);
+    applyHojas();
   });
 
   // ---------- logo en las cuatro caras de las hojas (mismo PNG, tamaño y posición que el original) ----------
@@ -128,11 +137,12 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       const q = new THREE.Mesh(new THREE.PlaneGeometry(2 * hw, 2 * hh), mat);
       q.position.set(cx, 2.283, face * 0.0223); q.rotation.y = face === 1 ? 0 : Math.PI; q.renderOrder = 1000; slots[grp].add(q);
     }
+    applyHojas();                                                 // el logo de la hoja derecha también se esconde con una hoja
   });
 
   stage.scene.add(root);
   // lo que se puede tomar (las hojas) y lo que lo tapa (marco, muro y piso): manda lo primero que toque el puntero
-  const blockers = []; backdrop.group.traverse((o) => { if (o.isMesh) blockers.push(o); });
+  const blockers = []; [backdrop1.group, backdrop2.group].forEach((g) => g.traverse((o) => { if (o.isMesh) blockers.push(o); }));
   const extraPick = [];                                     // piezas propias que también mueven la hoja (bumper)
   const pickables = () => [...meshes, ...extraPick, ...blockers];
   const motion = hingeMotion(stage, hinges, pickables);
@@ -143,6 +153,12 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
   stage.onFrame.add(() => { if (wait && wait.ready()) { const w = wait; wait = null; w.go(); } });
   const pair = ([a0, a1]) => {
     const [h0, h1] = hinges; wait = null;
+    if (hojas === 1) {                                         // una hoja: si el paso pide los dos lados, va al frente y luego atrás
+      motion.to(h1, 0);
+      if (a0 && a1 && Math.sign(a0) !== Math.sign(a1)) { motion.to(h0, a1); wait = { ready: () => Math.abs(h0.angle - a1) < 3 || matchMedia('(prefers-reduced-motion: reduce)').matches, go: () => motion.to(h0, a0) }; }
+      else motion.to(h0, a0);
+      return;
+    }
     const same = (x, y) => x !== 0 && y !== 0 && Math.sign(x) === Math.sign(y);
     if (same(a0, a1) && Math.abs(h0.angle) < STAGGER && Math.abs(h1.angle) < STAGGER) {           // abrir juntas
       motion.to(h0, a0); wait = { ready: () => Math.abs(h0.angle) >= STAGGER || matchMedia('(prefers-reduced-motion: reduce)').matches, go: () => motion.to(h1, a1) };
@@ -249,7 +265,7 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
   };
 
   stage.onFrame.add(() => {
-    if (!hingeShaped && meshes.length) { hingeShaped = shapeHinges(); if (hingeShaped) stage.invalidate(2); }
+    if (!hingeShaped && meshes.length) { hingeShaped = shapeHinges(); if (hingeShaped) { applyHojas(); stage.invalidate(2); } }
     if (!bandHidden && meshes.length) { bandHidden = hideBand(); if (bandHidden) stage.invalidate(2); }
     if (!tw) return;
     if (tw.t0 === undefined) tw.t0 = performance.now();      // por reloj, no por cuadros: dura lo mismo en un teléfono lento
@@ -263,11 +279,13 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
     const to = BUMPERS.find((b) => b.id === String(id)); if (!to || to === bNow) return;
     tw = { a: { ...cur }, b: to, t: 0 }; bNow = to; anchors[2].numero = to.numero;
   };
+  // Fase 14C · con una hoja, la bisagra y el empaque lateral se señalan en la hoja izquierda (en su lado de la bisagra)
+  const ancBis = new THREE.Group(), ancEmp = new THREE.Group(); ancBis.name = 'Ancla bisagra'; ancEmp.name = 'Ancla empaque';
   const anchors = [
     { numero: '03', parent: slots.left, position: V(0.5675, 1.80, 0.03) },                       // ventanilla
-    { numero: '02', parent: slots.right, position: V(-0.08, 2.17, 0.083) },                        // bisagra
+    { numero: '02', parent: ancBis, position: V(0, 0, 0) },                                      // bisagra
     { numero: '06', parent: slots.left, position: bumperAnchor },                                 // bumper (06, 07 u 08 según la medida)
-    { numero: '01', parent: slots.right, position: V(0.0, 1.35, 0.04) },                         // empaque lateral
+    { numero: '01', parent: ancEmp, position: V(0, 0, 0) },                                      // empaque lateral
     { id: 'vaiven-perfil-aluminio-40-mm', parent: slots.left, position: V(1.125, 1.25, 0.034) }, // perfil de la hoja
   ];
   // cota del bumper: de su canto de abajo a su canto de arriba, junto al canto de la bisagra de la hoja izquierda,
@@ -281,23 +299,55 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
       const q = quads[i]; q[0].set(x0, lo, zq); q[1].set(x1, lo, zq); q[2].set(x1, hi, zq); q[3].set(x0, hi, zq);
       q.forEach((v) => slot.localToWorld(v));
     });
+    if (hojas === 1) quads[1].forEach((v, i) => v.copy(quads[0][i]));     // una hoja: la placa de la derecha no está
     return { a: tmpA, b: tmpB, quads, label: `${Math.round(cur.mm / 10) * 10} mm` };
   };
+
+  // ---------- Fase 14C · una hoja o dos ----------
+  // La hoja derecha (con su bumper, logo, placas de bisagra y nudillos) pasa a la capa 1: no se dibuja, no da sombra y
+  // el puntero no la toma. El marco se rearma desde sus vértices guardados: con una hoja el poste derecho se recorre.
+  let hojas = hojas0 === 1 ? 1 : 2;
+  const B = (k) => (hojas === 1 ? box1(BOX[k]) : BOX[k]);
+  const bisagra1 = orbitView(-1.145, 2.17, 0.05, 0.31, -0.09, 1.95), bisagra2 = orbitView(1.145, 2.17, 0.05, -0.31, -0.09, 1.95);
+  const setLayer = (o, on) => o.traverse((c) => c.layers.set(on ? 0 : 1));
+  function applyHojas() {
+    const one = hojas === 1;
+    setLayer(slots.right, !one); setLayer(knuckles.right.front, !one); setLayer(knuckles.right.back, !one);
+    setLayer(backdrop2.group, !one); setLayer(backdrop1.group, one);
+    meshes.forEach((m) => {
+      const x0 = m.geometry.userData.x0; if (!x0) return;
+      const a = m.geometry.attributes.position.array;
+      for (let k = 0; k < a.length; k += 3) a[k] = one && x0[k] > 1.1 ? x0[k] - ONE_SHIFT : x0[k];
+      m.geometry.attributes.position.needsUpdate = true; m.geometry.computeBoundingBox(); m.geometry.computeBoundingSphere();
+    });
+    (one ? slots.left : slots.right).add(ancBis, ancEmp);
+    ancBis.position.set(one ? 0.08 : -0.08, 2.17, 0.083); ancEmp.position.set(0, 1.35, 0.04);
+    if (one) { hinges[1].jump(0); }
+    if (stage.invalidate) stage.invalidate(3);
+  }
+  function setHojas(n) { const v = +n === 1 ? 1 : 2; if (v === hojas && meshes.length) return; hojas = v; applyHojas(); }
+  applyHojas();
 
   return {
     root, slots, materials, meshes, hinges, ready, pickables, motion, measure,
     // «Ver el frío»: cada hoja abre su mitad del hueco
     thermal: {
       wallZ: 0, floorY: 0, semi: true,                           // semi aislante: la hoja cerrada frena el frío, no lo sella
-      openings: () => { const R = 1.24 + VAIVEN.frame.shift, top = 2.51 + VAIVEN.frame.lift;
-        return [{ x0: -R, x1: 0, top, amount: Math.abs(hinges[0].angle) / MAX }, { x0: 0, x1: R, top, amount: Math.abs(hinges[1].angle) / MAX }]; },
+      openings: () => (hojas === 1 ? [{ x0: -R0, x1: R0 - ONE_SHIFT, top: TOP, amount: Math.abs(hinges[0].angle) / MAX }]
+        : [{ x0: -R0, x1: 0, top: TOP, amount: Math.abs(hinges[0].angle) / MAX }, { x0: 0, x1: R0, top: TOP, amount: Math.abs(hinges[1].angle) / MAX }]),
     },
     configs: [{
+      // Fase 14C · de una hoja (como se presenta) o de dos
+      key: 'hojas', label: 'Hojas', view: 'general', fade: true, cota: false,
+      items: [{ id: '1', label: 'Una', detail: 'Una hoja' }, { id: '2', label: 'Dos', detail: 'Dos hojas' }],
+      current: () => String(hojas), set: (id) => setHojas(+id),
+    }, {
       key: 'bumper', label: 'Bumper', view: 'bumper',
       items: BUMPERS.map((b) => ({ id: b.id, label: `${b.mm} mm`, numero: b.numero, detail: `Bumper de ${b.mm} mm` })),
       current: () => bNow.id, set: setBumper,
     }],
     get finish() { return finish; },
+    get hojas() { return hojas; }, setHojas,
     setFinish(name) { applyFinish(name); },
     setInside: backdrop.setInside,
     // la cámara se queda delante del muro
@@ -305,14 +355,14 @@ export function createVaiven(stage, reg, { onProgress, response } = {}) {
     // anclas para los puntos de pieza: número de catálogo o, si la pieza no tiene, su id interno
     anchors,
     views: {
-      general: (st) => frameBox(st, BOX.closed, -0.30, -0.08),
-      frontal: (st) => frameBox(st, BOX.closed, 0, 0),
-      abierta: (st) => frameBox(st, BOX.open, -0.10, 0.05),        // casi de frente: las dos hojas abiertas se ven por igual
-      dosLados: (st) => frameBox(st, BOX.open, -0.30, -0.08),      // una hoja hacia el frente y otra hacia atrás
-      interior: (st) => frameBox(st, BOX.ajar, -0.16, -0.04),
-      bisagra: orbitView(1.145, 2.17, 0.05, -0.31, -0.09, 1.95),
+      general: (st) => frameBox(st, B('closed'), -0.30, -0.08),
+      frontal: (st) => frameBox(st, B('closed'), 0, 0),
+      abierta: (st) => frameBox(st, B('open'), -0.10, 0.05),        // casi de frente: las dos hojas abiertas se ven por igual
+      dosLados: (st) => frameBox(st, B('open'), -0.30, -0.08),      // una hoja hacia el frente y otra hacia atrás
+      interior: (st) => frameBox(st, B('ajar'), -0.16, -0.04),
+      bisagra: () => (hojas === 1 ? bisagra1 : bisagra2),             // con una hoja, la bisagra de la izquierda
       empaque: orbitView(-1.152, 1.34, 0, -1.03, -0.12, 3.3),
-      frio: (st) => frameBox(st, [-2.0, 0, -0.3, 2.0, 2.6, 2.4], -0.3, 0.32),           // hueco y el piso de enfrente
+      frio: (st) => { const d = hojas === 1 ? ONE_SHIFT / 2 : 0; return frameBox(st, [-2.0 - d, 0, -0.3, 2.0 - d, 2.6, 2.4], -0.3, 0.32); },   // hueco y el piso de enfrente
       mirilla: orbitView(-0.58, 1.74, 0.03, -0.25, 0.0, 1.95),
       // encuadra el bumper elegido completo (de 150 a 1000 mm), con algo de placa y de hoja alrededor
       bumper: (st) => { const h = 0.17 + (bNow.mm - 150) / 1000; return frameBox(st, [-1.12, bNow.center - h / 2 - 0.16, 0, -0.04, bNow.center + h / 2 + 0.16, 0.08], -0.35, 0.08, 1.1); },

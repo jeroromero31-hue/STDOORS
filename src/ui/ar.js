@@ -20,7 +20,7 @@
 import ar from '../data/ar.json';
 import { createSheet, url, toast } from './site.js';
 import { describe, defaults } from './medida.js';
-import { resizeGlb, mapPoint } from './arResize.js';
+import { resizeGlb, mapPoint, ONE_LEAF } from './arResize.js';
 import { track } from './track.js';
 
 const NOMBRE = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' };
@@ -28,7 +28,16 @@ const NOMBRE = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vai
 export const ACABADOS = { abatible: ['hygienicWhite', 'stainless', 'blackMetal'], vaiven: ['blackMetal', 'stainless', 'hygienicWhite'], cds: ['negro', 'cromo'] };
 const ACABADO_LABEL = { hygienicWhite: 'Blanco sanitario', stainless: 'Inoxidable', blackMetal: 'Negro', negro: 'Negro', cromo: 'Cromo · bajo pedido' };
 // medidas que se pueden ver (cm); fuera de esto se ajusta a lo más cercano
-export const RANGO = { abatible: { w: [70, 180], h: [180, 300] }, corrediza: { w: [100, 400], h: [200, 450] }, vaiven: { w: [140, 320], h: [200, 350] } };
+export const RANGO = { abatible: { w: [70, 180], h: [180, 300] }, corrediza: { w: [100, 400], h: [200, 450] }, vaiven: { w: [140, 320], h: [200, 350] }, vaiven1: { w: [70, 160], h: [200, 350] } };
+// Fase 14C · la vaivén de una hoja sale del mismo modelo (arResize.oneLeaf): su vano, sus franjas y el punto para abrir
+const metaOf = (fam, hojas) => {
+  const m = ar.puertas[fam]; if (fam !== 'vaiven' || +hojas !== 1) return m;
+  const v = m.vano, S = ONE_LEAF;
+  return { ...m, hojas: 1, vano: { ...v, w: v.w - S, cx: v.cx - S / 2 }, caja: { ...m.caja, max: [m.caja.max[0] - S, m.caja.max[1], m.caja.max[2]] },
+    franjas: { ...m.franjas, x: m.franjas.x.filter(([a, b]) => b < 0 || a > 1.1).map((f) => (f[0] > 1.1 ? [f[0] - S, f[1] - S, ...f.slice(2)] : f)) },
+    abrir: { ...m.abrir, punto: [v.cx - S / 2, m.abrir.punto[1], m.abrir.punto[2]] } };
+};
+const rangoOf = (fam, hojas) => (fam === 'vaiven' && +hojas === 1 ? RANGO.vaiven1 : RANGO[fam]);
 const ICON = {
   open: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h8v14H4zM12 5l4-1.5v13L12 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="10.5" r=".9" fill="currentColor"/></svg>',
   take: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -127,25 +136,27 @@ export async function buildUSDZ(bytes, meta, fam, opts = {}) {
 
 // medida en metros para el modelo: la del cliente (dentro de lo que se puede ver) o la del modelo
 function sizeFor(fam, cfg) {
-  const v = ar.puertas[fam].vano;
+  const v = metaOf(fam, cfg && cfg.hojas).vano;
   if (fam === 'cds' || !cfg || !cfg.ancho || !cfg.alto || cfg.sinMedida) return { w: v.w, h: v.h, known: fam === 'cds', cm: null };
-  const R = RANGO[fam], w = clamp(+cfg.ancho, R.w[0], R.w[1]), h = clamp(+cfg.alto, R.h[0], R.h[1]);
+  const R = rangoOf(fam, cfg.hojas), w = clamp(+cfg.ancho, R.w[0], R.w[1]), h = clamp(+cfg.alto, R.h[0], R.h[1]);
   return { w: w / 100, h: h / 100, known: true, cm: { w, h }, adjusted: w !== +cfg.ancho || h !== +cfg.alto };
 }
-const link = (fam, size) => {
+const link = (fam, size, hojas) => {
   const u = new URL(location.href); u.hash = '';
   u.searchParams.set('ar', fam);
   if (fam !== 'cds' && size.cm) { u.searchParams.set('ancho', size.cm.w); u.searchParams.set('alto', size.cm.h); }
+  if (fam === 'vaiven' && hojas) u.searchParams.set('hojas', hojas);
   return u.toString();
 };
 
 export async function openAR(fam, cfg0 = {}) {
-  const meta = ar.puertas[fam]; if (!meta) return;
+  if (!ar.puertas[fam]) return;
   track('ar_abrir', { puerta: fam });
   const cfg = { ...defaults(fam), ...Object.fromEntries(Object.entries(cfg0 || {}).filter(([, v]) => v !== '' && v != null)) };
+  const meta = metaOf(fam, cfg.hojas);
   if (!sheet) { sheet = createSheet('Verla en tu espacio'); sheet.el.classList.add('sheet--ar'); }
   let size = sizeFor(fam, cfg);
-  const R = RANGO[fam], v = meta.vano;
+  const R = rangoOf(fam, cfg.hojas), v = meta.vano;
   const cmW = size.cm ? size.cm.w : Math.round(v.w * 100), cmH = size.cm ? size.cm.h : Math.round(v.h * 100);
   const prods = meta.productos || [];
   const fins = ACABADOS[fam] || [];
@@ -402,7 +413,7 @@ export async function openAR(fam, cfg0 = {}) {
     } else {
       const { default: qrcode } = await import('qrcode-generator');
       const draw = () => {
-        const q = qrcode(0, 'M'); q.addData(link(fam, size)); q.make();
+        const q = qrcode(0, 'M'); q.addData(link(fam, size, cfg.hojas)); q.make();
         qr.innerHTML = `<div class="arv__code">${q.createSvgTag({ cellSize: 4, margin: 2, scalable: true, alt: 'Código QR para abrir esta vista en tu celular' })}</div><p><b>Ábrela en tu celular</b><br><span class="t-small t-soft">Escanea el código con la cámara: se abre esta misma puerta${size.cm ? ' con esta medida' : ''}, lista para verla en tu espacio.</span></p>`;
       };
       draw(); qr.hidden = false;
@@ -419,6 +430,6 @@ export async function openAR(fam, cfg0 = {}) {
 export function arFromUrl() {
   const q = new URLSearchParams(location.search), fam = q.get('ar');
   if (!fam || !ar.puertas[fam]) return;
-  const cfg = { ancho: +q.get('ancho') || '', alto: +q.get('alto') || '' };
+  const cfg = { ancho: +q.get('ancho') || '', alto: +q.get('alto') || '', ...(q.get('hojas') ? { hojas: +q.get('hojas') } : {}) };
   setTimeout(() => openAR(fam, cfg), 400);
 }

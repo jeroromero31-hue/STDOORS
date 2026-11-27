@@ -133,7 +133,7 @@ export function mountQuote() {
       $$('[data-n]', li).forEach((b) => { b.onclick = () => {
         save({ puertas: cur().puertas + +b.dataset.n });
       }; });
-      $('[data-3d]', li).onclick = () => import('./ar.js').then(({ openAR }) => { const c = cur(); openAR(fam, fam === 'cds' ? { acabado: c.acabado } : { ancho: c.sinMedida ? '' : c.ancho, alto: c.sinMedida ? '' : c.alto, acabado: c.acabado || finOf(fam, solicitud.all().find((y) => y.id === id) || { id }) }); })
+      $('[data-3d]', li).onclick = () => import('./ar.js').then(({ openAR }) => { const c = cur(); openAR(fam, fam === 'cds' ? { acabado: c.acabado } : { hojas: c.hojas, ancho: c.sinMedida ? '' : c.ancho, alto: c.sinMedida ? '' : c.alto, acabado: c.acabado || finOf(fam, solicitud.all().find((y) => y.id === id) || { id }) }); })
         .catch((e) => { console.error(e); toast('No se pudo abrir el 3D'); });
       const dup = $('[data-dup]', li);
       if (dup) dup.onclick = () => {

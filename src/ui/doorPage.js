@@ -42,7 +42,8 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
   const parts = catalog.piezas.filter((p) => p.familias.includes(familia));
 
   // ---------- Fase 10E: cada paso va en una tarjeta (en computadora flotan sobre el escenario 3D) ----------
-  const wide = matchMedia('(min-width: 901px)');
+  // Fase 14C · un plegable abierto (html.is-libro) usa el diseño ancho: texto a la izquierda y puerta a la derecha
+  const wideQ = matchMedia('(min-width: 901px)'), wide = { get matches() { return wideQ.matches || document.documentElement.classList.contains('is-libro'); } };
   $$('.door__hero, .door__step').forEach((sec) => { const c = document.createElement('div'); c.className = 'door__card'; c.append(...sec.childNodes); sec.append(c); });
   const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const titles = $$('.door__step h2').map((h) => { splitLines(h); if (!reduceMo) h.classList.add('is-pre'); return h; });
@@ -103,10 +104,11 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     document.body.append(probe);
     const fitInset = () => {
       if (!wide.matches && !spanQ.matches) { stage.setInset(0); holder.style.setProperty('--free', '0px'); return; }
-      const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
+      const libro = !wideQ.matches && !spanQ.matches;                       // plegable abierto: la puerta va en la mitad derecha
+      const v = viewerEl.getBoundingClientRect(), right = spanQ.matches ? probe.getBoundingClientRect().width - 28 : libro ? v.left + v.width / 2 - 28 : Math.max(0, ...$$('.door__card').map((c) => c.getBoundingClientRect().right));
       const px = Math.max(0, right - v.left + 28); stage.setInset(Math.min(spanQ.matches ? 0.6 : 0.5, px / Math.max(1, v.width))); holder.style.setProperty('--free', `${Math.round(px)}px`);
     };
-    spanQ.addEventListener('change', fitInset);
+    spanQ.addEventListener('change', fitInset); addEventListener('st:libro', () => requestAnimationFrame(fitInset));
     fitInset(); new ResizeObserver(fitInset).observe(viewerEl);
     // lectura en vivo: apertura de la hoja en grados (o recorrido, en la corrediza)
     const ro = document.createElement('p'); ro.className = 'readout'; ro.setAttribute('aria-hidden', 'true');
@@ -281,7 +283,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       const [ln, t1, t2] = cota.querySelectorAll('line'), bands = cota.querySelectorAll('polygon'), tag = cota.querySelector('.cota__tag'), txt = tag.querySelector('text'), rect = tag.querySelector('rect');
       const P = (v) => { const q = v.clone().project(stage.camera); return [(q.x + 1) / 2 * holderEl.clientWidth, (1 - q.y) / 2 * holderEl.clientHeight]; };
       stage.afterFrame.add(() => {                                               // con la cámara de este cuadro, ya movida
-        const on = !door.classList.contains('is-thermal') && (performance.now() < cotaUntil || (rig.current && (viewer.configs || []).some((c) => c.view === rig.current)));
+        const on = !door.classList.contains('is-thermal') && (performance.now() < cotaUntil || (rig.current && (viewer.configs || []).some((c) => c.cota !== false && c.view === rig.current)));
         cota.classList.toggle('is-on', !!on); if (!on) return;
         const m = viewer.measure(); if (!m) return;
         const [ax, ay] = P(m.a), [bx, by] = P(m.b), x = Math.min(ax, bx) - 28;
@@ -302,7 +304,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
         cfg.set(id); state.cfg[cfg.key] = cfg.items.find((x) => x.id === id); keep(cfg.key, id);
         $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === id));
         refreshPieces();
-        if (user) { live.textContent = state.cfg[cfg.key].detail; cotaUntil = performance.now() + 4500; if (cfg.view && !state.inside) setTimeout(() => rig.go(cfg.view, 1.1), 60); }   // reencuadra a la nueva medida
+        if (user) { live.textContent = state.cfg[cfg.key].detail; if (cfg.cota !== false) cotaUntil = performance.now() + 4500; if (cfg.view && !state.inside) setTimeout(() => rig.go(cfg.view, 1.1), 60); }   // reencuadra a la nueva medida
       };
       $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => { b.onclick = () => { if (state.cfg[cfg.key] && state.cfg[cfg.key].id === b.dataset.v) return; cfg.fade ? crossfade(() => pick(b.dataset.v, true)) : pick(b.dataset.v, true); }; });
       const q0 = new URLSearchParams(location.search).get(cfg.key);
@@ -311,7 +313,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
 
     // ---------- Fase 10E · «Ver el frío»: vista térmica ilustrativa ----------
     // Un botón junto a «Ver por dentro» y un paso propio en el recorrido (data-termica): al llegar a él la escena se
-    // vuelve térmica sola y al salir regresa; si la persona la encendió con el botón, se queda hasta que la apague.
+    // vuelve térmica sola y al salir regresa. Si la persona la encendió con el botón, se quita al bajar a otro paso (14C).
     let thermal = null, coldAuto = false, coldBtn = null;
     let xray = null, xrayBtn = null;
     // barrido de escáner al cambiar de vista: la imagen anterior se retira de arriba abajo
@@ -356,7 +358,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       xrayBtn.insertAdjacentHTML('afterend', '<button class="chip chip--ar" id="arBtn" data-cur="Cámara"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V4h3M14 4h3v3M17 13v3h-3M6 16H3v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 6l4 2.2v4.6L10 15l-4-2.2V8.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>En tu espacio</button>');
       $('#arBtn').dataset.warm = familia;
       $('#arBtn').onclick = () => Promise.all([import('./ar.js'), import('./vano.js')]).then(([{ openAR }, { vano }]) => {
-        const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto, acabado: state.finish });
+        const v = vano.get(); openAR(familia, familia === 'cds' ? (v.cds || {}) : { ancho: v.ancho, alto: v.alto, acabado: state.finish, ...(viewer.hojas ? { hojas: viewer.hojas } : {}) });
       }).catch(() => toast('No se pudo abrir la vista con cámara'));
       coldBtn.onclick = () => {
         const on = !thermal.on; setCold(on, false); hint.classList.add('is-off');
@@ -403,11 +405,15 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
     // haya desplazado manda la vista general, y al empezar a bajar se vuelve a evaluar.
     const evaluate = () => {
       const now = scrollY < 8 ? blocks[0] : blocks.filter((b) => touching.has(b)).pop();   // si la línea toca dos bloques vecinos, el de más abajo
-      if (!now || now === currentBlock) return; currentBlock = now;
+      if (!now || now === currentBlock) return;
+      // Fase 14C · al bajar a otro paso se quitan los efectos (rayos X, vista térmica y «Ver por dentro») para que cada
+      // paso se vea como es; la vista térmica se queda solo en su propio paso
+      const moved = currentBlock !== null; currentBlock = now;
+      if (moved) { if (xray && xray.on) setXray(false); if (state.inside) insideBtn.click(); }
       blocks.forEach((b) => b.classList.toggle('is-current', b === now));
       const t = now.querySelector('h2'); if (t && !reduceMo) playLines(t);
       if (now !== blocks[0]) hint.classList.add('is-off');        // el aviso de arrastre solo acompaña a la vista inicial
-      if (thermal) { if (now.dataset.termica) { if (!thermal.on) setCold(true, true); } else if (coldAuto) setCold(false); }
+      if (thermal) { if (now.dataset.termica) { if (!thermal.on) setCold(true, true); } else if (thermal.on && (coldAuto || moved)) setCold(false); }
       if (viewer.explode) { clearTimeout(exTimer); if (now.dataset.despiece) exTimer = setTimeout(() => setExplode(true), 700); else setExplode(false); }
       door.dispatchEvent(new CustomEvent('door:step', { detail: { block: now } }));      // para las extensiones de cada página
       if (state.inside) return;                                   // en modo interior manda el usuario
@@ -429,7 +435,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
       io = new IntersectionObserver(onBlock, { rootMargin: `-${line - 1}px 0px -${H - line - 1}px 0px` });
       blocks.forEach((el) => io.observe(el));
     };
-    watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
+    watch(); addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(watch, 150); }); addEventListener('st:libro', () => { clearTimeout(timer); timer = setTimeout(watch, 150); });
     // desde el catálogo: ?pieza=<id> entra a «Ver por dentro» con esa pieza señalada
     const want = new URLSearchParams(location.search).get('pieza');
     const node = want && hs.nodes.find((n) => n.it.piece && n.it.piece.id === want);

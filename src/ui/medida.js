@@ -23,7 +23,7 @@ export function defaults(fam, item = {}) {
     const m = Object.keys(CDS_MOD).find((k) => new RegExp(CDS_MOD[k], 'i').test(item.nombre || '')) || 'advanced';
     return { puertas: 3, ancho: 26, alto: 73, modelo: m, acabado: /-acabadocromo/.test(item.id || '') ? 'cromo' : 'negro' };
   }
-  return { ancho: '', alto: '', sinMedida: false, uso: 'refrigeracion', mano: 'derecha', hojas: 2 };
+  return { ancho: '', alto: '', sinMedida: false, uso: 'refrigeracion', mano: 'derecha', hojas: 1 };   // vaivén: de una hoja, como se presenta (14C)
 }
 
 const cmOf = (inch) => Math.round(inch * IN);

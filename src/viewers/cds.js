@@ -315,7 +315,7 @@ export function createCDS(stage) {
     // Fase 14C · acabado: negro, o cromo bajo pedido (botones junto al modelo; quedan en la URL como ?acabado=)
     get finish() { return finish; }, setFinish,
     configs: [{
-      key: 'acabado', label: 'Acabado', fade: true, current: () => finish, set: setFinish,
+      key: 'acabado', label: 'Acabado', fade: true, cota: false, current: () => finish, set: setFinish,
       items: [
         { id: 'negro', label: 'Negro', detail: 'Acabado negro' },
         { id: 'cromo', label: 'Cromo<small class="chip__tag">Bajo pedido</small>', detail: 'Acabado cromo, bajo pedido' },

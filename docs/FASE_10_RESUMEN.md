@@ -752,3 +752,20 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   comparador de modelos agrega las medidas de cada uno.
 - Los botones de opción sobre el fondo azul marino (bloque de cotizar de cada puerta) quedaban blanco sobre blanco:
   ahora son contorno blanco y, el elegido, relleno blanco.
+- **Kwik Torque en cromo:** con el acabado cromo de la CDS, la bisagra de abajo (Kwik Torque) y la tapa del eje también
+  van en cromo (3D y cámara). Kwik Level (arriba) se queda como estaba.
+- **Efectos al bajar:** rayos X, «Ver el frío» y «Ver por dentro» se quitan solos al pasar al siguiente paso de la
+  página de cada puerta; la vista térmica solo se queda en su propio paso.
+- **Inicio:** con la puerta cerrada ya no se ven las pantallas del pasillo por los cristales de la vaivén (el pasillo
+  aparece al abrirse). «Baja para entrar» no se pone si los botones llegan hasta abajo, y en pantallas horizontales bajas
+  (iPhone Duo abierto de lado, con la barra de Safari) el título se mide con el alto para que todo quepa.
+- **Vaivén de una hoja:** la página de la vaivén la presenta de una hoja, con «Hojas: Una / Dos». Con una hoja se queda la
+  izquierda y el poste derecho se recorre hasta su canto libre (1.175 m); el muro, los encuadres, la bisagra señalada, la
+  vista térmica y «Abre hacia los dos lados» (la hoja va al frente y luego atrás) se acomodan. «Verla en tu espacio» la
+  muestra igual, de una hoja (70 a 160 cm de ancho), y la elección va a «A tu medida» y a Cotizar (de una hoja por
+  omisión). El pasillo y el escáner del Inicio siguen con la de dos hojas.
+- **Plegables (iPhone Duo y otros):** al abrir o cerrar el teléfono, las dos hojas de la vaivén llegan, se juntan en la
+  bisagra del teléfono («Se abre como tu teléfono»), sale vaho y siguen de largo; también la primera vez que se abre el
+  sitio con el teléfono abierto. Con el teléfono abierto, cada página de puerta se lee como libro: el texto en la mitad
+  izquierda y la puerta en la derecha, con el pliegue en medio. Solo en teléfonos con pliegue (pantalla de teléfono con
+  el lado corto de 580 px o más y el largo de 1000 o menos).

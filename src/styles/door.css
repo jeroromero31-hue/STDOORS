@@ -169,3 +169,25 @@
 @media (max-width: 900px), (hover: none) {
   .subnav { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--c-wall) 98%, transparent); }
 }
+
+/* ---------- Fase 14C · plegable abierto (iPhone Duo y otros): la página de cada puerta se lee como libro ----------
+   El texto va en la mitad izquierda y la puerta en la derecha; el pliegue del teléfono cae entre las dos (una sombra
+   suave lo marca). Es el diseño de la computadora con las tarjetas a media pantalla (html.is-libro, src/ui/site.js). */
+html.is-libro .door { grid-template-columns: minmax(0, 1fr); }
+html.is-libro .door__viewer { grid-area: 1 / 1; height: calc(100svh - var(--top)); min-height: 0; z-index: auto; border-bottom: 0; }
+html.is-libro .door__viewer::after { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 36px; margin-left: -18px; pointer-events: none; z-index: 2;
+  background: linear-gradient(90deg, rgba(5, 47, 73, 0), rgba(5, 47, 73, .07) 50%, rgba(5, 47, 73, 0)); }
+html.is-libro .door.is-inside .door__viewer::after { background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .22) 50%, rgba(0, 0, 0, 0)); }
+html.is-libro .door__col { grid-area: 1 / 1; position: relative; z-index: 3; width: 50%; padding: 0 var(--s-4) 0 var(--pad-x); pointer-events: none; }
+html.is-libro .door__card { pointer-events: auto; display: grid; gap: var(--s-3); padding: 20px; border-radius: 20px; background: rgba(251, 252, 253, .96);
+  box-shadow: 0 20px 50px rgba(5, 47, 73, .12), inset 0 0 0 1px rgba(255, 255, 255, .7); }
+html.is-libro .door.is-inside .door__card { background: rgba(5, 47, 73, .9); box-shadow: 0 20px 50px rgba(0, 0, 0, .3); }
+html.is-libro .door__hero { min-height: calc(100svh - var(--top)); justify-content: flex-end; padding-block: var(--s-6); }
+html.is-libro .door__hero h1 { font-size: clamp(2.2rem, 1rem + 4.2vw, 3.6rem); line-height: .94; letter-spacing: -0.04em; }
+html.is-libro .door__step { min-height: 84svh; justify-content: center; padding-top: 0; }
+html.is-libro .door__step h2 { font-size: clamp(1.5rem, 1rem + 1.6vw, 2.1rem); line-height: 1.02; letter-spacing: -0.02em; }
+html.is-libro .door__step .door__card { padding-left: 20px; }
+html.is-libro .door__step .door__card::before { top: 20px; bottom: 20px; }
+html.is-libro .hotcard { left: auto; right: var(--s-4); max-width: min(300px, calc(50% - 24px)); }
+html.is-libro .viewer__hint { left: 75%; max-width: calc(50% - 24px); }
+html.is-libro .readout { right: var(--s-4); bottom: var(--s-4); }

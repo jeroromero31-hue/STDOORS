@@ -64,6 +64,9 @@ export function mountUmbral(section) {
       section.style.removeProperty('--fb');
       section.style.setProperty('--dw', `${Math.round(Math.max(240, Math.min(W - right - Math.max(48, W * 0.08), (H * 0.92 - 69 - 18) * AR)))}px`);
     }
+    // «Baja para entrar» va abajo a la izquierda: si los botones llegan hasta ahí (pantallas anchas y bajas), no se pone
+    const ctaB = Math.max(...[...copy.querySelectorAll('.hx__cta > *')].map((e) => e.getBoundingClientRect().bottom));
+    if (cue) section.classList.toggle('hx--nocue', ctaB + 14 > cue.getBoundingClientRect().top);
     copy.style.transform = saved;
     const x0 = door.offsetLeft, y0 = door.offsetTop, dw = door.offsetWidth, dh = door.offsetHeight, x1 = x0 + dw, y1 = y0 + dh;
     place(walls.t, 0, 0, W, y0 + 1, W, H); place(walls.l, 0, y0, x0 + 1, dh, W, H); place(walls.r, x1 - 1, y0, W - x1 + 1, dh, W, H);
@@ -166,6 +169,8 @@ export function mountUmbral(section) {
     const want = Math.min(1, open * 1.6), prev = fogLv;
     fogLv += (want - fogLv) * (1 - Math.exp(-dt * (want > fogLv ? 2.6 : 0.9)));
     if (Math.abs(want - fogLv) > 0.002) moving = true; else fogLv = want;
+    // Fase 14C · el pasillo solo se ve con la puerta abierta: cerrada, por los cristales no se asoman sus pantallas
+    setO(inn, P > 0.995 ? 1 : clamp01((open - 0.01) * 5.5));
     const foggy = fogLv > 0.03;
     if (foggy !== section.__fog) { section.__fog = foggy; section.classList.toggle('is-foggy', foggy); }
     if (Math.abs(prev - fogLv) > 1e-4 || dirty) {
