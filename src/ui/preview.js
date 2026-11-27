@@ -19,6 +19,7 @@ function defs(id) {
     <linearGradient id="${id}k" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#36393d"/><stop offset=".5" stop-color="#1d1e20"/><stop offset="1" stop-color="#252729"/></linearGradient>
     <linearGradient id="${id}al" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ea"/><stop offset=".5" stop-color="#a9b0b5"/><stop offset="1" stop-color="#d4d9dc"/></linearGradient>
     <pattern id="${id}d" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#c3c8cb"/><path d="M1.2 5.6l2.4-2.4M3.6 5.6L6 3.2" stroke="#8d9498" stroke-width="1.1" stroke-linecap="round"/></pattern>
+    <linearGradient id="${id}cr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f4f6f7"/><stop offset=".22" stop-color="#b9c0c5"/><stop offset=".5" stop-color="#eef1f3"/><stop offset=".78" stop-color="#9ea6ac"/><stop offset="1" stop-color="#dfe3e6"/></linearGradient>
     <linearGradient id="${id}gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eaf6fb"/><stop offset="1" stop-color="#cfe6ef"/></linearGradient>
   </defs>`;
 }
@@ -35,7 +36,7 @@ export function doorArt(fam, c = {}) {
   const cds = fam === 'cds';
   const known = cds || (+c.ancho > 0 && +c.alto > 0 && !c.sinMedida);
   const [tw, th] = MEDIDA_TIPICA[fam] || [100, 210];
-  const W = cds ? (c.ancho || 30) * IN : (known ? +c.ancho : tw), H = cds ? (c.alto || 79) * IN : (known ? +c.alto : th);
+  const W = cds ? (c.ancho || 26) * IN : (known ? +c.ancho : tw), H = cds ? (c.alto || 73) * IN : (known ? +c.alto : th);
   const n = cds ? (c.puertas || 3) : 1, FR = cds ? 6 : 8;           // marco (cm)
   const setW = cds ? n * W + 2 * FR : W + 2 * FR, rail = fam === 'corrediza' ? W + 10 : 0;
   const left = c.mano === 'izquierda';
@@ -53,14 +54,14 @@ export function doorArt(fam, c = {}) {
   s.push(`<g class="dp-person"><circle cx="${x0 + X(22)}" cy="${G - X(160)}" r="${X(11)}"/><path d="M${x0 + X(4)} ${G} V${G - X(118)} q0 ${-X(30)} ${X(18)} ${-X(30)} h${X(8)} q${X(18)} 0 ${X(18)} ${X(30)} V${G}Z"/></g>`);
   s.push(`<text class="dp-s" x="${x0 + X(22)}" y="${G - X(178)}" text-anchor="middle">1.70 m</text>`);
   if (cds) {
-    // juego CDS: marco negro, puertas de vidrio con parrillas y productos
-    const fx = dx, fw = X(setW), ft = top - X(FR);
+    // juego CDS: marco negro (o cromo, bajo pedido), puertas de vidrio con parrillas y productos
+    const fx = dx, fw = X(setW), ft = top - X(FR), cr = c.acabado === 'cromo', mk = cr ? 'cr' : 'k';
     s.push(`<rect class="dp-shadow" x="${fx + 3}" y="${ft + 4}" width="${fw}" height="${G - ft - 4}"/>`);
-    s.push(`<rect x="${fx}" y="${ft}" width="${fw}" height="${G - ft}" fill="url(#${id}k)"/>`);
+    s.push(`<rect x="${fx}" y="${ft}" width="${fw}" height="${G - ft}" fill="url(#${id}${mk})"/>`);
     const COLORS = ['#c8423b', '#e2a33a', '#3f8f4e', '#2f6fa8', '#d9d2c4', '#7a4a2e'];
     for (let i = 0; i < n; i++) {
       const x = dx + X(FR + i * W), w = X(W), gx = x + X(3.5), gw = w - X(7), gy = top + X(3.5), gh = X(H) - X(7);
-      s.push(`<rect x="${x}" y="${top}" width="${w}" height="${X(H)}" fill="url(#${id}k)" stroke="#0d0e0f" stroke-width=".6"/>`);
+      s.push(`<rect x="${x}" y="${top}" width="${w}" height="${X(H)}" fill="url(#${id}${mk})" stroke="${cr ? '#8d959b' : '#0d0e0f'}" stroke-width=".6"/>`);
       s.push(`<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" fill="url(#${id}gl)"/>`);
       for (let r = 1; r <= 5; r++) {
         const y = gy + gh * r / 6;
@@ -69,9 +70,9 @@ export function doorArt(fam, c = {}) {
         for (let p = 0; p < 7; p++) s.push(`<rect x="${(gx + 2 + p * (gw - 4) / 7).toFixed(1)}" y="${(y - ph).toFixed(1)}" width="${(pw * 0.8).toFixed(1)}" height="${ph.toFixed(1)}" rx="1" fill="${COLORS[(r + i + Math.floor(p / 3)) % COLORS.length]}" opacity=".85"/>`);
       }
       s.push(`<rect x="${gx}" y="${gy}" width="${gw * 0.35}" height="${gh}" fill="#fff" opacity=".18"/>`);
-      s.push(`<rect x="${x + w - X(5)}" y="${top + X(H) * 0.32}" width="${X(2.4)}" height="${X(H) * 0.36}" rx="1" fill="#0a0b0c"/>`);
+      s.push(`<rect x="${x + w - X(5)}" y="${top + X(H) * 0.32}" width="${X(2.4)}" height="${X(H) * 0.36}" rx="1" fill="${cr ? '#c9cfd3' : '#0a0b0c'}"${cr ? ' stroke="#7f878d" stroke-width=".5"' : ''}/>`);
     }
-    s.push(`<rect x="${fx}" y="${ft}" width="${fw}" height="${X(FR) * 0.9}" fill="#111214"/>`);
+    s.push(`<rect x="${fx}" y="${ft}" width="${fw}" height="${X(FR) * 0.9}" fill="${cr ? '#aeb5ba' : '#111214'}"/>`);
   } else if (fam === 'corrediza') {
     const ext = X(6), rx = left ? dx - X(rail) : dx;
     s.push(`<rect class="dp-hole" x="${dx}" y="${top}" width="${X(W)}" height="${X(H)}"/>`);
@@ -119,15 +120,15 @@ export function doorArt(fam, c = {}) {
   }
   // cotas: ancho abajo, alto a la derecha
   const cx0 = cds ? dx + X(FR) : dx + (fam === 'corrediza' ? 0 : X(FR)), cx1 = cx0 + X(cds ? W : W), cy = G + 16;
-  const wl = cds ? `${c.ancho || 30}"` : known ? `${c.ancho} cm` : 'ancho ?';
-  const hl = cds ? `${c.alto || 79}"` : known ? `${c.alto} cm` : 'alto ?';
+  const wl = cds ? `${c.ancho || 26}"` : known ? `${c.ancho} cm` : 'ancho ?';
+  const hl = cds ? `${c.alto || 73}"` : known ? `${c.alto} cm` : 'alto ?';
   s.push(`<g class="dp-c"><line x1="${cx0}" x2="${cx1}" y1="${cy}" y2="${cy}"/><line x1="${cx0}" x2="${cx0}" y1="${cy - 5}" y2="${cy + 5}"/><line x1="${cx1}" x2="${cx1}" y1="${cy - 5}" y2="${cy + 5}"/></g>`);
   s.push(`<text class="dp-t${known ? '' : ' is-q'}" x="${(cx0 + cx1) / 2}" y="${cy + 15}" text-anchor="middle">${wl}${cds && n > 1 ? ' c/u' : ''}</text>`);
   const vx = Math.min(VW - 22, (fam === 'corrediza' && !left ? dx + X(W + rail) + 4 : dx + X(setW)) + 12);
   s.push(`<g class="dp-c"><line x1="${vx}" x2="${vx}" y1="${top}" y2="${G}"/><line x1="${vx - 5}" x2="${vx + 5}" y1="${top}" y2="${top}"/><line x1="${vx - 5}" x2="${vx + 5}" y1="${G}" y2="${G}"/></g>`);
   s.push(`<text class="dp-t${known ? '' : ' is-q'}" transform="translate(${vx + 12} ${(top + G) / 2}) rotate(-90)" text-anchor="middle">${hl}</text>`);
   const nom = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' }[fam];
-  const label = cds ? `${nom} ${CDS_MOD[c.modelo] || ''}: ${n} puertas de ${c.ancho || 30} por ${c.alto || 79} pulgadas, junto a una persona de 1.70 m`
+  const label = cds ? `${nom} ${CDS_MOD[c.modelo] || ''}: ${n} puertas de ${c.ancho || 26} por ${c.alto || 73} pulgadas${c.acabado === 'cromo' ? ', acabado cromo' : ''}, junto a una persona de 1.70 m`
     : `${nom}${c.acabado ? `, ${ACABADO_NOMBRE[c.acabado].toLowerCase()}` : ''}${known ? `, de ${c.ancho} por ${c.alto} centímetros` : ', medida por definir'}, junto a una persona de 1.70 m`;
   return `<svg class="dprev" viewBox="0 0 ${VW} ${VH}" role="img" aria-label="${label}">${s.join('')}</svg>`;
 }

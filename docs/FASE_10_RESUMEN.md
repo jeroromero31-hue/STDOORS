@@ -730,3 +730,25 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   la puerta tocada a 90°, pestañas, la siguiente asoma, termómetro en la barra, diez tamaños de pantalla, sin azul
   marino, movimiento reducido, sin JavaScript, axe). Se adaptaron `f10/home.py` y siguen bien `f10/hero_sizes.py`,
   `f10/axe_home.py`, `f11/flow11b.py`, `f7/flow.py` (sin saltos al cargar) y `f9/duo_pages.py`.
+
+## Fase 14C · AR en blanco y CDS en medidas estándar con cromo bajo pedido
+
+- **«Verla en tu espacio», abatible en blanco sanitario:** en el iPhone se veía manchada. El archivo para la cámara del
+  iPhone (USDZ, armado en el navegador) leía mal el relieve de las superficies (mapas de normales sin su escala), y el
+  blanco llevaba además ese relieve y una laca. Ahora el blanco es una pintura lisa en el iPhone y en Android, el marco
+  y la hoja son el mismo blanco, y los relieves que sí van (la lámina diamantada) se leen bien.
+- **CDS, medidas estándar (datos de ST):** no se hacen a la medida. Ancho **23", 26" o 30"** y alto **73"**
+  (58, 66 o 76 × 185 cm). La **Legacy Plus solo en 23" y 26"**. En «Arma tu juego» (página CDS) y en Cotizar se elige
+  el modelo, el ancho (el de 30" se apaga con la Plus y, si estaba elegido, pasa a 26"), el alto aparece fijo y se
+  elige el acabado. Las solicitudes guardadas con medidas de antes (67" o 79") se corrigen solas a 73".
+- **CDS en cromo, bajo pedido:** botón «Acabado: Negro / Cromo · Bajo pedido» junto al modelo, en el 3D (marco,
+  puertas y jaladeras cambian a cromo), en el dibujo a escala, en «Verla en tu espacio» (Android e iPhone) y en el
+  mensaje de la solicitud («acabado cromo (bajo pedido)»). El modelo y el acabado del 3D y de «Arma tu juego» son uno
+  solo: si cambias uno, cambia el otro; quedan en la dirección (`?modelo=` y `?acabado=`).
+- **Modelo 3D de la CDS:** ahora es un juego de tres puertas de **26" × 73"** (antes 30" × 79"), una medida que tienen
+  los tres modelos. Se volvieron a generar el escáner y la foto de la CDS, el pasillo del Inicio, el modelo para la
+  cámara y el video de la CDS del Inicio.
+- La ficha dice las medidas estándar, que la Plus solo va en 23" y 26" y el acabado (negro; cromo bajo pedido); el
+  comparador de modelos agrega las medidas de cada uno.
+- Los botones de opción sobre el fondo azul marino (bloque de cotizar de cada puerta) quedaban blanco sobre blanco:
+  ahora son contorno blanco y, el elegido, relleno blanco.

@@ -921,3 +921,26 @@ model-viewer.in-ar .arv__xr { display: grid; }
 .adw__call svg { width: 16px; height: 16px; margin-right: 6px; }
 .adw__x { position: absolute; right: var(--pad-x, 16px); top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; background: none; font-size: 22px; line-height: 1; color: var(--c-ink-soft); cursor: pointer; border-radius: 999px; }
 .adw__x:focus-visible { outline: 3px solid var(--c-tech); }
+
+/* Fase 14C · juego CDS: medidas estándar en pulgadas (con su equivalente en cm), alto fijo y acabado cromo bajo pedido */
+.chip:disabled { opacity: .38; cursor: not-allowed; border-style: dashed; }
+.chip:disabled:hover { border-color: var(--c-line); }
+.chip--in { display: inline-flex; flex-direction: column; justify-content: center; line-height: 1.15; padding-top: 4px; padding-bottom: 4px; }
+.chip--in small { font-size: .78em; font-weight: var(--w-regular, 400); opacity: .72; }
+.chip__tag { margin-left: 8px; padding: 2px 7px; border-radius: 999px; background: rgba(249, 162, 27, .18); color: #7a4a05; font-size: .76em; font-weight: var(--w-bold); white-space: nowrap; }
+.chip[aria-pressed=true] .chip__tag { background: rgba(255, 255, 255, .18); color: inherit; }
+.q-fin [data-v=negro] i { background: radial-gradient(circle at 35% 30%, #3b3e42, #1b1c1e 65%); }
+.q-fin [data-v=cromo] i { background: linear-gradient(135deg, #fbfcfd 0%, #aab2b8 34%, #f2f4f6 52%, #8f989f 74%, #e3e7ea 100%); }
+.q-fixed { margin: 0; min-height: var(--tap); display: flex; align-items: center; gap: 8px; }
+.q-fixed b { font-size: var(--t-md, 1.1rem); }
+.q-fixed span { color: var(--c-ink-soft, #5c7282); font-size: var(--t-sm); }
+.q-note { margin: 6px 0 0; color: var(--c-ink-soft, #5c7282); }
+.arv__sw--negro i { background: radial-gradient(circle at 35% 30%, #3b3e42, #1b1c1e 65%); }
+.arv__sw--cromo i { background: linear-gradient(135deg, #fbfcfd 0%, #aab2b8 34%, #f2f4f6 52%, #8f989f 74%, #e3e7ea 100%); }
+/* los botones de opción sobre fondo azul marino (Arma tu juego, en la página CDS): antes quedaban blanco sobre blanco */
+.surface-navy .chip { background: transparent; color: var(--c-on-navy); border-color: rgba(255, 255, 255, .42); }
+.surface-navy .chip:hover { border-color: #fff; }
+.surface-navy .chip[aria-pressed=true] { background: #fff; color: var(--c-navy); border-color: #fff; }
+.surface-navy .chip:disabled:hover { border-color: rgba(255, 255, 255, .42); }
+.surface-navy .chip__tag { background: rgba(249, 162, 27, .22); color: #ffd28a; }
+.surface-navy .chip[aria-pressed=true] .chip__tag { background: rgba(249, 162, 27, .2); color: #7a4a05; }

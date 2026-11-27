@@ -1,6 +1,8 @@
 // Secciones propias de la página CDS: comparador de modelos y galería de instalaciones reales.
 import { url } from './site.js';
 import photos from '../data/cds-instalaciones.json';
+import { vano } from './vano.js';
+import { defaults, cdsFix } from './medida.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -9,9 +11,9 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 // humedad (65 %, 100 % y 89 %). La temperatura de aplicación viene de la página de ST (strefrigeracion.com/reachin.php):
 // refrigeración −5 °C en Advanced y Plus, congelación −20 °C en LT.
 const MODELOS = [
-  { id: 'advanced', nombre: 'Advanced', uso: 'Refrigeración', temp: '−5 °C', vidrios: 2, resistencia: false, argon: true, proteccion: 65 },
-  { id: 'plus', nombre: 'Plus', uso: 'Refrigeración', temp: '−5 °C', vidrios: 2, resistencia: true, argon: false, proteccion: 100 },
-  { id: 'lt', nombre: 'LT', uso: 'Congelación', temp: '−20 °C', vidrios: 3, resistencia: true, argon: false, proteccion: 89 },
+  { id: 'advanced', nombre: 'Advanced', uso: 'Refrigeración', temp: '−5 °C', vidrios: 2, resistencia: false, argon: true, proteccion: 65, anchos: '23", 26" o 30"' },
+  { id: 'plus', nombre: 'Plus', uso: 'Refrigeración', temp: '−5 °C', vidrios: 2, resistencia: true, argon: false, proteccion: 100, anchos: '23" o 26"' },
+  { id: 'lt', nombre: 'LT', uso: 'Congelación', temp: '−20 °C', vidrios: 3, resistencia: true, argon: false, proteccion: 89, anchos: '23", 26" o 30"' },
 ];
 const reducedMo = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -81,6 +83,7 @@ function comparador(root) {
             <div><dt>Resistencia</dt><dd data-k="res"></dd></div>
             <div><dt>Gas argón</dt><dd data-k="gas"></dd></div>
             <div class="cmp__meter"><dt>Protección contra la humedad</dt><dd><span class="cmp__pct" data-k="pct"></span><span class="cmp__bar"><i></i></span></dd></div>
+            <div><dt>Medidas</dt><dd data-k="med"></dd></div>
             <div><dt>Garantía</dt><dd>5 años</dd></div>
           </dl>
           <button class="btn cmp__go" data-cur="Ver en 3D">Ver en 3D</button>
@@ -95,7 +98,7 @@ function comparador(root) {
     root.querySelectorAll('.cmp__tab').forEach((t) => { const on = t.dataset.m === id; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; });
     panel.setAttribute('aria-labelledby', `tab-${id}`);
     const put = (k, v) => { panel.querySelector(`[data-k="${k}"]`).textContent = v; };
-    put('app', `${m.uso}, ${m.temp}`); put('vid', m.vidrios === 3 ? 'Tres' : 'Dos'); put('res', m.resistencia ? 'Sí' : 'No'); put('gas', m.argon ? 'Sí' : 'No');
+    put('app', `${m.uso}, ${m.temp}`); put('vid', m.vidrios === 3 ? 'Tres' : 'Dos'); put('res', m.resistencia ? 'Sí' : 'No'); put('gas', m.argon ? 'Sí' : 'No'); put('med', `${m.anchos} × 73"`);
     // la barra y la cifra suben juntas hasta el porcentaje del modelo
     const bar = panel.querySelector('.cmp__bar i'), pct = panel.querySelector('[data-k="pct"]');
     bar.style.transform = `scaleX(${m.proteccion / 100})`;
@@ -158,6 +161,25 @@ export function mountCdsSections() {
 
 // ---------- Fase 10F · extensiones del visor CDS: prueba de humedad y luces KeyLED ----------
 export function mountCdsExtras({ viewer, live, door }) {
+  // Fase 14C · el modelo y el acabado del 3D son los mismos que en «Arma tu juego» y en Cotizar: si cambias uno, cambia
+  // el otro. Al llegar sin ?modelo= / ?acabado= en la dirección, el 3D toma lo que ya habías elegido.
+  if (viewer.setFinish) {
+    const chipM = (id) => $(`#swatches .chip[data-o="${id}"]`), chipA = (id) => $(`.door__ctl .chip[data-k="acabado"][data-v="${id}"]`);
+    const now3d = () => { const m = $('#swatches .chip[aria-pressed=true]'); return { ...(m ? { modelo: m.dataset.o } : {}), acabado: viewer.finish }; };
+    const push = () => vano.set({ cds: cdsFix({ ...defaults('cds'), ...(vano.get().cds || {}), ...now3d() }) }, 'puerta');
+    const q = new URLSearchParams(location.search), saved = vano.get().cds || {};
+    if (!q.get('modelo') && saved.modelo && saved.modelo !== now3d().modelo) chipM(saved.modelo)?.click();
+    if (!q.get('acabado') && saved.acabado && saved.acabado !== viewer.finish) chipA(saved.acabado)?.click();
+    door.addEventListener('door:option', push);
+    $$('.door__ctl .chip[data-k="acabado"]').forEach((b) => b.addEventListener('click', () => requestAnimationFrame(push)));
+    addEventListener('st:vano', (e) => {
+      if (e.detail && e.detail.__from === 'puerta') return;
+      const c = vano.get().cds; if (!c) return;
+      if (c.modelo && c.modelo !== now3d().modelo) chipM(c.modelo)?.click();
+      if (c.acabado && c.acabado !== viewer.finish) chipA(c.acabado)?.click();
+    });
+    push();
+  }
   // prueba de humedad: el vidrio de afuera se empaña cuando la humedad del lugar pasa la protección del modelo
   const box = $('[data-humedad-ui]');
   if (box && viewer.fog) {

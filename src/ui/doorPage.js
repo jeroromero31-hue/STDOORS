@@ -304,7 +304,7 @@ export function mountDoorPage({ familia, nombre, createViewer, poster, section =
         refreshPieces();
         if (user) { live.textContent = state.cfg[cfg.key].detail; cotaUntil = performance.now() + 4500; if (cfg.view && !state.inside) setTimeout(() => rig.go(cfg.view, 1.1), 60); }   // reencuadra a la nueva medida
       };
-      $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => { b.onclick = () => pick(b.dataset.v, true); });
+      $$(`.chip[data-k="${cfg.key}"]`).forEach((b) => { b.onclick = () => { if (state.cfg[cfg.key] && state.cfg[cfg.key].id === b.dataset.v) return; cfg.fade ? crossfade(() => pick(b.dataset.v, true)) : pick(b.dataset.v, true); }; });
       const q0 = new URLSearchParams(location.search).get(cfg.key);
       pick(cfg.items.some((x) => x.id === q0) ? q0 : cfg.current(), false);
     });

@@ -2,7 +2,7 @@
 // mide tu vano (en cm o en metros), ves la puerta a escala junto a una persona de 1.70 m, y desde ahí la agregas a tu
 // solicitud con esa medida, la ves en tu espacio con la cámara o mandas la medida por WhatsApp. La medida se recuerda
 // en todo el sitio (y en Cotizar ya aparece escrita).
-import { plano, defaults, toCm, describe, FAM_NAME, CDS_W, CDS_H, CDS_MOD } from './medida.js';
+import { defaults, toCm, describe, FAM_NAME, cdsFix, cdsFields, cdsSync } from './medida.js';
 import { doorArt, ACABADOS_DE, ACABADO_NOMBRE } from './preview.js';
 import { solicitud, toast, url, createSheet } from './site.js';
 import { waButton, waUpdate } from './whatsapp.js';
@@ -41,7 +41,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
   let fam = fixed || (fams.includes(saved.fam) ? saved.fam : fams[0]);
   const cfgOf = () => {
     const v = vano.get();
-    if (fam === 'cds') return { ...defaults('cds'), ...(v.cds || {}) };
+    if (fam === 'cds') return cdsFix({ ...defaults('cds'), ...(v.cds || {}) });
     const fins = ACABADOS_DE[fam] || [];
     return { ...defaults(fam), ancho: v.ancho || '', alto: v.alto || '', ...(fam === 'vaiven' ? { hojas: v.hojas || 2 } : {}), ...(fins.length ? { acabado: fins.includes(v.acabado) ? v.acabado : fins[0] } : {}) };
   };
@@ -69,7 +69,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     // Fase 11B: la puerta dibujada con su acabado, a escala, cambia mientras escribes (antes: el plano de líneas)
     planEl.innerHTML = doorArt(fam, c);
     const known = fam === 'cds' || (c.ancho && c.alto);
-    sum.textContent = fam === 'cds' ? `Juego de ${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}"`
+    sum.textContent = fam === 'cds' ? `Juego de ${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}"${c.acabado === 'cromo' ? ', cromo bajo pedido' : ''}`
       : known ? `Vano de ${c.ancho} × ${c.alto} cm · ${(c.ancho * c.alto / 10000).toFixed(2)} m²` : 'Escribe la medida para verla a escala.';
     host.classList.toggle('is-known', !!known);
     waUpdate($('[data-wa]'), { tipo: 'medida', fam, cfg: c });
@@ -78,11 +78,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     const c = cfgOf();
     const fins = ACABADOS_DE[fam] || [];
     const finRow = fins.length ? `<div class="q-f"><span class="q-f__l" id="va-${uid}">Acabado</span><div class="chips q-fin" role="group" aria-labelledby="va-${uid}">${fins.map((f) => `<button type="button" class="chip chip--sm" data-acabado="${f}" aria-pressed="${c.acabado === f}"><i aria-hidden="true"></i>${ACABADO_NOMBRE[f]}</button>`).join('')}</div></div>` : '';
-    fields.innerHTML = finRow + (fam === 'cds' ? `
-      <div class="q-f"><span class="q-f__l" id="vn-${uid}">Puertas en el juego</span>
-        <div class="q-qty" role="group" aria-labelledby="vn-${uid}"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out>${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
-      <div class="q-f"><span class="q-f__l" id="vw-${uid}">Ancho de cada puerta</span><div class="chips" role="group" aria-labelledby="vw-${uid}">${CDS_W.map((w) => `<button type="button" class="chip" data-k="ancho" data-v="${w}" aria-pressed="${c.ancho === w}">${w}"</button>`).join('')}</div></div>
-      <div class="q-f"><span class="q-f__l" id="vh-${uid}">Alto</span><div class="chips" role="group" aria-labelledby="vh-${uid}">${CDS_H.map((h) => `<button type="button" class="chip" data-k="alto" data-v="${h}" aria-pressed="${c.alto === h}">${h}"</button>`).join('')}</div></div>` : `
+    fields.innerHTML = finRow + (fam === 'cds' ? cdsFields(c, uid) : `
       <fieldset class="q-f q-dim">
         <legend class="q-f__l">¿Cuánto mide tu vano?</legend>
         <div class="q-dim__in">
@@ -101,13 +97,10 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
       f.oninput = () => { const v = toCm(f.value); if (v >= 30) draw({ ...cfgOf(), [f.dataset.k]: v }); };
       f.onchange = () => { const v = toCm(f.value); f.value = v; vano.set({ [f.dataset.k]: v }, uid); draw(); };
     });
-    fields.querySelectorAll('.chip[data-k]').forEach((b) => { b.onclick = () => {
-      fields.querySelectorAll(`.chip[data-k="${b.dataset.k}"]`).forEach((o) => o.setAttribute('aria-pressed', o === b));
-      vano.set({ cds: { ...cfgOf(), [b.dataset.k]: +b.dataset.v } }, uid); draw();
-    }; });
-    fields.querySelectorAll('[data-n]').forEach((b) => { b.onclick = () => {
-      const n = Math.max(1, Math.min(12, cfgOf().puertas + +b.dataset.n)); fields.querySelector('[data-out]').textContent = n; vano.set({ cds: { ...cfgOf(), puertas: n } }, uid); draw();
-    }; });
+    // CDS: cada cambio se guarda ya corregido (la Plus de 30" pasa a 26") y los botones se ponen al día
+    const putCds = (p) => { const c2 = cdsFix({ ...cfgOf(), ...p }); vano.set({ cds: c2 }, uid); cdsSync(fields, c2); draw(c2); };
+    fields.querySelectorAll('.chip[data-k]').forEach((b) => { b.onclick = () => { const v = b.dataset.v; putCds({ [b.dataset.k]: /^\d+$/.test(v) ? +v : v }); }; });
+    fields.querySelectorAll('[data-n]').forEach((b) => { b.onclick = () => putCds({ puertas: cfgOf().puertas + +b.dataset.n }); });
     const how = fields.querySelector('[data-how]'); if (how) how.onclick = openHowTo;
     draw(c);
   };
@@ -139,7 +132,7 @@ export function mountVano(host, { fam: fixed = null, fams = ['abatible', 'corred
     if (fam !== 'cds') {
       fields.querySelectorAll('input[data-k]').forEach((i) => { const want = String(v[i.dataset.k] || ''); if (i !== document.activeElement && i.value !== want) i.value = want; });
       draw();
-    } else if (!host.contains(document.activeElement)) renderFields(); else draw();
+    } else { cdsSync(fields, cfgOf()); draw(); }                       // CDS: los botones se ponen al día sin rehacerse
   });
   renderFields();
   return { get fam() { return fam; }, cfg: cfgOf };

@@ -1,19 +1,57 @@
 // Fase 10H · Cotizar a la medida. Las puertas industriales se fabrican a la medida del vano: cada puerta de la
 // solicitud trae su medida (ancho × alto), su uso y hacia dónde abre, y se dibuja en un plano a escala, con una
-// persona de 1.70 m al lado para darse idea del tamaño. Las CDS se piden por juego: cuántas puertas lleva el juego
-// y su medida estándar (ancho 23", 26" o 30"; alto 67", 73" o 79", según su ficha).
+// persona de 1.70 m al lado para darse idea del tamaño. Las CDS no son a la medida: se piden por juego, en medidas
+// estándar (Fase 14C, datos de ST): ancho 23", 26" o 30" y alto 73"; la Legacy Plus solo en 23" y 26". Acabado negro,
+// o cromo bajo pedido.
 
 export const FAM_NAME = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' };
 export const famOf = (id) => (id.match(/^puerta-(abatible|corrediza|vaiven|cds)/) || [])[1] || null;
-export const CDS_W = [23, 26, 30], CDS_H = [67, 73, 79], CDS_MOD = { advanced: 'Advanced', plus: 'Plus', lt: 'LT' };
+export const CDS_W = [23, 26, 30], CDS_H = [73], CDS_MOD = { advanced: 'Advanced', plus: 'Plus', lt: 'LT' };
+export const CDS_ANCHOS = { advanced: [23, 26, 30], plus: [23, 26], lt: [23, 26, 30] };
+export const CDS_ACABADO = { negro: 'Negro', cromo: 'Cromo' }, CDS_PEDIDO = { cromo: true };
 const IN = 2.54;
+
+// una configuración CDS siempre válida: alto 73", un ancho que exista para ese modelo (la Plus de 30" pasa a 26")
+export function cdsFix(c = {}) {
+  const modelo = CDS_MOD[c.modelo] ? c.modelo : 'advanced', anchos = CDS_ANCHOS[modelo];
+  const w = +c.ancho, ancho = anchos.includes(w) ? w : anchos.filter((a) => a <= (w || 26)).pop() || anchos[0];
+  return { ...c, puertas: Math.max(1, Math.min(12, Math.round(+c.puertas) || 3)), ancho, alto: CDS_H[0], modelo, acabado: CDS_ACABADO[c.acabado] ? c.acabado : 'negro' };
+}
 
 export function defaults(fam, item = {}) {
   if (fam === 'cds') {
     const m = Object.keys(CDS_MOD).find((k) => new RegExp(CDS_MOD[k], 'i').test(item.nombre || '')) || 'advanced';
-    return { puertas: 3, ancho: 30, alto: 79, modelo: m };
+    return { puertas: 3, ancho: 26, alto: 73, modelo: m, acabado: /-acabadocromo/.test(item.id || '') ? 'cromo' : 'negro' };
   }
   return { ancho: '', alto: '', sinMedida: false, uso: 'refrigeracion', mano: 'derecha', hojas: 2 };
+}
+
+const cmOf = (inch) => Math.round(inch * IN);
+// Campos del juego CDS, los mismos en «A tu medida» y en Cotizar: puertas, modelo, ancho, alto (fijo) y acabado.
+// Los botones llevan data-k / data-v; quien los monta guarda el cambio y llama a cdsSync para dejarlos al día.
+export function cdsFields(c, uid, sm = false) {
+  const ch = sm ? 'chip chip--sm' : 'chip', anchos = CDS_ANCHOS[c.modelo];
+  const row = (k, label, opts, extra = '') => `<div class="q-f"><span class="q-f__l" id="c${k}-${uid}">${label}</span><div class="chips${k === 'acabado' ? ' q-fin' : ''}" role="group" aria-labelledby="c${k}-${uid}">${opts}</div>${extra}</div>`;
+  return `
+    <div class="q-f"><span class="q-f__l" id="cn-${uid}">Puertas en el juego</span>
+      <div class="q-qty" role="group" aria-labelledby="cn-${uid}"><button type="button" data-n="-1" aria-label="Una puerta menos">−</button><output data-out="puertas">${c.puertas}</output><button type="button" data-n="1" aria-label="Una puerta más">+</button></div></div>
+    ${row('modelo', 'Modelo', Object.entries(CDS_MOD).map(([v, t]) => `<button type="button" class="${ch}" data-k="modelo" data-v="${v}" aria-pressed="${c.modelo === v}">${t}</button>`).join(''))}
+    ${row('ancho', 'Ancho de cada puerta', CDS_W.map((w) => `<button type="button" class="${ch} chip--in" data-k="ancho" data-v="${w}" aria-pressed="${c.ancho === w}"${anchos.includes(w) ? '' : ' disabled'}>${w}"<small>${cmOf(w)} cm</small></button>`).join(''),
+      `<p class="q-note t-small" data-cds-note${c.modelo === 'plus' ? '' : ' hidden'}>La Plus se fabrica en 23" y 26".</p>`)}
+    <div class="q-f"><span class="q-f__l">Alto</span><p class="q-fixed"><b>73"</b> <span>${cmOf(73)} cm · el alto estándar</span></p></div>
+    ${row('acabado', 'Acabado', Object.entries(CDS_ACABADO).map(([v, t]) => `<button type="button" class="${ch}" data-k="acabado" data-v="${v}" aria-pressed="${c.acabado === v}"><i aria-hidden="true"></i>${t}${CDS_PEDIDO[v] ? '<small class="chip__tag">Bajo pedido</small>' : ''}</button>`).join(''),
+      `<p class="q-note t-small" data-cds-pedido${c.acabado === 'cromo' ? '' : ' hidden'}>El cromo se fabrica bajo pedido.</p>`)}`;
+}
+export function cdsSync(root, c) {
+  const anchos = CDS_ANCHOS[c.modelo];
+  root.querySelectorAll('.chip[data-k][data-v]').forEach((b) => {
+    const k = b.dataset.k; if (!(k in c)) return;
+    b.setAttribute('aria-pressed', String(String(c[k]) === b.dataset.v));
+    if (k === 'ancho') b.disabled = !anchos.includes(+b.dataset.v);
+  });
+  const out = root.querySelector('[data-out="puertas"]'); if (out) out.textContent = c.puertas;
+  const note = root.querySelector('[data-cds-note]'); if (note) note.hidden = c.modelo !== 'plus';
+  const ped = root.querySelector('[data-cds-pedido]'); if (ped) ped.hidden = c.acabado !== 'cromo';
 }
 
 // «1.2» o «1,20» se toma como metros; lo demás, en centímetros
@@ -28,7 +66,7 @@ const ACABADO = { hygienicWhite: 'blanco sanitario', stainless: 'inoxidable', bl
 // una línea de texto para el mensaje de la solicitud
 export function describe(fam, c) {
   if (!c) return '';
-  if (fam === 'cds') return `${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}" (${Math.round(c.ancho * IN)} × ${Math.round(c.alto * IN)} cm cada una), modelo ${CDS_MOD[c.modelo]}`;
+  if (fam === 'cds') { c = cdsFix(c); return `${c.puertas} ${c.puertas === 1 ? 'puerta' : 'puertas'} de ${c.ancho}" × ${c.alto}" (${cmOf(c.ancho)} × ${cmOf(c.alto)} cm cada una), modelo ${CDS_MOD[c.modelo]}, acabado ${CDS_ACABADO[c.acabado].toLowerCase()}${CDS_PEDIDO[c.acabado] ? ' (bajo pedido)' : ''}`; }
   const parts = [];
   if (c.acabado && ACABADO[c.acabado]) parts.push(`acabado ${ACABADO[c.acabado]}`);
   if (c.sinMedida || !c.ancho || !c.alto) parts.push(c.sinMedida ? 'medida del vano por tomar en visita' : 'medida del vano por confirmar');

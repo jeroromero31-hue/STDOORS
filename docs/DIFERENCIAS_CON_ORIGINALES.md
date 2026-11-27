@@ -392,3 +392,11 @@ Base: `CDS_LEGACY_MODELO_ACTUAL.html`. Es un visor que hice al inicio del proyec
   la vista cruza la puerta. El vaho es una ilustración.
 - **Pasillo del Inicio (14B):** las cuatro puertas de frente, en capas del mismo 3D; las temperaturas de las pantallas
   son de ejemplo (no son datos de catálogo). La CDS abre una puerta a la vez a 90°.
+
+## CDS · Fase 14C: medidas estándar y acabado cromo
+
+- `src/viewers/cds/legacy.js` (marcas `[sitio, Fase 14C]`): ancho de cada vano 26" (0.6604 m, antes 30") y alto 73"
+  (1.8542 m, antes 79"), con las medidas estándar que dio ST: 23", 26" o 30" × 73"; la Plus solo 23" y 26". Las
+  parrillas y los productos se acomodan solos al ancho (mismo código del original).
+- `src/viewers/cds.js`: acabado cromo (bajo pedido) sobre los mismos materiales del original (aluminio negro, sus
+  orillas y las jaladeras); en negro quedan exactamente como estaban.

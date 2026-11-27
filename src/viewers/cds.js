@@ -20,6 +20,8 @@ export function createCDS(stage) {
   setTextureAnisotropy(Math.min(8, stage.renderer.capabilities.getMaxAnisotropy()));
   const root = new THREE.Group(); root.name = 'CDS'; stage.scene.add(root);
   const M = createMaterials();
+  // Fase 14C · los materiales que cambian con el acabado llevan nombre: así los encuentra «Verla en tu espacio» en el GLB
+  [M.blackAlu, M.blackAluEdge, M.handle].forEach((m) => { m.name = 'cds-acabado'; });
 
   // marco, gabinete y KeyLED del original; su muro y su piso se sustituyen por los comunes del sitio
   const frame = buildFrame(M); root.add(frame.root);
@@ -48,6 +50,24 @@ export function createCDS(stage) {
   let model = 'advanced';
   const setModel = (id) => { if (!MODELS[id]) throw new Error(`Modelo CDS desconocido: ${id}`); model = id; doors.forEach((d) => { d.panes.middle.visible = MODELS[id].panes === 3; }); };
   setModel(model);
+
+  // ---------- Fase 14C · acabado del marco, las puertas y las jaladeras: negro (estándar) o cromo (bajo pedido) ----------
+  // Se cambian los mismos materiales en su lugar (las columnas llevan su propia copia del aluminio negro).
+  const CROMO = { color: 0xe2e6e9, metalness: 1, roughness: 0.09, clearcoat: 0, envMapIntensity: 1.35 };
+  const finMats = [M.blackAlu, M.blackAluEdge, M.handle];
+  frame.root.traverse((o) => { if (o.isMesh && /Mullion/.test(o.name) && !finMats.includes(o.material)) finMats.push(o.material); });
+  const finOrig = finMats.map((m) => ({ color: m.color.getHex(), metalness: m.metalness, roughness: m.roughness, roughnessMap: m.roughnessMap, clearcoat: m.clearcoat || 0, envMapIntensity: m.envMapIntensity }));
+  let finish = 'negro';
+  const setFinish = (id) => {
+    finish = id === 'cromo' ? 'cromo' : 'negro';
+    finMats.forEach((m, i) => {
+      const o = finOrig[i], c = finish === 'cromo' ? CROMO : null;
+      m.color.setHex(c ? c.color : o.color); m.metalness = c ? c.metalness : o.metalness; m.roughness = c ? c.roughness : o.roughness;
+      m.roughnessMap = c ? null : o.roughnessMap; if ('clearcoat' in m) m.clearcoat = c ? c.clearcoat : o.clearcoat;
+      m.envMapIntensity = c ? c.envMapIntensity : o.envMapIntensity; m.needsUpdate = true;
+    });
+    if (stage.invalidate) stage.invalidate(3);
+  };
 
   // ---------- Fase 10F · «Prueba de humedad»: vaho sobre el vidrio exterior de cada puerta ----------
   // Una capa delante del vidrio de afuera (el lado tibio y húmedo). Su mapa marca dónde se empaña primero: orillas,
@@ -287,6 +307,15 @@ export function createCDS(stage) {
       label: 'Modelo', current: () => model, set: setModel,
       items: Object.entries(MODELS).map(([id, m]) => ({ id, label: m.name.replace('Legacy ', ''), title: m.name, detail: `${m.use} · ${m.panes} vidrios${m.heated ? ' con resistencia' : ' sin resistencia'}${m.gas ? ' y argón' : ''}` })),
     },
+    // Fase 14C · acabado: negro, o cromo bajo pedido (botones junto al modelo; quedan en la URL como ?acabado=)
+    get finish() { return finish; }, setFinish,
+    configs: [{
+      key: 'acabado', label: 'Acabado', fade: true, current: () => finish, set: setFinish,
+      items: [
+        { id: 'negro', label: 'Negro', detail: 'Acabado negro' },
+        { id: 'cromo', label: 'Cromo<small class="chip__tag">Bajo pedido</small>', detail: 'Acabado cromo, bajo pedido' },
+      ],
+    }],
     limits: { minDistance: 0.35, maxDistance: 8.5, minAzimuthAngle: -1.25, maxAzimuthAngle: 1.25, minPolarAngle: Math.PI * 0.18 },
     views,
     // "ver por dentro": funciones del PDF señaladas sobre la puerta central

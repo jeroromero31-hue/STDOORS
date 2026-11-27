@@ -25,8 +25,8 @@ import { track } from './track.js';
 
 const NOMBRE = { abatible: 'Puerta abatible', corrediza: 'Puerta corrediza', vaiven: 'Puerta vaivén', cds: 'Juego CDS Legacy' };
 // acabados que se pueden ver en la cámara (los mismos de la página de cada puerta)
-export const ACABADOS = { abatible: ['hygienicWhite', 'stainless', 'blackMetal'], vaiven: ['blackMetal', 'stainless', 'hygienicWhite'] };
-const ACABADO_LABEL = { hygienicWhite: 'Blanco sanitario', stainless: 'Inoxidable', blackMetal: 'Negro' };
+export const ACABADOS = { abatible: ['hygienicWhite', 'stainless', 'blackMetal'], vaiven: ['blackMetal', 'stainless', 'hygienicWhite'], cds: ['negro', 'cromo'] };
+const ACABADO_LABEL = { hygienicWhite: 'Blanco sanitario', stainless: 'Inoxidable', blackMetal: 'Negro', negro: 'Negro', cromo: 'Cromo · bajo pedido' };
 // medidas que se pueden ver (cm); fuera de esto se ajusta a lo más cercano
 export const RANGO = { abatible: { w: [70, 180], h: [180, 300] }, corrediza: { w: [100, 400], h: [200, 450] }, vaiven: { w: [140, 320], h: [200, 350] } };
 const ICON = {
@@ -150,7 +150,7 @@ export async function openAR(fam, cfg0 = {}) {
   const prods = meta.productos || [];
   const fins = ACABADOS[fam] || [];
   let acabado = fins.includes(cfg0.acabado) ? cfg0.acabado : null;
-  if (!acabado && fins.length) { try { const { vano } = await import('./vano.js'); const a = vano.get().acabado; acabado = fins.includes(a) ? a : null; } catch { /* sin almacenamiento */ } }
+  if (!acabado && fins.length) { try { const { vano } = await import('./vano.js'); const a = fam === 'cds' ? (vano.get().cds || {}).acabado : vano.get().acabado; acabado = fins.includes(a) ? a : null; } catch { /* sin almacenamiento */ } }
   sheet.meta.textContent = 'Verla en tu espacio';
   sheet.body.innerHTML = `
     <div class="arv" data-fam="${fam}">
@@ -188,7 +188,7 @@ export async function openAR(fam, cfg0 = {}) {
   const $ = (s) => sheet.body.querySelector(s);
   const st = $('[data-stage]'), desc = $('[data-desc]'), note = $('[data-note]');
   const setDesc = () => {
-    if (fam === 'cds') desc.textContent = 'Tres puertas con autocierre, con parrillas y productos.';
+    if (fam === 'cds') desc.textContent = `Tres puertas de 26" × 73" con autocierre, parrillas y productos${acabado === 'cromo' ? '. Cromo, bajo pedido' : ''}.`;
     else desc.textContent = size.cm ? `${describe(fam, { ...cfg, ancho: size.cm.w, alto: size.cm.h })}` : 'Con la medida del modelo: muévela con las barras o escribe la de tu vano.';
   };
   setDesc();
@@ -355,8 +355,8 @@ export async function openAR(fam, cfg0 = {}) {
       b.onclick = async () => {
         if (b.dataset.fin === acabado) return;
         acabado = b.dataset.fin; sheet.body.querySelectorAll('[data-fin]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-        rebuild(); toast(`Acabado: ${ACABADO_LABEL[acabado]}`);
-        try { const { vano } = await import('./vano.js'); vano.set({ acabado }); } catch { /* sin almacenamiento */ }
+        rebuild(); setDesc(); toast(`Acabado: ${ACABADO_LABEL[acabado]}`);
+        try { const { vano } = await import('./vano.js'); vano.set(fam === 'cds' ? { cds: { ...(vano.get().cds || {}), acabado } } : { acabado }); } catch { /* sin almacenamiento */ }
       };
     });
 

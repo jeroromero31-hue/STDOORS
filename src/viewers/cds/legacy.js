@@ -192,9 +192,9 @@ function dh(i) {
 }
 var ul = .072,
  dl = .064,
- Pr = .762,
+ Pr = .6604,   // [sitio, Fase 14C] 26": la medida estándar que tienen los tres modelos (la Plus no se hace de 30"). Antes .762 (30")
  Ir = .11,
- fl = 2.0066,   // 79" (PDF: medidas estándar 30" × 79"). Antes 1.905 (75"), estimado
+ fl = 1.8542,   // [sitio, Fase 14C] 73": el único alto estándar (ST: 23", 26" o 30" × 73"). Antes 2.0066 (79")
  fh = .095,
  Ne = {
   JAMB: ul,
