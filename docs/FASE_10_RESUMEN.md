@@ -671,7 +671,8 @@ rehízo a su tamaño real (`src/viewers/abatible.js`, grupo `Liberador`):
 - palanca verde de 7.2 × 9.6 cm con las dos esquinas del lado de la caja cortadas y la etiqueta luminosa «PUSH»;
 - lengüeta gris hacia el canto, que termina antes del empaque. Todo junto mide ~24 × 15 cm.
 El modelo de «Verla en tu espacio» se volvió a exportar (`python3 scripts/build-ar.py --solo abatible`) y «Por dentro»
-señala el liberador nuevo.
+señala el liberador nuevo. El escáner del Inicio (rayos X de la abatible) se volvió a dibujar con él
+(`python3 scripts/render-escaner.py --solo abatible`).
 
 ## Entrada del Inicio: «el umbral»
 Quien probó el sitio dijo que al bajar todo se volvía azul y había que seguir bajando: la entrada medía 2.5 pantallas
@@ -696,7 +697,10 @@ Quien probó el sitio dijo que al bajar todo se volvía azul y había que seguir
   procesador 4 veces más lento: ~1 ms de JavaScript por cuadro, 60 cuadros por segundo y sin tareas largas.
 - Movimiento reducido o sin JavaScript: la puerta cerrada en la primera pantalla y las tres puertas debajo.
 - Con el teclado, al llegar a las puertas de adentro se cruza la puerta para que se vean.
+- Sin saltos al cargar (CLS 0.0001): desde el primer cuadro la página ya tiene el acomodo final (la clase `js` la pone
+  el `<head>`) y la puerta aparece ya en su lugar, medida con la letra definitiva.
 
 Pruebas: `/home/claude/f14/flow14.py` (33/33: tamaño del liberador, entrada en teléfono y computadora, empujar,
 diez tamaños de pantalla, sin azul marino en ninguna parte de la entrada, movimiento reducido, sin JavaScript, axe).
-Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` y `f12/smoke.py` a la entrada nueva.
+Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos en el termómetro), `f9/duo_pages.py` y
+`f12/smoke.py` a la entrada nueva. Cadena completa (`/home/claude/f14/chain14.sh`, 23 pruebas): todo bien.

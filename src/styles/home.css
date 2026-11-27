@@ -17,15 +17,10 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
    ras de piso, el muro crece hasta que cruzas el vano en una bocanada de vaho y queda la cámara fría, clara, con las
    tres puertas. Sin azul marino ni pantallas vacías; menos de una pantalla de recorrido. */
 .hx { --fb: 132px; --top: 300px; --dw: min(94vw, 58svh); --persp: 900px; --run: 90svh; position: relative; background: var(--c-wall); color: var(--c-ink); }
-.hx--live { height: calc(100svh + var(--run)); }
 .hx__pin { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
-.hx--live .hx__pin { position: sticky; top: 0; }
 
 /* ----- adentro: la cámara fría ----- */
 .hx__in { position: absolute; inset: 0; z-index: 0; display: flex; flex-direction: column; color: var(--c-ink); background: #EEF5F8; transform-origin: 50% 50%; }
-.hx--live:not(.is-set) .hx__in { visibility: hidden; }
-.hx--live .hx__in { will-change: transform; }
-.hx--live .hx__in.is-here { will-change: auto; }
 .hx__room { --fl: 89%; --pj: 26vw; position: absolute; inset: 0; pointer-events: none;
   background:
     radial-gradient(80% 42% at 50% 0%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 72%),
@@ -77,11 +72,12 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 
 /* ----- afuera: muro, piso y puerta ----- */
 .hx__out { position: absolute; inset: 0; z-index: 1; }
-.hx--live .hx__out { will-change: transform; }
 .hx__w { position: absolute; left: 0; top: 0; width: 0; height: 0; display: block; background: radial-gradient(78% 64% at 56% 32%, #FFFFFF 0%, #F8FAFB 46%, #ECF0F3 100%); }
 .hx__floor { background: linear-gradient(180deg, #D9DFE3 0, #E7EBEE 22%, #F1F3F5 100%) !important; }
 .hx__door { position: absolute; left: 0; right: 0; bottom: var(--fb); width: var(--dw); margin-inline: auto; aspect-ratio: var(--ar); touch-action: pan-y; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 .hx:not(.is-ready) .hx__door { background: var(--c-wall); }
+/* con JavaScript la puerta aparece ya en su lugar (se acomoda antes de verse: sin saltos al cargar) */
+.js .hx:not(.is-set) .hx__door, .js .hx:not(.is-set) .hx__w { visibility: hidden; }
 /* sombra de contacto sobre el piso y sombra suave del marco sobre el muro */
 .hx__door::before { content: ""; position: absolute; left: -3%; right: -3%; bottom: -3.4%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(12, 38, 54, .34), rgba(12, 38, 54, 0)); }
 .hx__door::after { content: ""; position: absolute; inset: 0; z-index: -1; box-shadow: 0 24px 60px -28px rgba(12, 38, 54, .45); pointer-events: none; }
@@ -91,7 +87,6 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 /* bajo las hojas (holgura de 2 cm) se ve el piso de adentro, no lo que hay más allá */
 .hx__sill { position: absolute; left: 4.5%; right: 4.5%; top: 97.4%; bottom: 0; background: linear-gradient(180deg, #CFDCE3, #E4EDF1); pointer-events: none; }
 .hx__leaf { position: absolute; overflow: hidden; -webkit-backface-visibility: hidden; backface-visibility: hidden; cursor: grab; }
-.hx--live .hx__leaf { will-change: transform; }
 .hx__leaf--l { transform-origin: 0 50%; }
 .hx__leaf--r { transform-origin: 100% 50%; }
 .hx__leaf img { display: block; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
@@ -103,7 +98,6 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 .hx__frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
 /* el aire frío pesa: sale a ras de piso y se extiende hacia ti */
 .hx__spill { position: absolute; z-index: 2; left: -34%; right: -34%; bottom: -13%; height: 44%; opacity: .16; pointer-events: none; transform-origin: 50% 100%; }
-.hx--live .hx__spill { will-change: transform, opacity; }
 .hx__spill i { position: absolute; inset: 0; background: var(--vaho-banco, none) 50% 100% / 100% 100% no-repeat; }
 .hx__spill i:nth-child(2) { inset: 16% 8% -2% 18%; }
 .hx__spill i:nth-child(3) { inset: 34% 22% -8% 16%; opacity: .8; }
@@ -117,13 +111,11 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 /* ----- el texto, pintado en el muro ----- */
 .hx__copy { position: absolute; inset: 0 0 auto 0; z-index: 3; display: grid; align-content: center; gap: clamp(16px, 2.4vh, 28px); height: 100%; padding-top: var(--nav-h); pointer-events: none; }
 .hx__copy > * { pointer-events: auto; }
-.hx--live .hx__copy { will-change: transform, opacity; }
 .hx h1 { font-size: clamp(2.75rem, 0.9rem + 6.2vw, 7.4rem); line-height: .94; letter-spacing: -0.038em; max-width: 8.4ch; }
 .hx__lead { margin: 0; font-size: var(--t-lg); color: var(--c-ink-soft); max-width: 31ch; }
 .hx__cta { gap: var(--s-3); }
 .hx__cue { position: absolute; z-index: 3; left: var(--pad-x); bottom: 22px; margin: 0; display: grid; justify-items: start; gap: 8px; font-size: var(--t-xs); font-weight: var(--w-medium); color: var(--c-ink-soft); pointer-events: none; }
 .hx__cue::after { content: ""; width: 1px; height: 28px; background: linear-gradient(var(--c-ink-soft), transparent); }
-.hx:not(.hx--live) .hx__cue { display: none; }
 /* horizontal: el título a la izquierda y la puerta a la derecha, de pie sobre el piso */
 @media (min-aspect-ratio: 9/8) and (min-width: 700px) {
   .hx__door { left: auto; right: max(var(--pad-x), 4vw); margin: 0; bottom: 8%; }
@@ -150,11 +142,34 @@ body[data-page="inicio"] .nav { position: fixed; inset: 0 0 auto 0; }
 @keyframes hx-drift { from { transform: translate3d(-3%, 0, 0); } to { transform: translate3d(3%, -3%, 0); } }
 @keyframes hx-drift-m { from { transform: translate3d(3%, 0, 0) scaleX(-1); } to { transform: translate3d(-4%, -4%, 0) scaleX(-1); } }
 @keyframes baja { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+/* Con JavaScript y movimiento, la entrada se alarga y se queda fija mientras abre. Es el acomodo desde el primer
+   cuadro (la clase .js la pone el <head>): así nada brinca cuando llega el JavaScript. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .hx { height: calc(100svh + var(--run)); }
+  .js .hx__pin { position: sticky; top: 0; }
+  .js .hx:not(.is-set) .hx__in { visibility: hidden; }
+  .js .hx__in { will-change: transform; }
+  .js .hx__in.is-here { will-change: auto; }
+  .js .hx__out, .js .hx__leaf { will-change: transform; }
+  .js .hx__spill, .js .hx__copy { will-change: transform, opacity; }
+}
 /* sin movimiento (o sin JavaScript): la puerta cerrada arriba y las tres puertas debajo, una después de otra */
-.hx:not(.hx--live) .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
-.hx:not(.hx--live) .hx__out, .hx:not(.hx--live) .hx__copy { bottom: auto; height: max(100svh, 560px); }
-.hx:not(.hx--live) .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
-@media (min-width: 900px) { .hx:not(.hx--live) .hx__in { min-height: max(100svh, 560px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
+  .hx__out, .hx__copy { bottom: auto; height: max(100svh, 560px); }
+  .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
+  .hx__cue { display: none; }
+}
+html:not(.js) .hx__pin { height: auto; min-height: 0; padding-top: max(100svh, 560px); }
+html:not(.js) .hx__out, html:not(.js) .hx__copy { bottom: auto; height: max(100svh, 560px); }
+html:not(.js) .hx__in { position: relative; inset: auto; padding-bottom: var(--section-y); }
+html:not(.js) .hx__cue { display: none; }
+@media (min-width: 900px) {
+  html:not(.js) .hx__in { min-height: max(100svh, 560px); }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: reduce) {
+  .hx__in { min-height: max(100svh, 560px); }
+}
 
 /* ---------- adentro ---------- */
 .inside { background: var(--c-navy); color: var(--c-on-navy); }

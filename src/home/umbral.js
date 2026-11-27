@@ -202,10 +202,16 @@ export function mountUmbral(section) {
   function kick() { if (!raf) raf = requestAnimationFrame(frame); }
 
   // ---------- arranque ----------
-  layout();
-  addEventListener('resize', () => { clearTimeout(layout.t); layout.t = setTimeout(layout, 80); });
-  if (document.fonts) document.fonts.ready.then(layout);
-  new ResizeObserver(() => layout()).observe(pin);
+  // La puerta se acomoda alrededor del texto: se mide ya con la letra definitiva (Outfit) para no moverla después
+  // (hasta 1 s; sin la letra se acomoda con la de reserva y se vuelve a medir si cambia). Hasta entonces la puerta y el
+  // muro no se ven: aparecen ya en su lugar, sin saltos.
+  let armed = false;
+  const relayout = () => { if (armed) layout(); };
+  addEventListener('resize', () => { clearTimeout(layout.t); layout.t = setTimeout(relayout, 80); });
+  new ResizeObserver(relayout).observe(pin);
+  const fonts = document.fonts ? Promise.all(['400 1em Outfit', '500 1em Outfit', '700 1em Outfit', '800 1em Outfit'].map((f) => document.fonts.load(f).catch(() => {}))) : Promise.resolve();
+  Promise.race([fonts, new Promise((r) => setTimeout(r, 1000))]).then(() => { armed = true; layout(); });
+  if (document.fonts) document.fonts.ready.then(relayout);
   // fuera de pantalla, el vaho deja de moverse (sus animaciones de CSS)
   new IntersectionObserver(([e]) => section.classList.toggle('is-away', !e.isIntersecting), { rootMargin: '10% 0px' }).observe(pin);
   // la puerta «respira» una vez al cargar: la diferencia de presión del cuarto frío empuja las hojas y regresan solas
