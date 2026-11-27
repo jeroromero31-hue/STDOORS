@@ -56,6 +56,11 @@ export function createCDS(stage) {
   const CROMO = { color: 0xe2e6e9, metalness: 1, roughness: 0.09, clearcoat: 0, envMapIntensity: 1.35 };
   const finMats = [M.blackAlu, M.blackAluEdge, M.handle];
   frame.root.traverse((o) => { if (o.isMesh && /Mullion/.test(o.name) && !finMats.includes(o.material)) finMats.push(o.material); });
+  // Kwik Torque (bisagra de abajo) y la tapa de abajo del eje de cada puerta: también van en cromo. Llevan su propia copia
+  // del material de herraje; Kwik Level (arriba) se queda como está.
+  const torque = M.hardware.clone(); torque.name = 'cds-acabado'; finMats.push(torque);
+  frame.parts.bottomHinges.forEach((m) => { m.material = torque; });
+  doors.forEach((d) => d.pivot.traverse((o) => { if (o.isMesh && o.material === M.hardware && o.position.y < 1) o.material = torque; }));
   const finOrig = finMats.map((m) => ({ color: m.color.getHex(), metalness: m.metalness, roughness: m.roughness, roughnessMap: m.roughnessMap, clearcoat: m.clearcoat || 0, envMapIntensity: m.envMapIntensity }));
   let finish = 'negro';
   const setFinish = (id) => {
