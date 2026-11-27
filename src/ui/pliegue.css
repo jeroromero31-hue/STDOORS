@@ -16,10 +16,10 @@ html.plg-open { overflow: hidden; }
 .plg__nom { position: relative; z-index: 2; margin: 0; padding: 0 18px; font-size: var(--t-xl); font-weight: var(--w-heavy); letter-spacing: -0.02em; line-height: 1.1; }
 .plg__lado--fuera .plg__nom { text-align: right; color: var(--c-ink); }
 .plg__lado--dentro .plg__nom { color: #fff; padding-right: 96px; }
-.plg__temp { position: relative; z-index: 2; grid-row: 3; margin: 0 auto; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: baseline; column-gap: 4px; padding: 10px 16px; border-radius: 12px; font-variant-numeric: tabular-nums; }
-.plg__temp span { grid-column: 1 / -1; font-size: var(--t-xs); font-weight: var(--w-bold); letter-spacing: .02em; }
+.plg__temp { position: relative; z-index: 2; grid-row: 3; margin: 0 auto; display: block; text-align: center; white-space: nowrap; padding: 10px 16px; border-radius: 12px; font-variant-numeric: tabular-nums; }
+.plg__temp span { display: block; margin-bottom: 2px; font-size: var(--t-xs); font-weight: var(--w-bold); letter-spacing: .02em; }
 .plg__temp b { font-size: clamp(2rem, 1rem + 4vw, 3.2rem); font-weight: var(--w-heavy); line-height: 1; letter-spacing: -0.03em; }
-.plg__temp small { font-size: var(--t-sm); font-weight: var(--w-bold); }
+.plg__temp small { margin-left: 3px; font-size: var(--t-sm); font-weight: var(--w-bold); }
 .plg__lado--fuera .plg__temp span { color: var(--c-ink-soft); }
 .plg__lado--dentro .plg__temp { background: #0b0d0f; box-shadow: inset 0 0 0 2px #23272b, 0 10px 30px rgba(0, 0, 0, .35); color: #ff3b2f; text-shadow: 0 0 12px rgba(255, 59, 47, .55); }
 .plg__lado--dentro .plg__temp span { color: rgba(255, 255, 255, .72); text-shadow: none; }
@@ -81,12 +81,12 @@ html.plg-open { overflow: hidden; }
 /* adentro las hojas vienen hacia ti: pasan por delante del marco */
 .plg__lado--dentro .plg__leaf { z-index: 4; }
 /* teléfono abierto de lado (pantalla baja): todo más compacto para que quepa */
-@media (max-height: 640px) {
+@media (max-height: 760px) {
   .plg__lado { row-gap: 8px; padding-top: 12px; padding-bottom: 12px; }
   .plg__nom { font-size: var(--t-lg); }
   .plg__temp { padding: 6px 12px; }
   .plg__temp b { font-size: 1.7rem; }
-  .plg__escena { width: min(84%, 40vh); margin-bottom: 2%; }
+  .plg__escena { width: min(84%, 50vh); margin-bottom: 2%; }
   .plg__acc { min-height: 48px; }
   .plg__hint { font-size: var(--t-xs); }
   .plg__lema { font-size: 1.35rem; }

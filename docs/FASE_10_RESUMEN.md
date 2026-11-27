@@ -776,3 +776,7 @@ Se adaptaron `f10/home.py`, `f10/hero_sizes.py`, `f11/flow11b.py` (9 capítulos 
   escarcha cruza el pliegue y las dos temperaturas se mueven. La vaivén regresa sola y el frío vuelve a su lado. La frase
   «El frío se queda | de su lado.» queda partida por el pliegue. Con el giroscopio, las dos escenas se mueven con el
   teléfono (en iPhone pide permiso al tocar el botón). Esc o «Salir» lo cierra.
+- **Cómo se reconoce el plegable (14D):** el iPhone Duo abierto se presenta en Safari como iPad, así que se reconoce por
+  su pantalla interior (1148 × 807 puntos, de las capturas del propietario). También cuenta si el sitio ya vio plegarse el
+  teléfono (la pantalla cambia de tamaño sin girar; se recuerda) o si se abre con `?plegable=1` (`?plegable=0` lo quita y
+  `?plegable=info` muestra las medidas de la pantalla). Las tabletas (iPad Air 1180 × 820, iPad mini 1133 × 744) no entran.

@@ -114,9 +114,26 @@ function fastNav() {
 // Además, con el teléfono abierto, las páginas de cada puerta se leen «como libro»: el texto en la mitad izquierda y la
 // puerta en la derecha, con el pliegue en medio (html.is-libro; src/styles/door.css y src/ui/doorPage.js).
 const isPhoneUA = () => /iPhone|Android.+Mobile/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-// pantalla interior de un plegable: un teléfono con el lado corto de 580 px o más (ningún teléfono sin pliegue llega) y el
-// largo de 1000 o menos (los iPad empiezan en 1133)
-export const foldOpen = () => { const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height); return isPhoneUA() && matchMedia('(pointer: coarse)').matches && a >= 580 && b <= 1000; };
+// Fase 14D · cómo se sabe que es un plegable abierto (cualquiera basta, siempre con pantalla táctil):
+//  · el iPhone Duo abierto: su pantalla interior mide 1148 × 807 puntos (de las capturas del propietario; Safari se
+//    presenta ahí como en iPad, así que no se puede saber por el navegador)
+//  · el sitio ya vio plegarse este teléfono (la pantalla cambió de tamaño sin girar) y ahora está en la pantalla grande
+//  · ?plegable=1 en la dirección lo activa en este teléfono (?plegable=0 lo quita; ?plegable=info muestra las medidas)
+//  · Android o iPhone con el lado corto de 580 px o más y el largo de 1000 o menos (Galaxy Fold, Pixel Fold)
+const FOLD_SCREENS = [[1148, 807]];
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } };
+{
+  const q = new URLSearchParams(location.search).get('plegable');
+  if (q === '1') lsSet('st.plegable', '1'); else if (q === '0') lsSet('st.plegable', null);
+}
+export const foldOpen = () => {
+  const a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height);
+  const touch = navigator.maxTouchPoints > 0 && matchMedia('(pointer: coarse)').matches; if (!touch) return false;
+  if (FOLD_SCREENS.some(([x, y]) => Math.abs(b - x) <= 16 && Math.abs(a - y) <= 16)) return true;
+  if (lsGet('st.plegable') === '1' && a >= 560) return true;
+  return isPhoneUA() && a >= 580 && b <= 1000;
+};
 function foldFx(caption) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   let fx = document.querySelector('.foldfx');
@@ -159,6 +176,7 @@ function foldWatch() {
     if (on !== document.documentElement.classList.contains('is-libro')) { document.documentElement.classList.toggle('is-libro', on); dispatchEvent(new CustomEvent('st:libro', { detail: on })); }
   };
   libro();
+  if (new URLSearchParams(location.search).get('plegable') === 'info') setTimeout(() => { const d = document.createElement('p'); d.className = 'toast is-on'; d.style.cssText = 'max-width:90vw;white-space:normal'; d.setAttribute('role', 'status'); d.textContent = `Pantalla ${screen.width} × ${screen.height} · ventana ${innerWidth} × ${innerHeight} · ×${devicePixelRatio} · táctil ${navigator.maxTouchPoints} · ${foldOpen() ? 'plegable abierto' : 'no detectado'}`; document.body.append(d); setTimeout(() => d.remove(), 20000); }, 800);
   // la primera vez en la visita con el teléfono abierto: la puerta se abre al llegar
   if (foldOpen()) { let seen = false; try { seen = sessionStorage.getItem('st.libro') === '1'; sessionStorage.setItem('st.libro', '1'); } catch { /* sin almacenamiento */ } if (!seen) setTimeout(() => foldFx('Se abre como tu teléfono'), 350); }
   addEventListener('resize', () => {
@@ -169,6 +187,8 @@ function foldWatch() {
     const rotated = o.split('-')[0] !== lastO.split('-')[0];
     const zoomed = window.visualViewport && Math.abs(visualViewport.scale - 1) > 0.05;
     const opened = s[0] * s[1] > lastS[0] * lastS[1];
+    // la pantalla misma cambió de tamaño sin girar: es un plegable; se recuerda en este teléfono
+    if (screenJump >= 0.22 && !rotated && navigator.maxTouchPoints > 0) { lsSet('st.plegable', '1'); libro(); }
     lastW = w; lastS = s; lastO = o;
     if (jump < 0.22 || screenJump < 0.22 || rotated || zoomed || performance.now() - t0 < 1200 || document.hidden) return;
     foldFx(opened ? 'Se abre como tu teléfono' : '');
