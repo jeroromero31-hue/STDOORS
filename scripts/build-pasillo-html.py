@@ -8,11 +8,12 @@ import json, os, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = json.load(open(os.path.join(ROOT, 'src', 'data', 'pasillo.json')))['puertas']
 
-# texto de cada puerta; la temperatura es de ejemplo (el cuarto que cierra cada una)
+# texto de cada puerta; la temperatura es de ejemplo (el cuarto que cierra cada una). El enlace abre la página con el
+# mismo acabado que se ve en el pasillo (inoxidable en la abatible y la vaivén)
 PUERTAS = [
-    ('abatible', 'Abatible', 'Gira sobre bisagras. Cámaras de refrigeración y congelación.', 'Congelación', -18, '/industriales/abatible/', 'Ábrela en 3D'),
+    ('abatible', 'Abatible', 'Gira sobre bisagras. Cámaras de refrigeración y congelación.', 'Congelación', -18, '/industriales/abatible/?acabado=stainless', 'Ábrela en 3D'),
     ('corrediza', 'Corrediza', 'Corre colgada de un riel. Vanos anchos y paso de montacargas.', 'Refrigeración', 2, '/industriales/corrediza/', 'Ábrela en 3D'),
-    ('vaiven', 'Vaivén', 'Abre hacia los dos lados y regresa sola. Cocinas y pasillos.', 'Preparación', 10, '/industriales/vaiven/', 'Ábrela en 3D'),
+    ('vaiven', 'Vaivén', 'Abre hacia los dos lados y regresa sola. Cocinas y pasillos.', 'Preparación', 10, '/industriales/vaiven/?acabado=stainless', 'Ábrela en 3D'),
     ('cds', 'CDS Legacy', 'Exhibición Reach-In en juego de tres. Se quedan abiertas a 90°.', 'Bebidas', 3, '/cds/', 'Ábrelas en 3D'),
 ]
 # orden de las capas (de atrás hacia adelante) y qué se mueve
